@@ -1,0 +1,6 @@
+{
+  "name": "Tech Knife",
+  "description": "Tech Knife - Global IT services, software solutions, and enterprise platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

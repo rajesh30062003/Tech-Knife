@@ -1,0 +1,16 @@
+{
+  "short_name": "Tech Knife",
+  "name": "Tech Knife - Enterprise IT & Software Platform",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><rect width='200' height='200' rx='40' fill='%230f172a'/><path d='M55,35 L115,25 L75,135 L55,140 Z' fill='%232563eb'/><path d='M115,25 L110,65 L85,75 L105,100 L75,175 Z' fill='%2338bdf8'/></svg>",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -1,0 +1,36 @@
+# Development Environment Profile
+server:
+  port: ${PORT:8080}
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb+srv://dev_user:dev_password@dev-cluster.mongodb.net/tkems_dev_db?retryWrites=true&w=majority}
+      database: ${MONGODB_DATABASE:tkems_dev_db}
+      auto-index-creation: true
+      min-pool-size: 5
+      max-pool-size: 50
+      max-idle-time-ms: 600000
+      connect-timeout-ms: 10000
+      socket-timeout-ms: 30000
+      server-selection-timeout-ms: 30000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.techknife: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    org.mongodb.driver: INFO

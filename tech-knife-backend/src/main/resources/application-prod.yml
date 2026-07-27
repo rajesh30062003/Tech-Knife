@@ -1,0 +1,69 @@
+# Production Environment Profile
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  max-http-request-header-size: 16KB
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,application/xml
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: never
+    include-stacktrace: never
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE}
+      auto-index-creation: false
+      min-pool-size: 20
+      max-pool-size: 150
+      max-idle-time-ms: 300000
+      connect-timeout-ms: 5000
+      socket-timeout-ms: 15000
+      server-selection-timeout-ms: 10000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,beans,caches,env,mappings,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+    prometheus:
+      enabled: true
+  metrics:
+    enable:
+      jvm: true
+      process: true
+      system: true
+      http: true
+      mongo: true
+      disk: true
+      cpu: true
+      memory: true
+      thread: true
+    export:
+      prometheus:
+        enabled: true
+
+logging:
+  request:
+    enabled: true
+    slow-threshold-ms: 500
+    include-query-params: true
+    include-response-size: true
+  level:
+    root: WARN
+    com.techknife: INFO
+    org.springframework.data.mongodb: WARN
+    org.mongodb.driver: ERROR

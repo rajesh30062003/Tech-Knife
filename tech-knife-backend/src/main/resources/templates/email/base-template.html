@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${subject ?: 'Tech Knife Enterprise Notification'}">Tech Knife Enterprise</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f9;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #1f2937;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+        }
+        .header {
+            background-color: #0f172a;
+            padding: 32px;
+            text-align: center;
+        }
+        .logo-box {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 20px;
+            padding: 10px 18px;
+            border-radius: 8px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .company-title {
+            color: #f8fafc;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+        }
+        .content {
+            padding: 36px 32px;
+            line-height: 1.6;
+            color: #334155;
+            font-size: 15px;
+        }
+        .content h1, .content h2, .content h3 {
+            color: #0f172a;
+            margin-top: 0;
+        }
+        .button-link {
+            display: inline-block;
+            background-color: #2563eb;
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #f8fafc;
+            padding: 24px 32px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .footer a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-box">Tech Knife</div>
+            <div class="company-title" th:text="${companyName ?: 'Tech Knife Enterprise Platform'}">Tech Knife Enterprise Platform</div>
+        </div>
+
+        <!-- Dynamic Content Section -->
+        <div class="content">
+            <div th:if="${greeting != null}">
+                <p>Hello <strong th:text="${greeting}">User</strong>,</p>
+            </div>
+            
+            <div th:utext="${content ?: 'This is an automated system notification from Tech Knife Enterprise Platform.'}">
+                This is default content placeholder.
+            </div>
+
+            <div th:if="${actionUrl != null}">
+                <p style="text-align: center; margin-top: 28px;">
+                    <a th:href="${actionUrl}" class="button-link" th:text="${actionText ?: 'View Details'}">View Details</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2026</span> Tech Knife Enterprise. All rights reserved.</p>
+            <p>Confidential system notice sent to <span th:text="${recipientEmail ?: 'registered user'}">user</span>. Please do not reply directly to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

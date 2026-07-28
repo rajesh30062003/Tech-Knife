@@ -22,7 +22,8 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI}
-      database: ${MONGODB_DATABASE}
+      database: ${MONGODB_DATABASE:techknife}
+
       auto-index-creation: false
       min-pool-size: 20
       max-pool-size: 150

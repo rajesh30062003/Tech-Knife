@@ -39,8 +39,9 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     @Value("${spring.data.mongodb.uri}")
     private String mongoUri;
 
-    @Value("${spring.data.mongodb.database:tkems_db}")
+    @Value("${spring.data.mongodb.database:techknife}")
     private String databaseName;
+
 
     @Value("${spring.data.mongodb.min-pool-size:10}")
     private int minPoolSize;

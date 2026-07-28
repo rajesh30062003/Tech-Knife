@@ -9,8 +9,9 @@ spring:
 
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://dev_user:dev_password@dev-cluster.mongodb.net/tkems_dev_db?retryWrites=true&w=majority}
-      database: ${MONGODB_DATABASE:tkems_dev_db}
+      uri: ${MONGODB_URI:mongodb+srv://techknife01_db_user:cgTVT9DFas3hoG3n@techknife.yotus1r.mongodb.net/techknife?retryWrites=true&w=majority&appName=TechKnife}
+      database: ${MONGODB_DATABASE:techknife}
+
       auto-index-creation: true
       min-pool-size: 5
       max-pool-size: 50

@@ -32,7 +32,7 @@ public class FollowUpController {
     @Operation(summary = "Get all follow-ups")
     public ResponseEntity<ApiResponse<List<FollowUpDTO>>> getAllFollowUps(@RequestParam(required = false) String status) {
         List<FollowUpDTO> result = followUpService.getAllFollowUps(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched follow-ups successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched follow-ups successfully"));
     }
 
     @GetMapping("/entity")
@@ -42,7 +42,7 @@ public class FollowUpController {
             @RequestParam String entityType,
             @RequestParam String entityId) {
         List<FollowUpDTO> result = followUpService.getFollowUpsByEntity(entityType, entityId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched entity follow-ups successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched entity follow-ups successfully"));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +50,7 @@ public class FollowUpController {
     @Operation(summary = "Get follow-up by ID")
     public ResponseEntity<ApiResponse<FollowUpDTO>> getFollowUpById(@PathVariable String id) {
         FollowUpDTO result = followUpService.getFollowUpById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched follow-up successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched follow-up successfully"));
     }
 
     @PostMapping
@@ -60,7 +60,7 @@ public class FollowUpController {
     public ResponseEntity<ApiResponse<FollowUpDTO>> createFollowUp(@Valid @RequestBody FollowUpDTO dto) {
         FollowUpDTO result = followUpService.createFollowUp(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created follow-up successfully", result));
+                .body(ApiResponse.success(result, "Created follow-up successfully"));
     }
 
     @PutMapping("/{id}")
@@ -71,7 +71,7 @@ public class FollowUpController {
             @PathVariable String id,
             @Valid @RequestBody FollowUpDTO dto) {
         FollowUpDTO result = followUpService.updateFollowUp(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated follow-up successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated follow-up successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -80,6 +80,7 @@ public class FollowUpController {
     @Operation(summary = "Delete follow-up")
     public ResponseEntity<ApiResponse<Void>> deleteFollowUp(@PathVariable String id) {
         followUpService.deleteFollowUp(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted follow-up successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted follow-up successfully"));
     }
+
 }

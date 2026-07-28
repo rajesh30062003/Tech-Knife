@@ -28,6 +28,7 @@ public class CrmSearchController {
     @Operation(summary = "Search across CRM Leads, Customers, Opportunities, Quotations, Proposals, and Contracts")
     public ResponseEntity<ApiResponse<CrmSearchDTO>> search(@RequestParam String query) {
         CrmSearchDTO result = crmSearchService.search(query);
-        return ResponseEntity.ok(ApiResponse.success("Search results retrieved successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Search results retrieved successfully"));
     }
+
 }

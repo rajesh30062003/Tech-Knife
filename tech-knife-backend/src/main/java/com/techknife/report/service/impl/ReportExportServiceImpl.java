@@ -72,8 +72,9 @@ public class ReportExportServiceImpl implements ReportExportService {
             // Upload content to Cloudinary if available or generate pseudo URL
             String fileUrl = "https://res.cloudinary.com/techknife/raw/upload/reports/" + job.getId() + "." + job.getFormat().name().toLowerCase();
             try {
-                fileUrl = cloudinaryStorageService.uploadBytes(content, "reports/" + job.getId(), job.getFormat().name().toLowerCase());
+                fileUrl = cloudinaryStorageService.uploadBytes(content, "reports/" + job.getId(), job.getFormat().name().toLowerCase()).getSecureUrl();
             } catch (Exception e) {
+
                 // fallback if Cloudinary is not configured in local environment
             }
 

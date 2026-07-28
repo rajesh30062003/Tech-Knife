@@ -39,8 +39,16 @@ class EmployeeServiceTest {
     @Mock
     private EmployeeRepository employeeRepository;
 
+    @Mock
+    private com.techknife.employee.repository.EmployeeTimelineRepository timelineRepository;
+
+    @Mock
+    private org.springframework.context.ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private EmployeeServiceImpl employeeService;
+
+
 
     private Employee sampleEmployee;
     private CreateEmployeeRequest createRequest;
@@ -56,7 +64,7 @@ class EmployeeServiceTest {
                 .lastName("Connor")
                 .departmentId("Engineering & DevOps")
                 .designationId("Chief Technology Officer")
-                .salary(210000.0)
+                .salary(java.math.BigDecimal.valueOf(210000.0))
                 .status(EmployeeStatus.ACTIVE)
                 .build();
 
@@ -68,14 +76,15 @@ class EmployeeServiceTest {
         createRequest.setPrimaryMobile("+1 (555) 018-9921");
         createRequest.setDepartmentId("Engineering & DevOps");
         createRequest.setDesignationId("Chief Technology Officer");
-        createRequest.setJoiningDate("2021-06-01");
-        createRequest.setSalary(210000.0);
+        createRequest.setJoiningDate(java.time.LocalDate.parse("2021-06-01"));
+        createRequest.setSalary(java.math.BigDecimal.valueOf(210000.0));
 
         updateRequest = new UpdateEmployeeRequest();
         updateRequest.setFirstName("Sarah");
         updateRequest.setLastName("Connor-Tech");
-        updateRequest.setSalary(225000.0);
+        updateRequest.setSalary(java.math.BigDecimal.valueOf(225000.0));
     }
+
 
     @Test
     @DisplayName("Should successfully onboard a new employee")

@@ -12,7 +12,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ReportingHierarchyResponse {
+    private String id;
     private String employeeId;
+
     private String fullName;
     private String designationId;
     private String departmentId;

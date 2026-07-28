@@ -27,7 +27,7 @@ public class RecruitmentPipelineController {
     @Operation(summary = "Get candidate pipeline breakdown for a specific job posting")
     public ResponseEntity<ApiResponse<RecruitmentPipelineDTO>> getPipelineForJobPosting(@PathVariable String jobPostingId) {
         RecruitmentPipelineDTO dto = pipelineService.getPipelineForJobPosting(jobPostingId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched job recruitment pipeline successfully", dto));
+        return ResponseEntity.ok(ApiResponse.success(dto, "Fetched job recruitment pipeline successfully"));
     }
 
     @GetMapping("/metrics")
@@ -35,6 +35,7 @@ public class RecruitmentPipelineController {
     @Operation(summary = "Get overall recruitment metrics and stage breakdown")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getOverallRecruitmentMetrics() {
         Map<String, Object> metrics = pipelineService.getOverallRecruitmentMetrics();
-        return ResponseEntity.ok(ApiResponse.success("Fetched overall recruitment metrics successfully", metrics));
+        return ResponseEntity.ok(ApiResponse.success(metrics, "Fetched overall recruitment metrics successfully"));
     }
+
 }

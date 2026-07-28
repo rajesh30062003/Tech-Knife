@@ -13,7 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
 
+    @org.springframework.beans.factory.annotation.Qualifier("backendUserRepository")
     private final UserRepository userRepository;
+
 
     @Override
     @Transactional(readOnly = true)

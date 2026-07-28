@@ -34,7 +34,7 @@ public class CommunicationLogController {
             @RequestParam String entityType,
             @RequestParam String entityId) {
         List<CommunicationLogDTO> result = communicationLogService.getLogsByEntity(entityType, entityId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched communication logs successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched communication logs successfully"));
     }
 
     @PostMapping
@@ -44,7 +44,7 @@ public class CommunicationLogController {
     public ResponseEntity<ApiResponse<CommunicationLogDTO>> createLog(@Valid @RequestBody CommunicationLogDTO dto) {
         CommunicationLogDTO result = communicationLogService.createLog(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created communication log successfully", result));
+                .body(ApiResponse.success(result, "Created communication log successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -53,6 +53,7 @@ public class CommunicationLogController {
     @Operation(summary = "Delete communication log")
     public ResponseEntity<ApiResponse<Void>> deleteLog(@PathVariable String id) {
         communicationLogService.deleteLog(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted communication log successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted communication log successfully"));
     }
+
 }

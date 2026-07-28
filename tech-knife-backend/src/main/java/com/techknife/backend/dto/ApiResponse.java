@@ -32,6 +32,10 @@ public class ApiResponse<T> {
                 .build();
     }
 
+    public static <T> ApiResponse<T> success(String message) {
+        return success((T) null, message);
+    }
+
     public static <T> ApiResponse<T> success(T data) {
         return success(data, "Operation completed successfully");
     }

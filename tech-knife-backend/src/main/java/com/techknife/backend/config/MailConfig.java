@@ -8,8 +8,9 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import java.util.Properties;
 
-@Configuration
+@Configuration("backendMailConfig")
 public class MailConfig {
+
 
     @Value("${spring.mail.host:smtp.gmail.com}")
     private String host;

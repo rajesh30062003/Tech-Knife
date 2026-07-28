@@ -34,28 +34,28 @@ public class KnowledgeBaseController {
             @RequestParam(required = false) Boolean popular,
             @RequestParam(required = false) String query) {
         List<KnowledgeArticleDTO> result = knowledgeBaseService.getArticles(categoryId, popular, query);
-        return ResponseEntity.ok(ApiResponse.success("Fetched articles successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched articles successfully"));
     }
 
     @GetMapping("/articles/{slug}")
     @Operation(summary = "Get Knowledge Base Article by Slug")
     public ResponseEntity<ApiResponse<KnowledgeArticleDTO>> getArticleBySlug(@PathVariable String slug) {
         KnowledgeArticleDTO result = knowledgeBaseService.getArticleBySlug(slug);
-        return ResponseEntity.ok(ApiResponse.success("Fetched article details successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched article details successfully"));
     }
 
     @GetMapping("/categories")
     @Operation(summary = "Get Knowledge Base Categories")
     public ResponseEntity<ApiResponse<List<KnowledgeCategoryDTO>>> getCategories() {
         List<KnowledgeCategoryDTO> result = knowledgeBaseService.getCategories();
-        return ResponseEntity.ok(ApiResponse.success("Fetched categories successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched categories successfully"));
     }
 
     @PostMapping("/articles/{id}/helpful")
     @Operation(summary = "Mark Article as Helpful")
     public ResponseEntity<ApiResponse<KnowledgeArticleDTO>> markHelpful(@PathVariable String id) {
         KnowledgeArticleDTO result = knowledgeBaseService.markHelpful(id);
-        return ResponseEntity.ok(ApiResponse.success("Marked article as helpful", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Marked article as helpful"));
     }
 
     @PostMapping("/articles")
@@ -66,7 +66,7 @@ public class KnowledgeBaseController {
     public ResponseEntity<ApiResponse<KnowledgeArticleDTO>> createArticle(@Valid @RequestBody KnowledgeArticleDTO dto) {
         KnowledgeArticleDTO result = knowledgeBaseService.createArticle(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created article successfully", result));
+                .body(ApiResponse.success(result, "Created article successfully"));
     }
 
     @PostMapping("/categories")
@@ -77,6 +77,7 @@ public class KnowledgeBaseController {
     public ResponseEntity<ApiResponse<KnowledgeCategoryDTO>> createCategory(@Valid @RequestBody KnowledgeCategoryDTO dto) {
         KnowledgeCategoryDTO result = knowledgeBaseService.createCategory(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created category successfully", result));
+                .body(ApiResponse.success(result, "Created category successfully"));
     }
+
 }

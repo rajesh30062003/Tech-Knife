@@ -23,12 +23,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-@Configuration
+@Configuration("backendSecurityConfig")
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
 @Import({PasswordConfig.class, CorsConfig.class})
 public class SecurityConfig {
+
 
     private final CustomUserDetailsService customUserDetailsService;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;

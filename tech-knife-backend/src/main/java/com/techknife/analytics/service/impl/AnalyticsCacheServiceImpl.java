@@ -38,17 +38,12 @@ public class AnalyticsCacheServiceImpl implements AnalyticsCacheService {
     @Override
     public <T> T getCachedData(String cacheKey, Class<T> clazz) {
         try {
-            return cacheRepository.findById(cacheKey)
-                    .filter(cache -> cache.getExpiresAt() != null && cache.getExpiresAt().isAfter(Instant.now()))
-                    .map(cache -> {
-                        try {
-                            return objectMapper.readValue(cache.getPayloadJson(), clazz);
-                        } catch (Exception e) {
-                            log.error("Failed to deserialize cached analytics data for key: {}", cacheKey, e);
-                            return null;
-                        }
-                    })
-                    .orElse(null);
+            java.util.Optional<AnalyticsCache> optionalCache = cacheRepository.findById(cacheKey)
+                    .filter(cache -> cache.getExpiresAt() != null && cache.getExpiresAt().isAfter(Instant.now()));
+            if (optionalCache.isPresent()) {
+                return objectMapper.readValue(optionalCache.get().getPayloadJson(), clazz);
+            }
+            return null;
         } catch (Exception e) {
             log.error("Error retrieving cached analytics data for key: {}", cacheKey, e);
             return null;

@@ -43,6 +43,13 @@ public class RefreshToken {
 
     private String device;
 
+    private String deviceInfo;
+
+    public String getDeviceInfo() {
+        return this.deviceInfo != null ? this.deviceInfo : this.device;
+    }
+
+
     private String ipAddress;
 
     @CreatedDate

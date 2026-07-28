@@ -34,7 +34,7 @@ public class QuotationController {
     @Operation(summary = "Get all quotations")
     public ResponseEntity<ApiResponse<List<QuotationDTO>>> getAllQuotations(@RequestParam(required = false) String status) {
         List<QuotationDTO> result = quotationService.getAllQuotations(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched quotations successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched quotations successfully"));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +42,7 @@ public class QuotationController {
     @Operation(summary = "Get quotation by ID")
     public ResponseEntity<ApiResponse<QuotationDTO>> getQuotationById(@PathVariable String id) {
         QuotationDTO result = quotationService.getQuotationById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched quotation successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched quotation successfully"));
     }
 
     @PostMapping
@@ -52,7 +52,7 @@ public class QuotationController {
     public ResponseEntity<ApiResponse<QuotationDTO>> createQuotation(@Valid @RequestBody QuotationDTO dto) {
         QuotationDTO result = quotationService.createQuotation(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created quotation successfully", result));
+                .body(ApiResponse.success(result, "Created quotation successfully"));
     }
 
     @PostMapping(value = "/{id}/document", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -63,7 +63,7 @@ public class QuotationController {
             @PathVariable String id,
             @RequestParam("file") MultipartFile file) {
         QuotationDTO result = quotationService.uploadQuotationDocument(id, file);
-        return ResponseEntity.ok(ApiResponse.success("Uploaded quotation document successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Uploaded quotation document successfully"));
     }
 
     @PatchMapping("/{id}/approval")
@@ -75,7 +75,7 @@ public class QuotationController {
             @RequestParam String status,
             @RequestParam(required = false) String approvedBy) {
         QuotationDTO result = quotationService.updateApprovalStatus(id, status, approvedBy);
-        return ResponseEntity.ok(ApiResponse.success("Updated quotation approval status successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated quotation approval status successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -84,6 +84,7 @@ public class QuotationController {
     @Operation(summary = "Delete quotation")
     public ResponseEntity<ApiResponse<Void>> deleteQuotation(@PathVariable String id) {
         quotationService.deleteQuotation(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted quotation successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted quotation successfully"));
     }
+
 }

@@ -32,6 +32,6 @@ public class CustomerSearchController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam String query) {
         CustomerSearchDTO result = customerSearchService.search(userPrincipal.getId(), query);
-        return ResponseEntity.ok(ApiResponse.success("Search completed successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Search completed successfully"));
     }
 }

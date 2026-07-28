@@ -34,7 +34,7 @@ public class OpportunityController {
             @RequestParam(required = false) String stage,
             @RequestParam(required = false) String status) {
         List<OpportunityDTO> result = opportunityService.getAllOpportunities(stage, status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched opportunities successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched opportunities successfully"));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +42,7 @@ public class OpportunityController {
     @Operation(summary = "Get opportunity by ID")
     public ResponseEntity<ApiResponse<OpportunityDTO>> getOpportunityById(@PathVariable String id) {
         OpportunityDTO result = opportunityService.getOpportunityById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched opportunity successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched opportunity successfully"));
     }
 
     @PostMapping
@@ -52,7 +52,7 @@ public class OpportunityController {
     public ResponseEntity<ApiResponse<OpportunityDTO>> createOpportunity(@Valid @RequestBody OpportunityDTO dto) {
         OpportunityDTO result = opportunityService.createOpportunity(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created opportunity successfully", result));
+                .body(ApiResponse.success(result, "Created opportunity successfully"));
     }
 
     @PutMapping("/{id}")
@@ -63,7 +63,7 @@ public class OpportunityController {
             @PathVariable String id,
             @Valid @RequestBody OpportunityDTO dto) {
         OpportunityDTO result = opportunityService.updateOpportunity(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated opportunity successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated opportunity successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -72,6 +72,7 @@ public class OpportunityController {
     @Operation(summary = "Delete opportunity")
     public ResponseEntity<ApiResponse<Void>> deleteOpportunity(@PathVariable String id) {
         opportunityService.deleteOpportunity(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted opportunity successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted opportunity successfully"));
     }
+
 }

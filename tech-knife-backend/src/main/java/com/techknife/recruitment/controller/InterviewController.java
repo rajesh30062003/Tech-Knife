@@ -37,7 +37,7 @@ public class InterviewController {
             @RequestParam(required = false) String jobPostingId,
             @RequestParam(required = false) String result) {
         List<InterviewDTO> list = interviewService.getAllInterviews(applicationId, candidateId, jobPostingId, result);
-        return ResponseEntity.ok(ApiResponse.success("Fetched interviews successfully", list));
+        return ResponseEntity.ok(ApiResponse.success(list, "Fetched interviews successfully"));
     }
 
     @GetMapping("/{id}")
@@ -45,7 +45,7 @@ public class InterviewController {
     @Operation(summary = "Get interview details by ID")
     public ResponseEntity<ApiResponse<InterviewDTO>> getInterviewById(@PathVariable String id) {
         InterviewDTO dto = interviewService.getInterviewById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched interview details successfully", dto));
+        return ResponseEntity.ok(ApiResponse.success(dto, "Fetched interview details successfully"));
     }
 
     @PostMapping("/schedule")
@@ -55,7 +55,7 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<InterviewDTO>> scheduleInterview(@Valid @RequestBody InterviewDTO dto) {
         InterviewDTO result = interviewService.scheduleInterview(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Scheduled interview successfully", result));
+                .body(ApiResponse.success(result, "Scheduled interview successfully"));
     }
 
     @PutMapping("/{id}")
@@ -66,7 +66,7 @@ public class InterviewController {
             @PathVariable String id,
             @Valid @RequestBody InterviewDTO dto) {
         InterviewDTO result = interviewService.updateInterview(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Interview updated successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Interview updated successfully"));
     }
 
     @PostMapping("/feedback")
@@ -76,7 +76,7 @@ public class InterviewController {
     public ResponseEntity<ApiResponse<InterviewFeedbackDTO>> submitFeedback(@Valid @RequestBody InterviewFeedbackDTO dto) {
         InterviewFeedbackDTO result = interviewService.submitFeedback(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Interview feedback submitted successfully", result));
+                .body(ApiResponse.success(result, "Interview feedback submitted successfully"));
     }
 
     @GetMapping("/{id}/feedback")
@@ -84,6 +84,7 @@ public class InterviewController {
     @Operation(summary = "Get feedback entries for an interview")
     public ResponseEntity<ApiResponse<List<InterviewFeedbackDTO>>> getFeedbacksByInterview(@PathVariable String id) {
         List<InterviewFeedbackDTO> list = interviewService.getFeedbacksByInterview(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched interview feedback successfully", list));
+        return ResponseEntity.ok(ApiResponse.success(list, "Fetched interview feedback successfully"));
     }
+
 }

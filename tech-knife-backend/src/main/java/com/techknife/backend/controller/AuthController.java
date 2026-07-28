@@ -95,7 +95,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(response, "Authenticated user profile fetched successfully"));
     }
 
-    @PATCH("/profile-picture")
+    @PatchMapping("/profile-picture")
     @Operation(summary = "Update profile avatar URL for authenticated user")
     public ResponseEntity<ApiResponse<UserResponse>> updateProfilePicture(
             @AuthenticationPrincipal UserPrincipal currentUser,

@@ -35,7 +35,7 @@ public class EmployeeOnboardingController {
     public ResponseEntity<ApiResponse<List<EmployeeOnboardingDTO>>> getAllOnboardings(
             @RequestParam(required = false) String onboardingStatus) {
         List<EmployeeOnboardingDTO> list = onboardingService.getAllOnboardings(onboardingStatus);
-        return ResponseEntity.ok(ApiResponse.success("Fetched onboarding records successfully", list));
+        return ResponseEntity.ok(ApiResponse.success(list, "Fetched onboarding records successfully"));
     }
 
     @GetMapping("/{id}")
@@ -43,7 +43,7 @@ public class EmployeeOnboardingController {
     @Operation(summary = "Get onboarding record by ID")
     public ResponseEntity<ApiResponse<EmployeeOnboardingDTO>> getOnboardingById(@PathVariable String id) {
         EmployeeOnboardingDTO dto = onboardingService.getOnboardingById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched onboarding details successfully", dto));
+        return ResponseEntity.ok(ApiResponse.success(dto, "Fetched onboarding details successfully"));
     }
 
     @PostMapping("/initiate")
@@ -53,7 +53,7 @@ public class EmployeeOnboardingController {
     public ResponseEntity<ApiResponse<EmployeeOnboardingDTO>> initiateOnboarding(@Valid @RequestBody EmployeeOnboardingDTO dto) {
         EmployeeOnboardingDTO result = onboardingService.initiateOnboarding(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Initiated onboarding workflow successfully", result));
+                .body(ApiResponse.success(result, "Initiated onboarding workflow successfully"));
     }
 
     @PostMapping(value = "/{id}/documents", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -64,7 +64,7 @@ public class EmployeeOnboardingController {
             @RequestParam("file") MultipartFile file,
             @RequestParam(defaultValue = "ID_PROOF") String documentType) {
         EmployeeOnboardingDTO result = onboardingService.uploadOnboardingDocument(id, file, documentType);
-        return ResponseEntity.ok(ApiResponse.success("Document uploaded successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Document uploaded successfully"));
     }
 
     @PatchMapping("/{id}/verification")
@@ -75,7 +75,7 @@ public class EmployeeOnboardingController {
             @PathVariable String id,
             @RequestParam String verificationStatus) {
         EmployeeOnboardingDTO result = onboardingService.updateVerificationStatus(id, verificationStatus);
-        return ResponseEntity.ok(ApiResponse.success("Verification status updated successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Verification status updated successfully"));
     }
 
     @PostMapping("/{id}/convert")
@@ -84,6 +84,7 @@ public class EmployeeOnboardingController {
     @Operation(summary = "Convert onboarded candidate into an active Employee profile")
     public ResponseEntity<ApiResponse<EmployeeOnboardingDTO>> convertToEmployee(@PathVariable String id) {
         EmployeeOnboardingDTO result = onboardingService.convertToEmployee(id);
-        return ResponseEntity.ok(ApiResponse.success("Candidate converted to active Employee successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Candidate converted to active Employee successfully"));
     }
+
 }

@@ -32,7 +32,7 @@ public class MeetingController {
     @Operation(summary = "Get all meetings")
     public ResponseEntity<ApiResponse<List<MeetingDTO>>> getAllMeetings(@RequestParam(required = false) String status) {
         List<MeetingDTO> result = meetingService.getAllMeetings(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched meetings successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched meetings successfully"));
     }
 
     @GetMapping("/entity")
@@ -42,7 +42,7 @@ public class MeetingController {
             @RequestParam String entityType,
             @RequestParam String entityId) {
         List<MeetingDTO> result = meetingService.getMeetingsByEntity(entityType, entityId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched entity meetings successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched entity meetings successfully"));
     }
 
     @GetMapping("/{id}")
@@ -50,7 +50,7 @@ public class MeetingController {
     @Operation(summary = "Get meeting by ID")
     public ResponseEntity<ApiResponse<MeetingDTO>> getMeetingById(@PathVariable String id) {
         MeetingDTO result = meetingService.getMeetingById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched meeting successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched meeting successfully"));
     }
 
     @PostMapping
@@ -60,7 +60,7 @@ public class MeetingController {
     public ResponseEntity<ApiResponse<MeetingDTO>> createMeeting(@Valid @RequestBody MeetingDTO dto) {
         MeetingDTO result = meetingService.createMeeting(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Scheduled meeting successfully", result));
+                .body(ApiResponse.success(result, "Scheduled meeting successfully"));
     }
 
     @PutMapping("/{id}")
@@ -71,7 +71,7 @@ public class MeetingController {
             @PathVariable String id,
             @Valid @RequestBody MeetingDTO dto) {
         MeetingDTO result = meetingService.updateMeeting(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated meeting successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated meeting successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -80,6 +80,7 @@ public class MeetingController {
     @Operation(summary = "Delete meeting")
     public ResponseEntity<ApiResponse<Void>> deleteMeeting(@PathVariable String id) {
         meetingService.deleteMeeting(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted meeting successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted meeting successfully"));
     }
+
 }

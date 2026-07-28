@@ -6,7 +6,8 @@ import com.techknife.attendance.entity.CompOffGrant;
 import com.techknife.attendance.repository.CompOffBalanceRepository;
 import com.techknife.attendance.repository.CompOffGrantRepository;
 import com.techknife.employee.repository.EmployeeRepository;
-import com.techknife.entity.Employee;
+import com.techknife.employee.entity.Employee;
+
 import com.techknife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

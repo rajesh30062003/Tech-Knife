@@ -38,6 +38,9 @@ public class LoginHistory {
 
     private String browser;
 
+    private String userAgent;
+
+
     private String operatingSystem;
 
     private String deviceType;
@@ -45,4 +48,17 @@ public class LoginHistory {
     private String location;
 
     private String status;
+
+    private String deviceInfo;
+
+    private String failureReason;
+
+    public String getDeviceInfo() {
+        return this.deviceInfo != null ? this.deviceInfo : this.browser;
+    }
+
+    public String getFailureReason() {
+        return this.failureReason;
+    }
 }
+

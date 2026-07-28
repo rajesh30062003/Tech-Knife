@@ -10,8 +10,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Repository("rootEmployeeRepository")
 public interface EmployeeRepository extends MongoRepository<Employee, String> {
+
 
     Optional<Employee> findByOfficialEmail(String officialEmail);
 

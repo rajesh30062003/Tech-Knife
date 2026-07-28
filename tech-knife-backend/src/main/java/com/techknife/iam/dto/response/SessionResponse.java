@@ -41,4 +41,41 @@ public class SessionResponse {
 
     @Schema(description = "Session active status", example = "true")
     private boolean active;
+
+    private Instant expiresAt;
+
+    private boolean currentSession;
+
+    public static class SessionResponseBuilder {
+        public SessionResponseBuilder sessionId(String sessionId) {
+            this.id = sessionId;
+            return this;
+        }
+
+        public SessionResponseBuilder createdAt(Instant createdTime) {
+            this.createdTime = createdTime;
+            return this;
+        }
+
+        public SessionResponseBuilder lastActiveAt(Instant lastActiveAt) {
+            this.lastAccessedTime = lastActiveAt;
+            return this;
+        }
+
+        public SessionResponseBuilder expiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
+            return this;
+        }
+
+        public SessionResponseBuilder currentSession(boolean currentSession) {
+            this.currentSession = currentSession;
+            this.active = currentSession;
+            return this;
+        }
+    }
+
+
+
+
 }
+

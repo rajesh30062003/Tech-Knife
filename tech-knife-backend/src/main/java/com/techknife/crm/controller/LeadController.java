@@ -32,7 +32,7 @@ public class LeadController {
     @Operation(summary = "Get all leads")
     public ResponseEntity<ApiResponse<List<LeadDTO>>> getAllLeads(@RequestParam(required = false) String status) {
         List<LeadDTO> result = leadService.getAllLeads(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched leads successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched leads successfully"));
     }
 
     @GetMapping("/{id}")
@@ -40,7 +40,7 @@ public class LeadController {
     @Operation(summary = "Get lead by ID")
     public ResponseEntity<ApiResponse<LeadDTO>> getLeadById(@PathVariable String id) {
         LeadDTO result = leadService.getLeadById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched lead successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched lead successfully"));
     }
 
     @PostMapping
@@ -50,7 +50,7 @@ public class LeadController {
     public ResponseEntity<ApiResponse<LeadDTO>> createLead(@Valid @RequestBody LeadDTO dto) {
         LeadDTO result = leadService.createLead(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created lead successfully", result));
+                .body(ApiResponse.success(result, "Created lead successfully"));
     }
 
     @PutMapping("/{id}")
@@ -61,7 +61,7 @@ public class LeadController {
             @PathVariable String id,
             @Valid @RequestBody LeadDTO dto) {
         LeadDTO result = leadService.updateLead(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated lead successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated lead successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -70,6 +70,7 @@ public class LeadController {
     @Operation(summary = "Delete lead")
     public ResponseEntity<ApiResponse<Void>> deleteLead(@PathVariable String id) {
         leadService.deleteLead(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted lead successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted lead successfully"));
     }
+
 }

@@ -30,7 +30,7 @@ public class CustomerAuthController {
     @Operation(summary = "Customer Portal Login")
     public ResponseEntity<ApiResponse<CustomerLoginResponse>> login(@Valid @RequestBody CustomerLoginRequest request) {
         CustomerLoginResponse response = customerAuthService.login(request);
-        return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+        return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
     @PostMapping("/register")
@@ -39,14 +39,14 @@ public class CustomerAuthController {
     public ResponseEntity<ApiResponse<CustomerLoginResponse>> register(@Valid @RequestBody CustomerRegisterRequest request) {
         CustomerLoginResponse response = customerAuthService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Customer account registered successfully", response));
+                .body(ApiResponse.success(response, "Customer account registered successfully"));
     }
 
     @PostMapping("/forgot-password")
     @Operation(summary = "Initiate Forgot Password flow")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody CustomerForgotPasswordRequest request) {
         customerAuthService.forgotPassword(request);
-        return ResponseEntity.ok(ApiResponse.success("Password reset instructions sent to email", null));
+        return ResponseEntity.ok(ApiResponse.success("Password reset instructions sent to email"));
     }
 
     @PostMapping("/reset-password")
@@ -54,7 +54,7 @@ public class CustomerAuthController {
     @Operation(summary = "Reset Password using Token")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody CustomerResetPasswordRequest request) {
         customerAuthService.resetPassword(request);
-        return ResponseEntity.ok(ApiResponse.success("Password reset successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully"));
     }
 
     @GetMapping("/verify-email")
@@ -62,7 +62,7 @@ public class CustomerAuthController {
     @Operation(summary = "Verify Email Address")
     public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
         customerAuthService.verifyEmail(token);
-        return ResponseEntity.ok(ApiResponse.success("Email verified successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Email verified successfully"));
     }
 
     @PostMapping("/change-password")
@@ -73,6 +73,7 @@ public class CustomerAuthController {
             @CurrentUser UserPrincipal userPrincipal,
             @Valid @RequestBody CustomerChangePasswordRequest request) {
         customerAuthService.changePassword(userPrincipal.getId(), request);
-        return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
     }
+
 }

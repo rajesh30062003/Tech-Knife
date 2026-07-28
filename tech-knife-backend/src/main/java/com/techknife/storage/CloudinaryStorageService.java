@@ -109,6 +109,23 @@ public class CloudinaryStorageService implements FileStorageService {
         return uploadFile(file, folder);
     }
 
+    public FileUploadResponse uploadBytes(byte[] bytes, String folder, String filename) {
+        try {
+            String targetFolder = FileValidationUtil.validateAndNormalizeFolder(folder);
+            String publicId = StringUtils.hasText(filename) ? targetFolder + "/" + FileValidationUtil.sanitizeFilename(filename) : FileValidationUtil.generateUniquePublicId("file.dat", targetFolder);
+            Map<String, Object> uploadParams = new HashMap<>();
+            uploadParams.put("public_id", publicId);
+            uploadParams.put("resource_type", "raw");
+            uploadParams.put("overwrite", true);
+            Map<?, ?> uploadResult = cloudinary.uploader().upload(bytes, uploadParams);
+            return mapToUploadResponse(uploadResult, filename != null ? filename : "file.dat", targetFolder, "Uploaded raw bytes");
+        } catch (Exception ex) {
+            log.error("Cloudinary byte upload failure: {}", ex.getMessage(), ex);
+            throw new FileStorageException("BYTE_UPLOAD_FAILED", "Failed to upload bytes: " + ex.getMessage());
+        }
+    }
+
+
     @Override
     public boolean deleteFile(String publicId) {
         if (!StringUtils.hasText(publicId)) {

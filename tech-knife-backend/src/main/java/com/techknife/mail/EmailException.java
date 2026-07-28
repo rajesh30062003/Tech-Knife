@@ -17,10 +17,16 @@ public class EmailException extends RuntimeException {
         this.errorCode = "EMAIL_SEND_FAILED";
     }
 
+    public EmailException(String errorCode, String message) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+
     public EmailException(String errorCode, String message, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }
+
 
     public String getErrorCode() {
         return errorCode;

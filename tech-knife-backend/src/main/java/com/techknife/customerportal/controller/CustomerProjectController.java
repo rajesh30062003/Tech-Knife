@@ -38,7 +38,7 @@ public class CustomerProjectController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) String status) {
         List<CustomerProjectDTO> result = customerProjectService.getProjects(userPrincipal.getId(), status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched projects successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched projects successfully"));
     }
 
     @GetMapping("/{id}")
@@ -48,7 +48,7 @@ public class CustomerProjectController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         CustomerProjectDTO result = customerProjectService.getProjectById(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched project details successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched project details successfully"));
     }
 
     @GetMapping("/{id}/milestones")
@@ -58,7 +58,7 @@ public class CustomerProjectController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         List<CustomerMilestoneDTO> result = customerProjectService.getProjectMilestones(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched project milestones successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched project milestones successfully"));
     }
 
     @GetMapping("/{id}/tasks")
@@ -68,8 +68,9 @@ public class CustomerProjectController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         List<CustomerTaskDTO> result = customerProjectService.getProjectTasks(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched project tasks successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched project tasks successfully"));
     }
+
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasAuthority('PROJECT_CREATE')")
@@ -78,6 +79,6 @@ public class CustomerProjectController {
     public ResponseEntity<ApiResponse<CustomerProjectDTO>> createProject(@Valid @RequestBody CustomerProjectDTO dto) {
         CustomerProjectDTO result = customerProjectService.createProject(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created customer project view successfully", result));
+                .body(ApiResponse.success(result, "Created customer project view successfully"));
     }
 }

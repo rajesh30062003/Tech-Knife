@@ -16,7 +16,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuditLogServiceImpl implements AuditLogService {
 
+    @org.springframework.beans.factory.annotation.Qualifier("backendAuditLogRepository")
     private final AuditLogRepository auditLogRepository;
+
 
     @Override
     public PagedResponse<AuditLog> getPaginatedAuditLogs(int page, int size, String principal, String module, String status) {
@@ -48,4 +50,21 @@ public class AuditLogServiceImpl implements AuditLogService {
         return auditLogRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("AuditLog", "id", id));
     }
+
+    @Override
+    public void logAction(String action, String module, String entityType, String entityId, String performedBy, String details, String ipAddress) {
+        AuditLog auditLog = AuditLog.builder()
+                .action(action)
+                .module(module)
+                .method(entityType + ":" + entityId)
+                .principal(performedBy)
+                .requestPayload(details)
+                .ipAddress(ipAddress)
+                .status("SUCCESS")
+                .timestamp(java.time.Instant.now())
+                .build();
+        auditLogRepository.save(auditLog);
+    }
+
 }
+

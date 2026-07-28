@@ -80,7 +80,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
     }
 
-    @PATCH("/{id}/roles")
+    @PatchMapping("/{id}/roles")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     @Operation(summary = "Assign or revoke roles for specified user")
     public ResponseEntity<ApiResponse<UserResponse>> assignRoles(
@@ -90,7 +90,7 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(updated, "User roles updated"));
     }
 
-    @PATCH("/{id}/lock")
+    @PatchMapping("/{id}/lock")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     @Operation(summary = "Toggle user account lock status")
     public ResponseEntity<ApiResponse<UserResponse>> toggleLock(

@@ -121,5 +121,8 @@ public interface EmployeeRepository extends MongoRepository<Employee, String>, E
      */
     @Query("{ '$or': [ { 'firstName': { '$regex': ?0, '$options': 'i' } }, { 'lastName': { '$regex': ?0, '$options': 'i' } }, { 'employeeId': { '$regex': ?0, '$options': 'i' } }, { 'officialEmail': { '$regex': ?0, '$options': 'i' } } ] }")
     Page<Employee> searchByName(String keyword, Pageable pageable);
+
+    List<Employee> findByCompanyId(String companyId);
 }
+
 

@@ -38,7 +38,7 @@ public class SharedDocumentController {
             @RequestParam(required = false) String projectId,
             @RequestParam(required = false) String category) {
         List<SharedDocumentDTO> result = sharedDocumentService.getDocuments(userPrincipal.getId(), projectId, category);
-        return ResponseEntity.ok(ApiResponse.success("Fetched documents successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched documents successfully"));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -54,7 +54,7 @@ public class SharedDocumentController {
             @RequestPart("file") MultipartFile file) {
         SharedDocumentDTO result = sharedDocumentService.uploadDocument(userPrincipal.getId(), projectId, category, documentName, description, file);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Uploaded document successfully", result));
+                .body(ApiResponse.success(result, "Uploaded document successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -65,6 +65,7 @@ public class SharedDocumentController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         sharedDocumentService.deleteDocument(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Deleted document successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted document successfully"));
     }
+
 }

@@ -66,4 +66,17 @@ public class LeaveBalance {
 
     @LastModifiedDate
     private Instant updatedAt;
+
+    public Double getTotalAllocated() {
+        return this.allocatedDays != null ? this.allocatedDays : 0.0;
+    }
+
+    public Double getUsed() {
+        return this.usedDays != null ? this.usedDays : 0.0;
+    }
+
+    public Double getRemaining() {
+        return this.availableDays != null ? this.availableDays : 0.0;
+    }
 }
+

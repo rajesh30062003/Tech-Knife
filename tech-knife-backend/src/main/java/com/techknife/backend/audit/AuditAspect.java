@@ -16,11 +16,14 @@ import java.time.Instant;
 
 @Slf4j
 @Aspect
-@Component
+@Component("legacyAuditAspect")
+
 @RequiredArgsConstructor
 public class AuditAspect {
 
+    @org.springframework.beans.factory.annotation.Qualifier("backendAuditLogRepository")
     private final AuditLogRepository auditLogRepository;
+
 
     @Pointcut("within(@org.springframework.web.bind.annotation.RestController *)")
     public void restControllerPointcut() {

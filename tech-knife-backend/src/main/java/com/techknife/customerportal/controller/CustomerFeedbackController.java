@@ -38,7 +38,7 @@ public class CustomerFeedbackController {
             @Valid @RequestBody CustomerFeedbackDTO dto) {
         CustomerFeedbackDTO result = customerFeedbackService.submitFeedback(userPrincipal.getId(), dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Submitted feedback successfully", result));
+                .body(ApiResponse.success(result, "Submitted feedback successfully"));
     }
 
     @GetMapping
@@ -46,6 +46,7 @@ public class CustomerFeedbackController {
     @Operation(summary = "Get Customer Feedback History")
     public ResponseEntity<ApiResponse<List<CustomerFeedbackDTO>>> getFeedbacks(@CurrentUser UserPrincipal userPrincipal) {
         List<CustomerFeedbackDTO> result = customerFeedbackService.getFeedbacks(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched feedback history successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched feedback history successfully"));
     }
+
 }

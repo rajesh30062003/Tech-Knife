@@ -23,11 +23,14 @@ import com.techknife.employee.entity.Education;
 import com.techknife.employee.entity.Employee;
 import com.techknife.employee.entity.EmployeeDocument;
 import com.techknife.employee.entity.EmployeeStatus;
+import com.techknife.employee.entity.EmployeeTimeline;
 import com.techknife.employee.entity.EmployeeTimelineRecord;
 import com.techknife.employee.entity.EmploymentType;
 import com.techknife.employee.entity.Experience;
 import com.techknife.employee.entity.Skill;
+import com.techknife.employee.entity.TimelineEventType;
 import com.techknife.employee.repository.EmployeeRepository;
+
 import com.techknife.employee.repository.EmployeeTimelineRepository;
 import com.techknife.employee.service.EmployeeService;
 import com.techknife.storage.FileStorageService;
@@ -310,8 +313,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     @Transactional(readOnly = true)
     public List<EmployeeTimelineRecord> getEmployeeTimeline(String employeeId) {
-        return timelineRepository.findByEmployeeIdOrderByCreatedAtDesc(employeeId);
+        return timelineRepository.findByEmployeeIdOrderByCreatedAtDesc(employeeId).stream()
+                .map(t -> EmployeeTimelineRecord.builder()
+                        .id(t.getId())
+                        .employeeId(t.getEmployeeId())
+                        .changeType(t.getEventType() != null ? t.getEventType().name() : "EVENT")
+                        .oldValue(t.getOldValue())
+                        .newValue(t.getNewValue())
+                        .description(t.getDescription())
+                        .changedBy(t.getChangedBy())
+                        .createdAt(t.getTimestamp())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
+
 
     @Override
     @Transactional(readOnly = true)
@@ -534,17 +549,23 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     private void recordTimeline(String employeeId, String changeType, String oldValue, String newValue, String description, LocalDate effectiveDate) {
-        EmployeeTimelineRecord record = EmployeeTimelineRecord.builder()
+        TimelineEventType type;
+        try {
+            type = TimelineEventType.valueOf(changeType);
+        } catch (Exception e) {
+            type = TimelineEventType.STATUS_CHANGE;
+        }
+        EmployeeTimeline record = EmployeeTimeline.builder()
                 .employeeId(employeeId)
-                .changeType(changeType)
+                .eventType(type)
                 .oldValue(oldValue)
                 .newValue(newValue)
                 .description(description)
-                .effectiveDate(effectiveDate != null ? effectiveDate : LocalDate.now())
-                .createdAt(Instant.now())
+                .timestamp(Instant.now())
                 .build();
         timelineRepository.save(record);
     }
+
 
     @Override
     @Transactional(readOnly = true)

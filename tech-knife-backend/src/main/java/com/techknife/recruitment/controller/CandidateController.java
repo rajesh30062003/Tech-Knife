@@ -36,7 +36,7 @@ public class CandidateController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String skill) {
         List<CandidateDTO> result = candidateService.getAllCandidates(status, skill);
-        return ResponseEntity.ok(ApiResponse.success("Fetched candidates successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched candidates successfully"));
     }
 
     @GetMapping("/{id}")
@@ -44,7 +44,7 @@ public class CandidateController {
     @Operation(summary = "Get candidate by ID")
     public ResponseEntity<ApiResponse<CandidateDTO>> getCandidateById(@PathVariable String id) {
         CandidateDTO result = candidateService.getCandidateById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched candidate successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched candidate successfully"));
     }
 
     @PostMapping
@@ -53,7 +53,7 @@ public class CandidateController {
     public ResponseEntity<ApiResponse<CandidateDTO>> createCandidate(@Valid @RequestBody CandidateDTO dto) {
         CandidateDTO result = candidateService.createCandidate(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Candidate created successfully", result));
+                .body(ApiResponse.success(result, "Candidate created successfully"));
     }
 
     @PutMapping("/{id}")
@@ -64,7 +64,7 @@ public class CandidateController {
             @PathVariable String id,
             @Valid @RequestBody CandidateDTO dto) {
         CandidateDTO result = candidateService.updateCandidate(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Candidate updated successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Candidate updated successfully"));
     }
 
     @PostMapping(value = "/{id}/resume", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -74,7 +74,7 @@ public class CandidateController {
             @PathVariable String id,
             @RequestParam("file") MultipartFile file) {
         CandidateDTO result = candidateService.uploadResume(id, file);
-        return ResponseEntity.ok(ApiResponse.success("Resume uploaded successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Resume uploaded successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -83,6 +83,7 @@ public class CandidateController {
     @Operation(summary = "Delete candidate profile")
     public ResponseEntity<ApiResponse<Void>> deleteCandidate(@PathVariable String id) {
         candidateService.deleteCandidate(id);
-        return ResponseEntity.ok(ApiResponse.success("Candidate deleted successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Candidate deleted successfully"));
     }
+
 }

@@ -23,12 +23,12 @@ public class HRNotificationEventListener {
     @EventListener
     public void handleEmployeeCreated(EmployeeCreatedEvent event) {
         log.info("New Employee Created Notification Event for ID: {}, Email: {}",
-                event.getEmployee().getEmployeeId(), event.getEmployee().getOfficialEmail());
+                event.getEmployeeCode(), event.getOfficialEmail());
         try {
             String subject = "Welcome to Tech Knife Enterprise - Employee Onboarding";
-            String body = "<h1>Welcome, " + event.getEmployee().getFirstName() + " " + event.getEmployee().getLastName() + "!</h1>"
-                    + "<p>Your employee profile has been created with Employee ID: <strong>" + event.getEmployee().getEmployeeId() + "</strong>.</p>";
-            emailService.sendEmail(event.getEmployee().getOfficialEmail(), subject, body);
+            String body = "<h1>Welcome, " + event.getFullName() + "!</h1>"
+                    + "<p>Your employee profile has been created with Employee ID: <strong>" + event.getEmployeeCode() + "</strong>.</p>";
+            emailService.sendEmail(event.getOfficialEmail(), subject, body);
         } catch (Exception e) {
             log.warn("Failed to send welcome email to new employee: {}", e.getMessage());
         }
@@ -38,32 +38,34 @@ public class HRNotificationEventListener {
     @EventListener
     public void handleEmployeeStatusChanged(EmployeeStatusChangedEvent event) {
         log.info("Employee Status Changed Event for ID: {} from {} to {}",
-                event.getEmployee().getEmployeeId(), event.getOldStatus(), event.getNewStatus());
+                event.getEmployeeId(), event.getOldStatus(), event.getNewStatus());
         try {
             String subject = "Tech Knife Enterprise - Employment Status Updated";
             String body = "<h2>Employment Status Update</h2>"
-                    + "<p>Dear " + event.getEmployee().getFirstName() + ",</p>"
+                    + "<p>Dear Employee,</p>"
                     + "<p>Your employment status has been updated to: <strong>" + event.getNewStatus() + "</strong>.</p>";
-            emailService.sendEmail(event.getEmployee().getOfficialEmail(), subject, body);
+            emailService.sendEmail(event.getEmployeeId(), subject, body);
         } catch (Exception e) {
             log.warn("Failed to send status update email to employee: {}", e.getMessage());
         }
     }
 
+
     @Async
     @EventListener
     public void handleInternCreated(InternCreatedEvent event) {
         log.info("New Intern Onboarded Notification Event for Code: {}, Email: {}",
-                event.getIntern().getInternCode(), event.getIntern().getOfficialEmail());
+                event.getInternCode(), event.getOfficialEmail());
         try {
             String subject = "Welcome to Tech Knife Internship Program";
-            String body = "<h1>Welcome to Tech Knife, " + event.getIntern().getFirstName() + "!</h1>"
-                    + "<p>Your intern code is: <strong>" + event.getIntern().getInternCode() + "</strong>.</p>";
-            emailService.sendEmail(event.getIntern().getOfficialEmail(), subject, body);
+            String body = "<h1>Welcome to Tech Knife, " + event.getFullName() + "!</h1>"
+                    + "<p>Your intern code is: <strong>" + event.getInternCode() + "</strong>.</p>";
+            emailService.sendEmail(event.getOfficialEmail(), subject, body);
         } catch (Exception e) {
             log.warn("Failed to send welcome email to new intern: {}", e.getMessage());
         }
     }
+
 
     @Async
     @EventListener

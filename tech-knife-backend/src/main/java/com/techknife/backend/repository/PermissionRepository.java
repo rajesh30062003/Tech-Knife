@@ -7,8 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+@Repository("backendPermissionRepository")
 public interface PermissionRepository extends MongoRepository<PermissionEntity, String> {
+
     Optional<PermissionEntity> findByPermission(Permission permission);
     Optional<PermissionEntity> findByCode(String code);
 }

@@ -18,3 +18,5 @@ public class InternCreatedEvent extends ApplicationEvent {
         this.fullName = fullName;
     }
 }
+
+

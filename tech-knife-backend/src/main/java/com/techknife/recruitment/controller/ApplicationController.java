@@ -35,7 +35,7 @@ public class ApplicationController {
             @RequestParam(required = false) String candidateId,
             @RequestParam(required = false) String status) {
         List<ApplicationDTO> result = applicationService.getAllApplications(jobPostingId, candidateId, status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched applications successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched applications successfully"));
     }
 
     @GetMapping("/{id}")
@@ -43,7 +43,7 @@ public class ApplicationController {
     @Operation(summary = "Get application by ID")
     public ResponseEntity<ApiResponse<ApplicationDTO>> getApplicationById(@PathVariable String id) {
         ApplicationDTO result = applicationService.getApplicationById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched application successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched application successfully"));
     }
 
     @PostMapping
@@ -52,7 +52,7 @@ public class ApplicationController {
     public ResponseEntity<ApiResponse<ApplicationDTO>> applyForJob(@Valid @RequestBody ApplicationDTO dto) {
         ApplicationDTO result = applicationService.applyForJob(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Application submitted successfully", result));
+                .body(ApiResponse.success(result, "Application submitted successfully"));
     }
 
     @PatchMapping("/{id}/status")
@@ -64,7 +64,7 @@ public class ApplicationController {
             @RequestParam String status,
             @RequestParam(required = false) String notes) {
         ApplicationDTO result = applicationService.updateApplicationStatus(id, status, notes);
-        return ResponseEntity.ok(ApiResponse.success("Application status updated successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Application status updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -73,6 +73,7 @@ public class ApplicationController {
     @Operation(summary = "Delete application")
     public ResponseEntity<ApiResponse<Void>> deleteApplication(@PathVariable String id) {
         applicationService.deleteApplication(id);
-        return ResponseEntity.ok(ApiResponse.success("Application deleted successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Application deleted successfully"));
     }
+
 }

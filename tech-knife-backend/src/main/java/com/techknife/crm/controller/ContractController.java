@@ -34,7 +34,7 @@ public class ContractController {
     @Operation(summary = "Get all contracts")
     public ResponseEntity<ApiResponse<List<ContractDTO>>> getAllContracts(@RequestParam(required = false) String status) {
         List<ContractDTO> result = contractService.getAllContracts(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched contracts successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched contracts successfully"));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +42,7 @@ public class ContractController {
     @Operation(summary = "Get contract by ID")
     public ResponseEntity<ApiResponse<ContractDTO>> getContractById(@PathVariable String id) {
         ContractDTO result = contractService.getContractById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched contract successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched contract successfully"));
     }
 
     @PostMapping
@@ -52,7 +52,7 @@ public class ContractController {
     public ResponseEntity<ApiResponse<ContractDTO>> createContract(@Valid @RequestBody ContractDTO dto) {
         ContractDTO result = contractService.createContract(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created contract successfully", result));
+                .body(ApiResponse.success(result, "Created contract successfully"));
     }
 
     @PutMapping("/{id}")
@@ -63,7 +63,7 @@ public class ContractController {
             @PathVariable String id,
             @Valid @RequestBody ContractDTO dto) {
         ContractDTO result = contractService.updateContract(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated contract successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated contract successfully"));
     }
 
     @PostMapping(value = "/{id}/document", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -74,7 +74,7 @@ public class ContractController {
             @PathVariable String id,
             @RequestParam("file") MultipartFile file) {
         ContractDTO result = contractService.uploadContractDocument(id, file);
-        return ResponseEntity.ok(ApiResponse.success("Uploaded contract document successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Uploaded contract document successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -83,6 +83,7 @@ public class ContractController {
     @Operation(summary = "Delete contract")
     public ResponseEntity<ApiResponse<Void>> deleteContract(@PathVariable String id) {
         contractService.deleteContract(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted contract successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted contract successfully"));
     }
+
 }

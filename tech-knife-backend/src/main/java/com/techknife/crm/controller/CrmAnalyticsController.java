@@ -27,6 +27,7 @@ public class CrmAnalyticsController {
     @Operation(summary = "Get CRM sales performance and conversion analytics")
     public ResponseEntity<ApiResponse<CrmAnalyticsDTO>> getAnalytics() {
         CrmAnalyticsDTO result = crmAnalyticsService.getAnalyticsData();
-        return ResponseEntity.ok(ApiResponse.success("Fetched CRM analytics successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched CRM analytics successfully"));
     }
+
 }

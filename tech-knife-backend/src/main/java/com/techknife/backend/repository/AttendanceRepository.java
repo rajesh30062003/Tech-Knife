@@ -10,8 +10,9 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-@Repository
+@Repository("backendAttendanceRepository")
 public interface AttendanceRepository extends MongoRepository<Attendance, String> {
+
 
     Optional<Attendance> findByUserIdAndDate(String userId, LocalDate date);
 

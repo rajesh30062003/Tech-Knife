@@ -11,5 +11,7 @@ import java.util.List;
 @Repository
 public interface EmployeeTimelineRepository extends MongoRepository<EmployeeTimeline, String> {
     List<EmployeeTimeline> findByEmployeeIdOrderByTimestampDesc(String employeeId);
+    List<EmployeeTimeline> findByEmployeeIdOrderByCreatedAtDesc(String employeeId);
     Page<EmployeeTimeline> findByEmployeeId(String employeeId, Pageable pageable);
 }
+

@@ -30,7 +30,7 @@ public class CustomerDashboardController {
     @Operation(summary = "Get Customer Dashboard Summary")
     public ResponseEntity<ApiResponse<CustomerDashboardDTO>> getDashboard(@CurrentUser UserPrincipal userPrincipal) {
         CustomerDashboardDTO result = customerDashboardService.getDashboard(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched dashboard metrics successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched dashboard metrics successfully"));
     }
 
     @GetMapping("/analytics")
@@ -38,6 +38,6 @@ public class CustomerDashboardController {
     @Operation(summary = "Get Customer Dashboard Analytics")
     public ResponseEntity<ApiResponse<CustomerAnalyticsDTO>> getAnalytics(@CurrentUser UserPrincipal userPrincipal) {
         CustomerAnalyticsDTO result = customerDashboardService.getAnalytics(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched customer analytics successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched customer analytics successfully"));
     }
 }

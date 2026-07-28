@@ -24,6 +24,8 @@ import java.time.LocalDate;
 @Document(collection = "employee_timelines")
 public class EmployeeTimelineRecord {
 
+
+
     @Id
     private String id;
 

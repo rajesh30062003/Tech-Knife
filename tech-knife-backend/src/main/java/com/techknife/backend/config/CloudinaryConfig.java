@@ -6,7 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration("backendCloudinaryConfig")
+
 public class CloudinaryConfig {
 
     @Value("${app.cloudinary.cloud-name}")

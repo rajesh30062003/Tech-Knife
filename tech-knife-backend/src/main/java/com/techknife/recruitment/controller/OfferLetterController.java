@@ -35,7 +35,7 @@ public class OfferLetterController {
     public ResponseEntity<ApiResponse<List<OfferLetterDTO>>> getAllOfferLetters(
             @RequestParam(required = false) String acceptanceStatus) {
         List<OfferLetterDTO> list = offerLetterService.getAllOfferLetters(acceptanceStatus);
-        return ResponseEntity.ok(ApiResponse.success("Fetched offer letters successfully", list));
+        return ResponseEntity.ok(ApiResponse.success(list, "Fetched offer letters successfully"));
     }
 
     @GetMapping("/{id}")
@@ -43,7 +43,7 @@ public class OfferLetterController {
     @Operation(summary = "Get offer letter details by ID")
     public ResponseEntity<ApiResponse<OfferLetterDTO>> getOfferLetterById(@PathVariable String id) {
         OfferLetterDTO dto = offerLetterService.getOfferLetterById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched offer letter details successfully", dto));
+        return ResponseEntity.ok(ApiResponse.success(dto, "Fetched offer letter details successfully"));
     }
 
     @GetMapping("/application/{applicationId}")
@@ -51,7 +51,7 @@ public class OfferLetterController {
     @Operation(summary = "Get offer letter details by Application ID")
     public ResponseEntity<ApiResponse<OfferLetterDTO>> getOfferLetterByApplicationId(@PathVariable String applicationId) {
         OfferLetterDTO dto = offerLetterService.getOfferLetterByApplicationId(applicationId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched offer letter details successfully", dto));
+        return ResponseEntity.ok(ApiResponse.success(dto, "Fetched offer letter details successfully"));
     }
 
     @PostMapping("/generate")
@@ -61,7 +61,7 @@ public class OfferLetterController {
     public ResponseEntity<ApiResponse<OfferLetterDTO>> generateOfferLetter(@Valid @RequestBody OfferLetterDTO dto) {
         OfferLetterDTO result = offerLetterService.generateOfferLetter(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Offer letter generated successfully", result));
+                .body(ApiResponse.success(result, "Offer letter generated successfully"));
     }
 
     @PostMapping(value = "/{id}/document", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -72,7 +72,7 @@ public class OfferLetterController {
             @PathVariable String id,
             @RequestParam("file") MultipartFile file) {
         OfferLetterDTO result = offerLetterService.uploadOfferDocument(id, file);
-        return ResponseEntity.ok(ApiResponse.success("Offer document uploaded successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Offer document uploaded successfully"));
     }
 
     @PatchMapping("/{id}/respond")
@@ -82,6 +82,7 @@ public class OfferLetterController {
             @PathVariable String id,
             @RequestParam String responseStatus) {
         OfferLetterDTO result = offerLetterService.respondToOffer(id, responseStatus);
-        return ResponseEntity.ok(ApiResponse.success("Offer response processed successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Offer response processed successfully"));
     }
+
 }

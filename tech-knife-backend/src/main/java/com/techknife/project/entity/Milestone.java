@@ -52,4 +52,9 @@ public class Milestone {
 
     @LastModifiedBy
     private String updatedBy;
+
+    public MilestoneStatus getMilestoneStatus() {
+        return this.status;
+    }
 }
+

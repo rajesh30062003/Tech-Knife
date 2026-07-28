@@ -7,6 +7,8 @@ import com.techknife.employee.dto.EmployeeResponse;
 import com.techknife.employee.dto.UpdateEmployeeRequest;
 import com.techknife.employee.dto.UpdateEmployeeStatusRequest;
 import com.techknife.employee.entity.EmployeeStatus;
+import com.techknife.employee.entity.EmploymentType;
+
 import com.techknife.employee.service.EmployeeService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,6 +46,8 @@ class EmployeeControllerIntegrationTest {
     @MockBean(name = "employeeFeatureServiceImpl")
     private EmployeeService employeeService;
 
+
+
     private EmployeeResponse sampleResponse;
     private CreateEmployeeRequest createRequest;
 
@@ -58,22 +62,26 @@ class EmployeeControllerIntegrationTest {
                 .fullName("Sarah Connor")
                 .departmentId("Engineering & DevOps")
                 .designationId("Chief Technology Officer")
-                .salary(210000.0)
+                .salary(java.math.BigDecimal.valueOf(210000.0))
                 .status(EmployeeStatus.ACTIVE)
-                .joiningDate("2021-06-01")
+                .joiningDate(java.time.LocalDate.parse("2021-06-01"))
                 .build();
+
 
         createRequest = new CreateEmployeeRequest();
         createRequest.setEmployeeId("EMP-1001");
         createRequest.setOfficialEmail("sarah.connor@techknife.com");
         createRequest.setFirstName("Sarah");
         createRequest.setLastName("Connor");
-        createRequest.setPrimaryMobile("+1 (555) 018-9921");
+        createRequest.setPrimaryMobile("+15550189921");
         createRequest.setDepartmentId("Engineering & DevOps");
         createRequest.setDesignationId("Chief Technology Officer");
-        createRequest.setJoiningDate("2021-06-01");
-        createRequest.setSalary(210000.0);
+        createRequest.setJoiningDate(java.time.LocalDate.parse("2021-06-01"));
+        createRequest.setEmploymentType(EmploymentType.FULL_TIME);
+        createRequest.setSalary(java.math.BigDecimal.valueOf(210000.0));
     }
+
+
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
@@ -84,11 +92,13 @@ class EmployeeControllerIntegrationTest {
         mockMvc.perform(post("/api/v2/employees")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createRequest)))
+                .andDo(org.springframework.test.web.servlet.result.MockMvcResultHandlers.print())
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.employeeId").value("EMP-1001"))
                 .andExpect(jsonPath("$.data.fullName").value("Sarah Connor"));
     }
+
 
     @Test
     @WithMockUser(roles = {"EMPLOYEE"})

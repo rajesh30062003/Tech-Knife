@@ -40,4 +40,8 @@ public class EmployeeTimeline {
 
     @CreatedDate
     private Instant timestamp;
+
+    @CreatedDate
+    private Instant createdAt;
+
 }

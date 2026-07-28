@@ -39,12 +39,16 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
+    @org.springframework.beans.factory.annotation.Qualifier("backendUserRepository")
     private final UserRepository userRepository;
+    @org.springframework.beans.factory.annotation.Qualifier("backendRefreshTokenRepository")
     private final RefreshTokenRepository refreshTokenRepository;
+    @org.springframework.beans.factory.annotation.Qualifier("backendVerificationOtpRepository")
     private final VerificationOtpRepository verificationOtpRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
+
 
     @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;

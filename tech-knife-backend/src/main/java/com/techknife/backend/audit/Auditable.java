@@ -10,5 +10,6 @@ import java.lang.annotation.Target;
 public @interface Auditable {
     String module() default "";
     String action() default "";
+    String resourceType() default "";
     boolean logParameters() default false;
 }

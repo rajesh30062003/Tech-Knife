@@ -4,7 +4,8 @@ import com.techknife.attendance.dto.AttendanceRegularizationDTO;
 import com.techknife.attendance.entity.*;
 import com.techknife.attendance.repository.AttendanceRecordRepository;
 import com.techknife.attendance.repository.AttendanceRegularizationRepository;
-import com.techknife.entity.Employee;
+import com.techknife.employee.entity.Employee;
+
 import com.techknife.employee.repository.EmployeeRepository;
 import com.techknife.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;

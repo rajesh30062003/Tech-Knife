@@ -30,4 +30,13 @@ public class FileUploadResponse {
     private Instant createdAt;
     private String etag;
     private String description;
+
+    public String getOriginalFilename() {
+        return originalFileName != null ? originalFileName : fileName;
+    }
+
+    public long getBytes() {
+        return size;
+    }
 }
+

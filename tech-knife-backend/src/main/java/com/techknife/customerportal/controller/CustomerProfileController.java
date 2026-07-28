@@ -30,7 +30,7 @@ public class CustomerProfileController {
     @Operation(summary = "Get Customer Profile")
     public ResponseEntity<ApiResponse<CustomerProfileDTO>> getProfile(@CurrentUser UserPrincipal userPrincipal) {
         CustomerProfileDTO result = customerProfileService.getProfile(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Profile retrieved successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Profile retrieved successfully"));
     }
 
     @PutMapping
@@ -41,6 +41,7 @@ public class CustomerProfileController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestBody CustomerProfileDTO dto) {
         CustomerProfileDTO result = customerProfileService.updateProfile(userPrincipal.getId(), dto);
-        return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Profile updated successfully"));
     }
+
 }

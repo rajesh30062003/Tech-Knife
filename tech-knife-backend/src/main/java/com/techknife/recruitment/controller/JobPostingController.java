@@ -33,14 +33,14 @@ public class JobPostingController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String department) {
         List<JobPostingDTO> result = jobPostingService.getAllJobPostings(status, department);
-        return ResponseEntity.ok(ApiResponse.success("Fetched job postings successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched job postings successfully"));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get job posting by ID")
     public ResponseEntity<ApiResponse<JobPostingDTO>> getJobPostingById(@PathVariable String id) {
         JobPostingDTO result = jobPostingService.getJobPostingById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched job posting successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched job posting successfully"));
     }
 
     @PostMapping
@@ -50,7 +50,7 @@ public class JobPostingController {
     public ResponseEntity<ApiResponse<JobPostingDTO>> createJobPosting(@Valid @RequestBody JobPostingDTO dto) {
         JobPostingDTO result = jobPostingService.createJobPosting(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created job posting successfully", result));
+                .body(ApiResponse.success(result, "Created job posting successfully"));
     }
 
     @PutMapping("/{id}")
@@ -61,7 +61,7 @@ public class JobPostingController {
             @PathVariable String id,
             @Valid @RequestBody JobPostingDTO dto) {
         JobPostingDTO result = jobPostingService.updateJobPosting(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated job posting successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated job posting successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -70,6 +70,7 @@ public class JobPostingController {
     @Operation(summary = "Delete job posting")
     public ResponseEntity<ApiResponse<Void>> deleteJobPosting(@PathVariable String id) {
         jobPostingService.deleteJobPosting(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted job posting successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted job posting successfully"));
     }
+
 }

@@ -18,8 +18,9 @@ import java.util.List;
  * OpenAPI 3 / Swagger configuration for Tech Knife Enterprise Platform API documentation.
  * Configures JWT Bearer authentication, server environments, and API feature tags.
  */
-@Configuration
+@Configuration("backendOpenApiConfig")
 public class OpenApiConfig {
+
 
     public static final String SECURITY_SCHEME_NAME = "Bearer Token";
 

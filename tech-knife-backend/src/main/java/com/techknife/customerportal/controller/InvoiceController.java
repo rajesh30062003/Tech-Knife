@@ -37,7 +37,7 @@ public class InvoiceController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) String status) {
         List<InvoiceViewDTO> result = invoiceService.getInvoices(userPrincipal.getId(), status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched invoices successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched invoices successfully"));
     }
 
     @GetMapping("/{id}")
@@ -47,7 +47,7 @@ public class InvoiceController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         InvoiceViewDTO result = invoiceService.getInvoiceById(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched invoice details successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched invoice details successfully"));
     }
 
     @GetMapping("/payments")
@@ -57,7 +57,7 @@ public class InvoiceController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) String invoiceId) {
         List<PaymentHistoryDTO> result = invoiceService.getPaymentHistory(userPrincipal.getId(), invoiceId);
-        return ResponseEntity.ok(ApiResponse.success("Fetched payment history successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched payment history successfully"));
     }
 
     @PostMapping
@@ -67,7 +67,7 @@ public class InvoiceController {
     public ResponseEntity<ApiResponse<InvoiceViewDTO>> createInvoice(@Valid @RequestBody InvoiceViewDTO dto) {
         InvoiceViewDTO result = invoiceService.createInvoice(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created invoice successfully", result));
+                .body(ApiResponse.success(result, "Created invoice successfully"));
     }
 
     @PostMapping("/payments")
@@ -80,6 +80,7 @@ public class InvoiceController {
         dto.setCustomerAccountId(userPrincipal.getId());
         PaymentHistoryDTO result = invoiceService.recordPayment(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Payment recorded successfully", result));
+                .body(ApiResponse.success(result, "Payment recorded successfully"));
     }
+
 }

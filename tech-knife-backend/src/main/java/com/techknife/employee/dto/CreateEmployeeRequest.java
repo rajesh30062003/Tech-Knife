@@ -134,4 +134,24 @@ public class CreateEmployeeRequest {
 
     @Builder.Default
     private EmployeeStatus status = EmployeeStatus.ACTIVE;
+
+    public static class CreateEmployeeRequestBuilder {
+        public CreateEmployeeRequestBuilder mobileNumber(String mobileNumber) {
+            this.primaryMobile = mobileNumber;
+            return this;
+        }
+
+        public CreateEmployeeRequestBuilder designation(String designation) {
+            this.designationId = designation;
+            return this;
+        }
+
+        public CreateEmployeeRequestBuilder department(String department) {
+            this.departmentId = department;
+            return this;
+        }
+    }
+
 }
+
+

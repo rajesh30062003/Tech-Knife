@@ -29,7 +29,7 @@ public class CustomerNotificationController {
     @Operation(summary = "Get Customer Notifications")
     public ResponseEntity<ApiResponse<List<CustomerNotificationDTO>>> getNotifications(@CurrentUser UserPrincipal userPrincipal) {
         List<CustomerNotificationDTO> result = customerNotificationService.getNotifications(userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched notifications successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched notifications successfully"));
     }
 
     @PutMapping("/{id}/read")
@@ -39,6 +39,7 @@ public class CustomerNotificationController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         customerNotificationService.markAsRead(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Notification marked as read", null));
+        return ResponseEntity.ok(ApiResponse.success("Notification marked as read"));
     }
+
 }

@@ -7,7 +7,8 @@ import com.techknife.attendance.entity.MonthlyAttendanceSummary;
 import com.techknife.attendance.repository.AttendanceRecordRepository;
 import com.techknife.attendance.repository.MonthlyAttendanceSummaryRepository;
 import com.techknife.employee.repository.EmployeeRepository;
-import com.techknife.entity.Employee;
+import com.techknife.employee.entity.Employee;
+
 import com.techknife.leave.entity.LeaveRequest;
 import com.techknife.leave.entity.LeaveStatus;
 import com.techknife.leave.entity.WFHStatus;

@@ -60,6 +60,59 @@ public class User {
 
     private String profileImage;
 
+    private String employeeId;
+
+    private String customerId;
+
+    private String department;
+
+    private String designation;
+
+    private String bio;
+
+    public String getFullName() {
+        if (firstName == null && lastName == null) return "";
+        if (firstName == null) return lastName;
+        if (lastName == null) return firstName;
+        return firstName + " " + lastName;
+    }
+
+    public void setFullName(String fullName) {
+        if (fullName != null) {
+            String[] parts = fullName.trim().split("\\s+", 2);
+            this.firstName = parts[0];
+            if (parts.length > 1) {
+                this.lastName = parts[1];
+            }
+        }
+    }
+
+    public String getProfilePictureUrl() {
+        return this.profileImage;
+    }
+
+    public void setProfilePictureUrl(String profilePictureUrl) {
+        this.profileImage = profilePictureUrl;
+    }
+
+    public String getBio() {
+        return this.bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+
+    public String getEmployeeId() {
+        return this.employeeId != null ? this.employeeId : this.userId;
+    }
+
+    public String getCustomerId() {
+        return this.customerId;
+    }
+
+
     @Builder.Default
     private AccountStatus accountStatus = AccountStatus.PENDING_VERIFICATION;
 
@@ -101,4 +154,13 @@ public class User {
 
     @LastModifiedBy
     private String updatedBy;
+
+    public Instant getLockExpiration() {
+        return this.lockUntil;
+    }
+
+    public void setLockExpiration(Instant lockUntil) {
+        this.lockUntil = lockUntil;
+    }
 }
+

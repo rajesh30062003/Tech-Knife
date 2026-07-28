@@ -4,7 +4,8 @@ import com.techknife.attendance.entity.AttendanceRecord;
 import com.techknife.attendance.repository.AttendanceRecordRepository;
 import com.techknife.calendar.dto.CalendarEventDTO;
 import com.techknife.employee.repository.EmployeeRepository;
-import com.techknife.entity.Employee;
+import com.techknife.employee.entity.Employee;
+
 import com.techknife.holiday.entity.Holiday;
 import com.techknife.holiday.repository.HolidayRepository;
 import com.techknife.leave.entity.LeaveRequest;

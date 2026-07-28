@@ -6,7 +6,13 @@ import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
+import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGenerator;
+
+@SpringBootApplication(
+        scanBasePackages = "com.techknife",
+        nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
+)
+
 @EnableMongoAuditing
 @EnableAsync
 @EnableScheduling

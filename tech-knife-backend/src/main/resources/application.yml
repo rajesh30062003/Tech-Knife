@@ -11,11 +11,15 @@ server:
     include-binding-errors: always
     include-stacktrace: never
   servlet:
-    context-path: /api/v1
+    context-path: /
+
 
 spring:
+  main:
+    allow-bean-definition-overriding: true
   application:
     name: tech-knife-backend
+
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
   lifecycle:

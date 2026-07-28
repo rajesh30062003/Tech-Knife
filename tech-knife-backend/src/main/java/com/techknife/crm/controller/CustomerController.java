@@ -32,7 +32,7 @@ public class CustomerController {
     @Operation(summary = "Get all customers")
     public ResponseEntity<ApiResponse<List<CustomerDTO>>> getAllCustomers(@RequestParam(required = false) String status) {
         List<CustomerDTO> result = customerService.getAllCustomers(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched customers successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched customers successfully"));
     }
 
     @GetMapping("/{id}")
@@ -40,7 +40,7 @@ public class CustomerController {
     @Operation(summary = "Get customer by ID")
     public ResponseEntity<ApiResponse<CustomerDTO>> getCustomerById(@PathVariable String id) {
         CustomerDTO result = customerService.getCustomerById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched customer successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched customer successfully"));
     }
 
     @PostMapping
@@ -50,7 +50,7 @@ public class CustomerController {
     public ResponseEntity<ApiResponse<CustomerDTO>> createCustomer(@Valid @RequestBody CustomerDTO dto) {
         CustomerDTO result = customerService.createCustomer(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created customer successfully", result));
+                .body(ApiResponse.success(result, "Created customer successfully"));
     }
 
     @PutMapping("/{id}")
@@ -61,7 +61,7 @@ public class CustomerController {
             @PathVariable String id,
             @Valid @RequestBody CustomerDTO dto) {
         CustomerDTO result = customerService.updateCustomer(id, dto);
-        return ResponseEntity.ok(ApiResponse.success("Updated customer successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated customer successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -70,6 +70,7 @@ public class CustomerController {
     @Operation(summary = "Delete customer")
     public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable String id) {
         customerService.deleteCustomer(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted customer successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted customer successfully"));
     }
+
 }

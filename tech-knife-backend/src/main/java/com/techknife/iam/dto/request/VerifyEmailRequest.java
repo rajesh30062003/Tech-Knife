@@ -20,4 +20,9 @@ public class VerifyEmailRequest {
     @NotBlank(message = "Verification token is required")
     @Schema(description = "Email verification token string")
     private String token;
+
+    public String getVerificationToken() {
+        return this.token;
+    }
 }
+

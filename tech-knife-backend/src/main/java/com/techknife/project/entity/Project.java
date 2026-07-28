@@ -90,4 +90,9 @@ public class Project {
 
     @LastModifiedBy
     private String updatedBy;
+
+    public Double getSpentAmount() {
+        return 0.0;
+    }
 }
+

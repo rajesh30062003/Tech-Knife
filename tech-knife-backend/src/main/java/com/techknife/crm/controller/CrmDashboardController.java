@@ -27,6 +27,7 @@ public class CrmDashboardController {
     @Operation(summary = "Get CRM dashboard metrics")
     public ResponseEntity<ApiResponse<CrmDashboardDTO>> getDashboard() {
         CrmDashboardDTO result = crmDashboardService.getDashboardData();
-        return ResponseEntity.ok(ApiResponse.success("Fetched CRM dashboard metrics successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched CRM dashboard metrics successfully"));
     }
+
 }

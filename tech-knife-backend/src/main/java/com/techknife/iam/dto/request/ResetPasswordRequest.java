@@ -29,4 +29,9 @@ public class ResetPasswordRequest {
     )
     @Schema(description = "New password satisfying security constraints", example = "Secure@2026Pass")
     private String newPassword;
+
+    public String getResetToken() {
+        return this.token;
+    }
 }
+

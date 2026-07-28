@@ -7,8 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+@Repository("backendRoleRepository")
 public interface RoleRepository extends MongoRepository<RoleEntity, String> {
+
     Optional<RoleEntity> findByRole(Role role);
     boolean existsByRole(Role role);
 }

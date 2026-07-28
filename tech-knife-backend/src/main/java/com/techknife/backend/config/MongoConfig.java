@@ -3,7 +3,7 @@ package com.techknife.backend.config;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ReadPreference;
-import com.mongodb.UuidRepresentation;
+import org.bson.UuidRepresentation;
 import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
@@ -30,10 +30,11 @@ import java.util.concurrent.TimeUnit;
  * Configures connection pooling, SSL, read preference, write concern, retry policies, and startup validation.
  */
 @Slf4j
-@Configuration
+@Configuration("backendMongoConfig")
 @EnableMongoAuditing(auditorAwareRef = "auditorProvider")
 @EnableMongoRepositories(basePackages = "com.techknife")
 public class MongoConfig extends AbstractMongoClientConfiguration {
+
 
     @Value("${spring.data.mongodb.uri}")
     private String mongoUri;

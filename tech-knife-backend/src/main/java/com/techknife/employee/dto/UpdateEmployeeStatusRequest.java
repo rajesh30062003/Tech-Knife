@@ -20,4 +20,9 @@ public class UpdateEmployeeStatusRequest {
     private EmployeeStatus status;
 
     private String statusReason;
+
+    public String getRemarks() {
+        return statusReason;
+    }
 }
+

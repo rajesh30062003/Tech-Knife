@@ -6,8 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-@Repository
+@Repository("backendVerificationOtpRepository")
 public interface VerificationOtpRepository extends MongoRepository<VerificationOtp, String> {
+
 
     Optional<VerificationOtp> findTopByEmailAndTypeAndUsedFalseOrderByCreatedAtDesc(String email, VerificationOtp.OtpType type);
 

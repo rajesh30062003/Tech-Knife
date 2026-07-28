@@ -233,7 +233,7 @@ public class EmployeeController {
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(
             @Parameter(description = "Employee Document ID") @PathVariable("id") String id) {
         employeeService.deleteEmployee(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Employee record deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Employee record deleted successfully"));
     }
 
     // --- Sub-resource Endpoints ---
@@ -266,8 +266,9 @@ public class EmployeeController {
             @PathVariable("id") String employeeId,
             @PathVariable("documentId") String documentId) {
         employeeService.deleteEmployeeDocument(employeeId, documentId);
-        return ResponseEntity.ok(ApiResponse.success(null, "Document deleted successfully"));
+        return ResponseEntity.ok(ApiResponse.success("Document deleted successfully"));
     }
+
 
     // Skill Endpoints
     @PostMapping("/{id}/skills")

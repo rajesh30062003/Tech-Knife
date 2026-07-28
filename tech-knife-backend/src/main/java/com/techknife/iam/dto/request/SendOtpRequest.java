@@ -32,4 +32,11 @@ public class SendOtpRequest {
     )
     @Schema(description = "Target mobile number (optional if sending via registered phone)", example = "+12025550143")
     private String mobileNumber;
+
+    private String email;
+
+    public String getEmail() {
+        return this.email != null ? this.email : this.userId;
+    }
 }
+

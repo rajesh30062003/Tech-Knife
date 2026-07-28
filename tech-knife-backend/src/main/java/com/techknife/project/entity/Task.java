@@ -90,4 +90,14 @@ public class Task {
 
     @LastModifiedBy
     private String updatedBy;
+
+    public TaskStatus getTaskStatus() {
+        return this.status;
+    }
+
+    public void setTaskStatus(TaskStatus status) {
+        this.status = status;
+    }
 }
+
+

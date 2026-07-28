@@ -1,5 +1,9 @@
-package com.techknife.backend.dto; // Or mapper package
+package com.techknife.backend.mapper;
 
+import com.techknife.backend.dto.CreateEmployeeRequest;
+import com.techknife.backend.dto.EmployeeDTO;
+import com.techknife.backend.dto.EmployeeResponse;
+import com.techknife.backend.dto.UpdateEmployeeRequest;
 import com.techknife.backend.entity.Employee;
 import org.springframework.stereotype.Component;
 

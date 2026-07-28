@@ -8,8 +8,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+@Repository("backendAuditLogRepository")
 public interface AuditLogRepository extends MongoRepository<AuditLog, String> {
+
 
     List<AuditLog> findByPrincipalOrderByCreatedAtDesc(String principal);
 

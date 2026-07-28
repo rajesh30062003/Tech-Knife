@@ -34,7 +34,7 @@ public class ProposalController {
     @Operation(summary = "Get all proposals")
     public ResponseEntity<ApiResponse<List<ProposalDTO>>> getAllProposals(@RequestParam(required = false) String status) {
         List<ProposalDTO> result = proposalService.getAllProposals(status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched proposals successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched proposals successfully"));
     }
 
     @GetMapping("/{id}")
@@ -42,7 +42,7 @@ public class ProposalController {
     @Operation(summary = "Get proposal by ID")
     public ResponseEntity<ApiResponse<ProposalDTO>> getProposalById(@PathVariable String id) {
         ProposalDTO result = proposalService.getProposalById(id);
-        return ResponseEntity.ok(ApiResponse.success("Fetched proposal successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched proposal successfully"));
     }
 
     @PostMapping
@@ -52,7 +52,7 @@ public class ProposalController {
     public ResponseEntity<ApiResponse<ProposalDTO>> createProposal(@Valid @RequestBody ProposalDTO dto) {
         ProposalDTO result = proposalService.createProposal(dto);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created proposal successfully", result));
+                .body(ApiResponse.success(result, "Created proposal successfully"));
     }
 
     @PutMapping("/{id}")
@@ -65,7 +65,7 @@ public class ProposalController {
             @RequestParam(required = false) String modifiedBy,
             @RequestParam(required = false) String changeSummary) {
         ProposalDTO result = proposalService.updateProposal(id, dto, modifiedBy, changeSummary);
-        return ResponseEntity.ok(ApiResponse.success("Updated proposal successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated proposal successfully"));
     }
 
     @PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -76,7 +76,7 @@ public class ProposalController {
             @PathVariable String id,
             @RequestParam("file") MultipartFile file) {
         ProposalDTO result = proposalService.uploadAttachment(id, file);
-        return ResponseEntity.ok(ApiResponse.success("Uploaded attachment successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Uploaded attachment successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -85,6 +85,7 @@ public class ProposalController {
     @Operation(summary = "Delete proposal")
     public ResponseEntity<ApiResponse<Void>> deleteProposal(@PathVariable String id) {
         proposalService.deleteProposal(id);
-        return ResponseEntity.ok(ApiResponse.success("Deleted proposal successfully", null));
+        return ResponseEntity.ok(ApiResponse.success("Deleted proposal successfully"));
     }
+
 }

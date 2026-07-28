@@ -12,6 +12,8 @@ public enum EmployeeStatus {
     TERMINATED,
     RESIGNED,
     SUSPENDED,
-    RETIRED
+    RETIRED,
+    DEACTIVATED
 }
+
 

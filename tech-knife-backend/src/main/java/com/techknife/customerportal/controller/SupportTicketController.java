@@ -39,7 +39,7 @@ public class SupportTicketController {
             @CurrentUser UserPrincipal userPrincipal,
             @RequestParam(required = false) String status) {
         List<SupportTicketDTO> result = supportTicketService.getTickets(userPrincipal.getId(), status);
-        return ResponseEntity.ok(ApiResponse.success("Fetched tickets successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched tickets successfully"));
     }
 
     @GetMapping("/{id}")
@@ -49,7 +49,7 @@ public class SupportTicketController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         SupportTicketDTO result = supportTicketService.getTicketById(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Fetched ticket details successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched ticket details successfully"));
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -62,7 +62,7 @@ public class SupportTicketController {
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         SupportTicketDTO result = supportTicketService.createTicket(userPrincipal.getId(), dto, files);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Created support ticket successfully", result));
+                .body(ApiResponse.success(result, "Created support ticket successfully"));
     }
 
     @PostMapping(value = "/{id}/replies", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -75,7 +75,7 @@ public class SupportTicketController {
             @Valid @RequestPart("data") TicketReplyDTO replyDTO,
             @RequestPart(value = "files", required = false) MultipartFile[] files) {
         SupportTicketDTO result = supportTicketService.addReply(id, userPrincipal.getId(), replyDTO, files);
-        return ResponseEntity.ok(ApiResponse.success("Added ticket reply successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Added ticket reply successfully"));
     }
 
     @PutMapping("/{id}/status")
@@ -88,7 +88,7 @@ public class SupportTicketController {
             @RequestParam String status,
             @RequestParam(required = false) String resolutionNotes) {
         SupportTicketDTO result = supportTicketService.updateTicketStatus(id, userPrincipal.getId(), status, resolutionNotes);
-        return ResponseEntity.ok(ApiResponse.success("Updated ticket status successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Updated ticket status successfully"));
     }
 
     @PostMapping("/{id}/close")
@@ -99,7 +99,7 @@ public class SupportTicketController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         SupportTicketDTO result = supportTicketService.closeTicket(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Closed ticket successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Closed ticket successfully"));
     }
 
     @PostMapping("/{id}/reopen")
@@ -110,6 +110,6 @@ public class SupportTicketController {
             @CurrentUser UserPrincipal userPrincipal,
             @PathVariable String id) {
         SupportTicketDTO result = supportTicketService.reopenTicket(id, userPrincipal.getId());
-        return ResponseEntity.ok(ApiResponse.success("Reopened ticket successfully", result));
+        return ResponseEntity.ok(ApiResponse.success(result, "Reopened ticket successfully"));
     }
 }

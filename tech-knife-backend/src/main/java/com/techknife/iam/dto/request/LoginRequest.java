@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+
 /**
  * Request payload for user authentication login.
  */
@@ -20,6 +22,7 @@ public class LoginRequest {
 
     @NotBlank(message = "Official email is required")
     @Email(message = "Invalid email format")
+    @JsonAlias({"email", "username"})
     @Schema(description = "User's official organizational email", example = "john.doe@techknife.com")
     private String officialEmail;
 

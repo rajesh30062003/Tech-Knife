@@ -1,7 +1,7 @@
 package com.techknife.backend.controller;
 
 import com.techknife.backend.dto.*;
-import com.techknife.backend.security.UserPrincipal;
+import com.techknife.security.UserPrincipal;
 import com.techknife.backend.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,6 +19,13 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+
+    @GetMapping("/login")
+    @Operation(summary = "Reject GET login attempts", description = "Authentication requires HTTP POST with JSON body payload.")
+    public ResponseEntity<ApiResponse<Void>> loginGet() {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error("HTTP Method GET is not supported for authentication. Please send credentials via HTTP POST /auth/login", null));
+    }
 
     @PostMapping("/login")
     @Operation(summary = "Authenticate user using official email and password")

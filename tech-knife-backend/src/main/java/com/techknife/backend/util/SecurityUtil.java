@@ -1,6 +1,6 @@
 package com.techknife.backend.util;
 
-import com.techknife.backend.security.UserPrincipal;
+import com.techknife.security.UserPrincipal;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

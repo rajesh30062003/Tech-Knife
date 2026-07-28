@@ -12,8 +12,6 @@ import org.springframework.context.annotation.FullyQualifiedAnnotationBeanNameGe
         scanBasePackages = "com.techknife",
         nameGenerator = FullyQualifiedAnnotationBeanNameGenerator.class
 )
-
-@EnableMongoAuditing
 @EnableAsync
 @EnableScheduling
 public class TechKnifeBackendApplication {

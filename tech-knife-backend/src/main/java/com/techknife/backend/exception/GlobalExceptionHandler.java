@@ -9,7 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -100,9 +102,9 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handle EntityNotFoundException and ResourceNotFoundException.
+     * Handle EntityNotFoundException, ResourceNotFoundException, and UsernameNotFoundException.
      */
-    @ExceptionHandler({EntityNotFoundException.class, ResourceNotFoundException.class})
+    @ExceptionHandler({EntityNotFoundException.class, ResourceNotFoundException.class, UsernameNotFoundException.class})
     public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundException(
             RuntimeException ex, HttpServletRequest request) {
         log.error("Entity not found: {}", ex.getMessage());
@@ -129,6 +131,55 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error("Bad Request", error));
+    }
+
+    /**
+     * Handle HttpRequestMethodNotSupportedException for unsupported HTTP methods.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        log.warn("HTTP method not supported: {} for path '{}'", ex.getMethod(), request.getRequestURI());
+        ApiError error = ApiError.builder()
+                .code("METHOD_NOT_ALLOWED")
+                .details(String.format("HTTP Method '%s' is not supported for this endpoint. Supported methods: %s",
+                        ex.getMethod(), ex.getSupportedHttpMethods()))
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error("Method Not Allowed", error));
+    }
+
+    /**
+     * Handle UnauthorizedException.
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorizedException(
+            UnauthorizedException ex, HttpServletRequest request) {
+        log.error("Unauthorized request: {}", ex.getMessage());
+        ApiError error = ApiError.builder()
+                .code("UNAUTHORIZED")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage(), error));
+    }
+
+    /**
+     * Handle BadRequestException.
+     */
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBadRequestException(
+            BadRequestException ex, HttpServletRequest request) {
+        log.error("Bad request: {}", ex.getMessage());
+        ApiError error = ApiError.builder()
+                .code("BAD_REQUEST")
+                .details(ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage(), error));
     }
 
     /**

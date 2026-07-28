@@ -16,7 +16,7 @@ server:
 
 spring:
   main:
-    allow-bean-definition-overriding: true
+    allow-bean-definition-overriding: false
   application:
     name: tech-knife-backend
 
@@ -144,9 +144,10 @@ logging:
     include-response-size: true
   level:
     root: INFO
-    com.techknife: DEBUG
+    com.techknife: INFO
     org.springframework.security: INFO
     org.springframework.data.mongodb: INFO
+    org.springframework.data.mongodb.core.MongoTemplate: INFO
     org.mongodb.driver: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

@@ -44,6 +44,27 @@ public class UserPrincipal implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
+    public static UserPrincipal create(com.techknife.backend.entity.User user) {
+        List<String> roles = user.getRoles() != null
+                ? user.getRoles().stream().map(Enum::name).collect(java.util.stream.Collectors.toList())
+                : new ArrayList<>();
+
+        List<GrantedAuthority> authorities = roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role))
+                .collect(java.util.stream.Collectors.toList());
+
+        return UserPrincipal.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .enabled(user.isEnabled())
+                .accountNonLocked(user.isAccountNonLocked())
+                .roles(roles)
+                .authorities(authorities)
+                .build();
+    }
+
+
     /**
      * Factory method to build UserPrincipal from token claims without raw password.
      *

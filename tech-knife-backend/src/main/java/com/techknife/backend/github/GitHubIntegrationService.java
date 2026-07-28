@@ -1,6 +1,6 @@
 package com.techknife.backend.github;
 
-import com.techknife.backend.config.GitHubConfig;
+import com.techknife.config.GitHubConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

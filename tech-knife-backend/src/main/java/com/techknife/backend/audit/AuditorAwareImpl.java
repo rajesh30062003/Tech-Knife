@@ -1,7 +1,7 @@
 package com.techknife.backend.audit;
 
 import com.techknife.backend.constant.AppConstants;
-import com.techknife.backend.security.UserPrincipal;
+import com.techknife.security.UserPrincipal;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;

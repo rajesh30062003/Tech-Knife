@@ -27,6 +27,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +52,13 @@ public class AuthenticationController {
     private final PasswordService passwordService;
     private final OtpService otpService;
     private final EmailVerificationService emailVerificationService;
+
+    @GetMapping("/login")
+    @Operation(summary = "Reject GET login attempts", description = "Authentication requires HTTP POST with JSON body payload.")
+    public ResponseEntity<ApiResponse<Void>> loginGet() {
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.error("HTTP Method GET is not supported for authentication. Please send credentials via HTTP POST /api/v1/auth/login", null));
+    }
 
     @PostMapping("/login")
     @Operation(summary = "User Login", description = "Authenticate user credentials using official email and password. Generates access and refresh tokens upon success.")

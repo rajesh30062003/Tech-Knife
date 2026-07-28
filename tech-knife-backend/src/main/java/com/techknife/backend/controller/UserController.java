@@ -2,7 +2,7 @@ package com.techknife.backend.controller;
 
 import com.techknife.backend.constant.Role;
 import com.techknife.backend.dto.*;
-import com.techknife.backend.security.UserPrincipal;
+import com.techknife.security.UserPrincipal;
 import com.techknife.backend.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

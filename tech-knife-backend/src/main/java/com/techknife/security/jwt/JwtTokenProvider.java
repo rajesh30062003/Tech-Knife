@@ -37,6 +37,15 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    public String generateToken(org.springframework.security.core.Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        return generateAccessToken(userPrincipal);
+    }
+
+    public String getUserIdFromJWT(String token) {
+        return getUserIdFromToken(token);
+    }
+
     /**
      * Generates a signed Access Token containing user claims, roles, and permissions.
      *

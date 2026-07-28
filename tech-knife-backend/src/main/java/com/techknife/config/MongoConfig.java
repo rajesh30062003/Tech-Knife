@@ -21,6 +21,7 @@ import org.springframework.data.mongodb.config.AbstractMongoClientConfiguration;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.util.concurrent.TimeUnit;
@@ -139,5 +140,11 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     @Bean
     public AuditorAware<String> auditorProvider() {
         return new AuditorAwareImpl();
+    }
+
+    @Override
+    @Bean
+    public MongoCustomConversions customConversions() {
+        return new MongoCustomConversions(java.util.Collections.emptyList());
     }
 }

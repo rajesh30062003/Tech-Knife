@@ -29,8 +29,9 @@ public class DatabaseHealthIndicator implements HealthIndicator {
             Document result = mongoTemplate.getDb().runCommand(pingCommand);
             long responseTimeMs = System.currentTimeMillis() - startTime;
 
-            Double okVal = result.getDouble("ok");
-            boolean isOk = okVal != null && okVal == 1.0;
+            Object okObj = result.get("ok");
+            double okVal = (okObj instanceof Number number) ? number.doubleValue() : 0.0;
+            boolean isOk = (okVal == 1.0);
 
             if (isOk) {
                 return Health.up()

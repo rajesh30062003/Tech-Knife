@@ -25,13 +25,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.techknife.intern.dto.InternResponse;
+import com.techknife.intern.service.InternService;
+
 @RestController
-@RequestMapping("/api/v1/employees")
+@RequestMapping({"/api/v1/employees", "/api/employees"})
 @RequiredArgsConstructor
 @Tag(name = "Employee Management", description = "Enterprise Staff Directory, Onboarding, Profile Updates, and Organizational Hierarchy")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
+    private final InternService internService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
@@ -77,16 +81,18 @@ public class EmployeeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'CMO', 'PROJECT_MANAGER', 'DEV')")
     @Operation(summary = "List employees with search, department, manager, status filtering, and pagination")
     public ResponseEntity<ApiResponse<PagedResponse<EmployeeResponse>>> getAllEmployees(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "departmentId", required = false) String departmentId,
             @RequestParam(value = "managerId", required = false) String managerId,
             @RequestParam(value = "status", required = false) String status) {
-        PagedResponse<EmployeeResponse> response = employeeService.getAllEmployees(page, size, search, departmentId, managerId, status);
+        int effectiveSize = (limit != null && limit > 0) ? limit : size;
+        PagedResponse<EmployeeResponse> response = employeeService.getAllEmployees(page, effectiveSize, search, departmentId, managerId, status);
         return ResponseEntity.ok(ApiResponse.success(response, "Employees list retrieved successfully"));
     }
 

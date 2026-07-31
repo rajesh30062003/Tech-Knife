@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "6a696bb26e2a9df477c68ad7",
+    "projectId": "PRJ-001",
+    "__v": 0,
+    "budget": "₹ 25,00,000",
+    "client": "ABC Enterprises",
+    "code": "TK-ECP",
+    "createdAt": "2026-07-29T02:55:45.485Z",
+    "deadline": "2026-12-31",
+    "lead": "Subrata Pal",
+    "name": "Enterprise Cloud Portal",
+    "progress": 85,
+    "status": "In Progress",
+    "teamCount": 8,
+    "updatedAt": "2026-07-29T04:44:45.135Z"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "6a696bb26e2a9df477c68adb",
+    "key": "SYSTEM_CONFIG",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:45.768Z",
+    "description": "Global system runtime preferences",
+    "updatedAt": "2026-07-29T04:44:45.521Z",
+    "value": {
+      "appName": "Tech Knife Enterprise Management System",
+      "version": "2.0.0-PROD",
+      "dbProvider": "MongoDB Atlas",
+      "backupEnabled": true
+    }
+  }
+]

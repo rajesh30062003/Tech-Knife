@@ -94,6 +94,7 @@ export interface EmployeeResponse {
   departmentId: string;
   designationId: string;
   managerId?: string;
+  managerName?: string;
   joiningDate: string;
   employmentType: EmploymentType;
   salary: number;
@@ -101,6 +102,8 @@ export interface EmployeeResponse {
   githubUsername?: string;
   profileImage?: string;
   status: EmployeeStatus;
+  currentProjects?: string[];
+  assignedProjects?: string[];
   createdAt?: string;
   updatedAt?: string;
   createdBy?: string;

@@ -1,0 +1,68 @@
+[
+  {
+    "_id": "6a696bae6e2a9df477c68ab7",
+    "code": "MGMT",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.038Z",
+    "description": "Executive Leadership & Direction",
+    "employeeCount": 0,
+    "headName": "Ranadhir Pal",
+    "name": "Management",
+    "updatedAt": "2026-07-29T04:44:42.365Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab8",
+    "code": "TECH",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.103Z",
+    "description": "Core Technology & Architecture",
+    "employeeCount": 0,
+    "headName": "Subrata Pal",
+    "name": "Technology",
+    "updatedAt": "2026-07-29T04:44:42.453Z"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68ab9",
+    "code": "MKTG",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.194Z",
+    "description": "Global Growth & Marketing",
+    "employeeCount": 0,
+    "headName": "Anindita Chakraborty",
+    "name": "Marketing",
+    "updatedAt": "2026-07-29T04:44:42.565Z"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68aba",
+    "code": "ENG",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.296Z",
+    "description": "Software Engineering & Delivery",
+    "employeeCount": 0,
+    "headName": "Rahul Garai",
+    "name": "Engineering",
+    "updatedAt": "2026-07-29T04:44:42.648Z"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68abb",
+    "code": "HR",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.399Z",
+    "description": "Human Capital & People Ops",
+    "employeeCount": 0,
+    "headName": "Sarah Connor",
+    "name": "Human Resources",
+    "updatedAt": "2026-07-29T04:44:42.723Z"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68abc",
+    "code": "FIN",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:42.536Z",
+    "description": "Financial Operations",
+    "employeeCount": 0,
+    "headName": "Arthur Pendelton",
+    "name": "Finance",
+    "updatedAt": "2026-07-29T04:44:42.785Z"
+  }
+]

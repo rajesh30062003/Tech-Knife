@@ -95,7 +95,22 @@ public class Employee extends BaseEntity {
         FEMALE,
         NON_BINARY,
         OTHER,
-        PREFER_NOT_TO_SAY
+        PREFER_NOT_TO_SAY,
+        UNSPECIFIED;
+
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public static Gender fromString(String value) {
+            if (value == null || value.isBlank()) {
+                return UNSPECIFIED;
+            }
+            String normalized = value.trim().toUpperCase().replace(" ", "_").replace("-", "_");
+            for (Gender g : values()) {
+                if (g.name().equals(normalized)) {
+                    return g;
+                }
+            }
+            return UNSPECIFIED;
+        }
     }
 
     public enum EmploymentType {
@@ -104,7 +119,22 @@ public class Employee extends BaseEntity {
         CONTRACT,
         INTERN,
         PROBATION,
-        TEMPORARY
+        TEMPORARY,
+        UNSPECIFIED;
+
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public static EmploymentType fromString(String value) {
+            if (value == null || value.isBlank()) {
+                return UNSPECIFIED;
+            }
+            String normalized = value.trim().toUpperCase().replace(" ", "_").replace("-", "_");
+            for (EmploymentType et : values()) {
+                if (et.name().equals(normalized)) {
+                    return et;
+                }
+            }
+            return UNSPECIFIED;
+        }
     }
 
     public enum EmployeeStatus {
@@ -114,6 +144,21 @@ public class Employee extends BaseEntity {
         PROBATION,
         NOTICE_PERIOD,
         TERMINATED,
-        RESIGNED
+        RESIGNED,
+        UNSPECIFIED;
+
+        @com.fasterxml.jackson.annotation.JsonCreator
+        public static EmployeeStatus fromString(String value) {
+            if (value == null || value.isBlank()) {
+                return UNSPECIFIED;
+            }
+            String normalized = value.trim().toUpperCase().replace(" ", "_").replace("-", "_");
+            for (EmployeeStatus es : values()) {
+                if (es.name().equals(normalized)) {
+                    return es;
+                }
+            }
+            return UNSPECIFIED;
+        }
     }
 }

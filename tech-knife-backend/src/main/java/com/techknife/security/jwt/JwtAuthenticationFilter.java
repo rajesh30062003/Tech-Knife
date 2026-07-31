@@ -30,6 +30,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider tokenProvider;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/api/v1/auth/login") ||
+               path.startsWith("/api/v1/auth/register") ||
+               path.startsWith("/api/v1/auth/refresh") ||
+               path.startsWith("/api/v1/auth/refresh-token") ||
+               path.startsWith("/api/auth/login") ||
+               path.startsWith("/auth/login") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs");
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {

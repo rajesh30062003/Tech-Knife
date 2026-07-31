@@ -1,0 +1,132 @@
+[
+  {
+    "_id": "6a696bad6e2a9df477c68aaa",
+    "code": "ROLE_SUPER_ADMIN",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:39.621Z",
+    "description": "Complete system control",
+    "name": "Super Admin",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:40.202Z"
+  },
+  {
+    "_id": "6a696bad6e2a9df477c68aab",
+    "code": "ROLE_ADMIN",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:40.484Z",
+    "description": "System administration",
+    "name": "Admin",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:40.886Z"
+  },
+  {
+    "_id": "6a696bad6e2a9df477c68aac",
+    "code": "ROLE_CEO",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.005Z",
+    "description": "Executive Leadership",
+    "name": "Chief Executive Officer",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.291Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68aad",
+    "code": "ROLE_MD",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.193Z",
+    "description": "Managing Directorate",
+    "name": "Managing Director",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.462Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68aae",
+    "code": "ROLE_CTO",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.256Z",
+    "description": "Technology Leadership",
+    "name": "Chief Technology Officer",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.524Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68aaf",
+    "code": "ROLE_GROWTH_HEAD",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.318Z",
+    "description": "Marketing & Growth Leadership",
+    "name": "Growth Head",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.609Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab0",
+    "code": "ROLE_SENIOR_ENGINEERING_MANAGER",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.379Z",
+    "description": "Engineering Management",
+    "name": "Senior Engineering Manager",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.684Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab1",
+    "code": "ROLE_CMO",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.461Z",
+    "description": "Marketing Directorate",
+    "name": "Chief Marketing Officer",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.838Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab2",
+    "code": "ROLE_DIRECTOR",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.543Z",
+    "description": "Department Director",
+    "name": "Director",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:41.924Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab3",
+    "code": "ROLE_MANAGER",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.684Z",
+    "description": "Team Manager",
+    "name": "Manager",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:42.005Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab4",
+    "code": "ROLE_EMPLOYEE",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.796Z",
+    "description": "Staff Employee",
+    "name": "Employee",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:42.084Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab5",
+    "code": "ROLE_INTERN",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.887Z",
+    "description": "Trainee Intern",
+    "name": "Intern",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:42.195Z"
+  },
+  {
+    "_id": "6a696bae6e2a9df477c68ab6",
+    "code": "ROLE_CUSTOMER",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:41.973Z",
+    "description": "Client / Customer User",
+    "name": "Customer",
+    "permissions": [],
+    "updatedAt": "2026-07-29T04:44:42.283Z"
+  }
+]

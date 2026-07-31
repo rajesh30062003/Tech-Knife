@@ -9,6 +9,21 @@ public enum EmploymentType {
     CONTRACT,
     INTERN,
     PROBATION,
-    TEMPORARY
+    TEMPORARY,
+    UNSPECIFIED;
+
+    @com.fasterxml.jackson.annotation.JsonCreator
+    public static EmploymentType fromString(String value) {
+        if (value == null || value.isBlank()) {
+            return UNSPECIFIED;
+        }
+        String normalized = value.trim().toUpperCase().replace(" ", "_").replace("-", "_");
+        for (EmploymentType et : values()) {
+            if (et.name().equals(normalized)) {
+                return et;
+            }
+        }
+        return UNSPECIFIED;
+    }
 }
 

@@ -2,18 +2,18 @@ package com.techknife.config;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
-import com.mongodb.ReadPreference;
-import org.bson.UuidRepresentation;
-import com.mongodb.WriteConcern;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.techknife.backend.audit.AuditorAwareImpl;
-import jakarta.annotation.PostConstruct;
+import com.techknife.project.converter.ProjectStatusReadingConverter;
+import com.techknife.project.converter.ProjectStatusWritingConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
 import org.springframework.data.mongodb.MongoTransactionManager;
@@ -24,12 +24,9 @@ import org.springframework.data.mongodb.core.SimpleMongoClientDatabaseFactory;
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Production-ready MongoDB Atlas Configuration class.
- * Configures connection pooling, SSL, read preference, write concern, retry policies, and startup validation.
- */
 @Slf4j
 @Configuration
 @EnableMongoAuditing(auditorAwareRef = "auditorProvider")
@@ -37,86 +34,37 @@ import java.util.concurrent.TimeUnit;
 public class MongoConfig extends AbstractMongoClientConfiguration {
 
     @Value("${spring.data.mongodb.uri}")
-    private String mongoUri;
+    private String connectionString;
 
-    @Value("${spring.data.mongodb.database:tkems_db}")
+    @Value("${spring.data.mongodb.database:techknife}")
     private String databaseName;
-
-    @Value("${spring.data.mongodb.min-pool-size:10}")
-    private int minPoolSize;
-
-    @Value("${spring.data.mongodb.max-pool-size:100}")
-    private int maxPoolSize;
-
-    @Value("${spring.data.mongodb.max-idle-time-ms:600000}")
-    private long maxIdleTimeMs;
-
-    @Value("${spring.data.mongodb.connect-timeout-ms:10000}")
-    private int connectTimeoutMs;
-
-    @Value("${spring.data.mongodb.socket-timeout-ms:30000}")
-    private int socketTimeoutMs;
-
-    @Value("${spring.data.mongodb.server-selection-timeout-ms:30000}")
-    private long serverSelectionTimeoutMs;
 
     @Override
     protected String getDatabaseName() {
         return databaseName;
     }
 
-    /**
-     * Validates MongoDB configuration at startup.
-     */
-    @PostConstruct
-    public void validateConfiguration() {
-        log.info("Initializing MongoDB Atlas connection configuration...");
-        if (mongoUri == null || mongoUri.trim().isEmpty() || mongoUri.contains("YOUR_MONGODB_URI")) {
-            String errorMsg = "CRITICAL CONFIGURATION ERROR: MONGODB_URI environment variable is missing or invalid! " +
-                    "Please specify MONGODB_URI in your environment or active spring profile.";
-            log.error(errorMsg);
-            throw new IllegalStateException(errorMsg);
-        }
-
-        if (databaseName == null || databaseName.trim().isEmpty()) {
-            String errorMsg = "CRITICAL CONFIGURATION ERROR: MONGODB_DATABASE property is missing or blank!";
-            log.error(errorMsg);
-            throw new IllegalStateException(errorMsg);
-        }
-
-        log.info("MongoDB Atlas Configuration validated successfully. Target Database: '{}'", databaseName);
-    }
-
     @Override
     @Bean
     @Primary
     public MongoClient mongoClient() {
-        log.info("Configuring MongoDB Atlas MongoClient with SSL and Connection Pooling...");
-
-        ConnectionString connectionString = new ConnectionString(mongoUri);
-
+        log.info("Connecting to MongoDB Atlas...");
+        
+        ConnectionString connString = new ConnectionString(connectionString);
+        
         MongoClientSettings settings = MongoClientSettings.builder()
-                .applyConnectionString(connectionString)
-                .uuidRepresentation(UuidRepresentation.STANDARD)
-                .readPreference(ReadPreference.primaryPreferred())
-                .writeConcern(WriteConcern.MAJORITY.withJournal(true))
-                .retryWrites(true)
-                .retryReads(true)
-                .applyToConnectionPoolSettings(builder -> builder
-                        .minSize(minPoolSize)
-                        .maxSize(maxPoolSize)
-                        .maxConnectionIdleTime(maxIdleTimeMs, TimeUnit.MILLISECONDS)
-                )
+                .applyConnectionString(connString)
                 .applyToSocketSettings(builder -> builder
-                        .connectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS)
-                        .readTimeout(socketTimeoutMs, TimeUnit.MILLISECONDS)
-                )
+                        .connectTimeout(10, TimeUnit.SECONDS)
+                        .readTimeout(30, TimeUnit.SECONDS))
                 .applyToClusterSettings(builder -> builder
-                        .serverSelectionTimeout(serverSelectionTimeoutMs, TimeUnit.MILLISECONDS)
-                )
-                .applyToSslSettings(builder -> builder.enabled(true))
+                        .serverSelectionTimeout(15, TimeUnit.SECONDS))
+                .applyToConnectionPoolSettings(builder -> builder
+                        .maxSize(50)
+                        .minSize(5)
+                        .maxWaitTime(10, TimeUnit.SECONDS))
                 .build();
-
+                
         return MongoClients.create(settings);
     }
 
@@ -133,6 +81,7 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     }
 
     @Bean
+    @Primary
     public MongoTransactionManager transactionManager(MongoDatabaseFactory dbFactory) {
         return new MongoTransactionManager(dbFactory);
     }
@@ -145,6 +94,120 @@ public class MongoConfig extends AbstractMongoClientConfiguration {
     @Override
     @Bean
     public MongoCustomConversions customConversions() {
-        return new MongoCustomConversions(java.util.Collections.emptyList());
+        return new MongoCustomConversions(List.of(
+                new ProjectStatusReadingConverter(),
+                new ProjectStatusWritingConverter(),
+                new GenderReadingConverter(),
+                new BackendGenderReadingConverter(),
+                new EntityGenderReadingConverter(),
+                new BloodGroupReadingConverter(),
+                new MaritalStatusReadingConverter(),
+                new EmploymentTypeReadingConverter(),
+                new BackendEmploymentTypeReadingConverter(),
+                new BackendEmployeeStatusReadingConverter(),
+                new InternStatusReadingConverter(),
+                new AddressReadingConverter(),
+                new LocalDateReadingConverter()
+        ));
+    }
+
+    @ReadingConverter
+    public static class InternStatusReadingConverter implements Converter<String, com.techknife.intern.entity.InternStatus> {
+        @Override
+        public com.techknife.intern.entity.InternStatus convert(String source) {
+            return com.techknife.intern.entity.InternStatus.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class LocalDateReadingConverter implements Converter<String, java.time.LocalDate> {
+        @Override
+        public java.time.LocalDate convert(String source) {
+            if (source == null || source.isBlank()) {
+                return null;
+            }
+            try {
+                return java.time.LocalDate.parse(source);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+    }
+
+    @ReadingConverter
+    public static class AddressReadingConverter implements Converter<String, com.techknife.employee.entity.Address> {
+        @Override
+        public com.techknife.employee.entity.Address convert(String source) {
+            if (source == null || source.isBlank()) {
+                return null;
+            }
+            return com.techknife.employee.entity.Address.builder()
+                    .street(source)
+                    .build();
+        }
+    }
+
+    @ReadingConverter
+    public static class GenderReadingConverter implements Converter<String, com.techknife.employee.entity.Gender> {
+        @Override
+        public com.techknife.employee.entity.Gender convert(String source) {
+            return com.techknife.employee.entity.Gender.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class BackendGenderReadingConverter implements Converter<String, com.techknife.backend.entity.Employee.Gender> {
+        @Override
+        public com.techknife.backend.entity.Employee.Gender convert(String source) {
+            return com.techknife.backend.entity.Employee.Gender.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class EntityGenderReadingConverter implements Converter<String, com.techknife.entity.Employee.Gender> {
+        @Override
+        public com.techknife.entity.Employee.Gender convert(String source) {
+            return com.techknife.entity.Employee.Gender.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class BloodGroupReadingConverter implements Converter<String, com.techknife.employee.entity.BloodGroup> {
+        @Override
+        public com.techknife.employee.entity.BloodGroup convert(String source) {
+            return com.techknife.employee.entity.BloodGroup.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class MaritalStatusReadingConverter implements Converter<String, com.techknife.employee.entity.MaritalStatus> {
+        @Override
+        public com.techknife.employee.entity.MaritalStatus convert(String source) {
+            return com.techknife.employee.entity.MaritalStatus.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class EmploymentTypeReadingConverter implements Converter<String, com.techknife.employee.entity.EmploymentType> {
+        @Override
+        public com.techknife.employee.entity.EmploymentType convert(String source) {
+            return com.techknife.employee.entity.EmploymentType.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class BackendEmploymentTypeReadingConverter implements Converter<String, com.techknife.backend.entity.Employee.EmploymentType> {
+        @Override
+        public com.techknife.backend.entity.Employee.EmploymentType convert(String source) {
+            return com.techknife.backend.entity.Employee.EmploymentType.fromString(source);
+        }
+    }
+
+    @ReadingConverter
+    public static class BackendEmployeeStatusReadingConverter implements Converter<String, com.techknife.backend.entity.Employee.EmployeeStatus> {
+        @Override
+        public com.techknife.backend.entity.Employee.EmployeeStatus convert(String source) {
+            return com.techknife.backend.entity.Employee.EmployeeStatus.fromString(source);
+        }
     }
 }

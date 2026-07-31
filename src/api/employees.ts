@@ -3,16 +3,21 @@ import { Role } from '../types';
 
 export interface EmployeeData {
   id: string;
+  employeeId?: string;
+  employeeCode?: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  officialEmail?: string;
+  phone?: string;
+  mobileNumber?: string;
   role: Role;
   department: string;
   designation: string;
-  joinDate: string;
+  joinDate?: string;
+  joiningDate?: string;
   status: 'Active' | 'On Leave' | 'Suspended' | 'Terminated';
-  salary: number;
+  salary?: number;
   avatarUrl?: string;
   address?: string;
   emergencyContact?: string;
@@ -41,133 +46,19 @@ export interface EmployeeStats {
   recentHiresCount: number;
 }
 
-// Initial Mock Employees Data Store for local fallback
-export let mockEmployees: EmployeeData[] = [
-  {
-    id: 'EMP-101',
-    firstName: 'Alexander',
-    lastName: 'Vance',
-    email: 'a.vance@techknife.com',
-    phone: '+1 (555) 019-2834',
-    role: 'ROLE_MD',
-    department: 'Executive Leadership',
-    designation: 'Managing Director',
-    joinDate: '2021-03-15',
-    status: 'Active',
-    salary: 240000,
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300',
-    address: '450 Silicon Valley Way, San Jose, CA',
-    emergencyContact: 'Elena Vance (+1 555-900-1122)',
-    bio: 'Over 15 years of executive technology leadership across enterprise SaaS platforms.',
-    skills: ['Executive Leadership', 'Corporate Strategy', 'Enterprise Sales', 'Governance'],
-    managerId: ''
-  },
-  {
-    id: 'EMP-102',
-    firstName: 'Sarah',
-    lastName: 'Connor',
-    email: 's.connor@techknife.com',
-    phone: '+1 (555) 018-9921',
-    role: 'ROLE_CTO',
-    department: 'Engineering & DevOps',
-    designation: 'Chief Technology Officer',
-    joinDate: '2021-06-01',
-    status: 'Active',
-    salary: 210000,
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=300',
-    address: '880 Cybernetics Blvd, San Francisco, CA',
-    emergencyContact: 'John Connor (+1 555-888-2345)',
-    bio: 'Lead architect of high-concurrency cloud microservices and Spring Security compliance.',
-    skills: ['System Architecture', 'Spring Security', 'Kubernetes', 'Java/TypeScript'],
-    managerId: 'EMP-101'
-  },
-  {
-    id: 'EMP-103',
-    firstName: 'Marcus',
-    lastName: 'Brody',
-    email: 'm.brody@techknife.com',
-    phone: '+1 (555) 017-3342',
-    role: 'ROLE_MANAGER',
-    department: 'Product Management',
-    designation: 'Senior Engineering Manager',
-    joinDate: '2022-01-10',
-    status: 'Active',
-    salary: 165000,
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300',
-    address: '124 Innovation Drive, Oakland, CA',
-    emergencyContact: 'Rachel Brody (+1 555-444-9988)',
-    bio: 'Agile team manager focusing on developer productivity and continuous release pipelines.',
-    skills: ['Agile Scrum', 'Roadmap Planning', 'Technical Leadership', 'React / Node'],
-    managerId: 'EMP-102'
-  },
-  {
-    id: 'EMP-104',
-    firstName: 'Elena',
-    lastName: 'Rostova',
-    email: 'e.rostova@techknife.com',
-    phone: '+1 (555) 016-8812',
-    role: 'ROLE_EMPLOYEE',
-    department: 'Engineering & DevOps',
-    designation: 'Senior Frontend Lead',
-    joinDate: '2022-09-18',
-    status: 'Active',
-    salary: 140000,
-    avatarUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=300',
-    address: '55 Pine Street, San Francisco, CA',
-    emergencyContact: 'Dmitri Rostov (+1 555-333-7711)',
-    bio: 'Frontend expert specialized in React 19, Tailwind CSS, and ultra-responsive UI design.',
-    skills: ['React', 'TypeScript', 'Tailwind CSS', 'Performance Optimization'],
-    managerId: 'EMP-103'
-  },
-  {
-    id: 'EMP-105',
-    firstName: 'David',
-    lastName: 'Miller',
-    email: 'd.miller@techknife.com',
-    phone: '+1 (555) 014-7723',
-    role: 'ROLE_EMPLOYEE',
-    department: 'Client Growth & CRM',
-    designation: 'Growth Lead',
-    joinDate: '2023-02-01',
-    status: 'On Leave',
-    salary: 125000,
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300',
-    address: '900 Broadway Ave, San Jose, CA',
-    emergencyContact: 'Claire Miller (+1 555-222-1144)',
-    bio: 'Driving enterprise acquisition and recurring revenue pipelines across North America.',
-    skills: ['HubSpot CRM', 'Key Account Management', 'Enterprise Sales', 'Negotiation'],
-    managerId: 'EMP-101'
-  },
-  {
-    id: 'EMP-106',
-    firstName: 'Jessica',
-    lastName: 'Taylor',
-    email: 'j.taylor@techknife.com',
-    phone: '+1 (555) 012-9988',
-    role: 'ROLE_EMPLOYEE',
-    department: 'Quality Assurance',
-    designation: 'Lead QA Automation Specialist',
-    joinDate: '2023-08-14',
-    status: 'Active',
-    salary: 118000,
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300',
-    address: '77 Market Street, San Francisco, CA',
-    emergencyContact: 'Mark Taylor (+1 555-111-8899)',
-    bio: 'Automated test suite designer with focus on Playwright, Jest, and integration pipelines.',
-    skills: ['Playwright', 'Selenium', 'CI/CD Pipelines', 'API Testing'],
-    managerId: 'EMP-103'
-  }
-];
-
-let mockTimelineEvents: EmployeeTimelineEvent[] = [
-  { id: 'TL-1', employeeId: 'EMP-104', date: '2022-09-18', title: 'Onboarded to Engineering', description: 'Joined Tech Knife as Frontend Specialist', type: 'onboarding', actor: 'HR Dept' },
-  { id: 'TL-2', employeeId: 'EMP-104', date: '2023-10-01', title: 'Promoted to Senior Frontend Lead', description: 'Elevated role following Sprint 12 UI overhaul', type: 'promotion', actor: 'Sarah Connor (CTO)' },
-  { id: 'TL-3', employeeId: 'EMP-104', date: '2024-04-15', title: 'Excellence in Craft Award', description: 'Recognized for 100% lighthouse performance score', type: 'award', actor: 'Alexander Vance (MD)' },
-  { id: 'TL-4', employeeId: 'EMP-101', date: '2021-03-15', title: 'Appointed Managing Director', description: 'Formed Tech Knife executive committee', type: 'onboarding', actor: 'Board of Directors' }
-];
+export function extractList<T = any>(res: any): T[] {
+  if (!res) return [];
+  const payload = res.data;
+  if (!payload) return [];
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload.data)) return payload.data;
+  if (Array.isArray(payload.content)) return payload.content;
+  if (Array.isArray(payload.data?.content)) return payload.data.content;
+  return [];
+}
 
 export const employeesApi = {
-  // GET /api/employees with query params (search, department, role, status, page, limit)
+  // GET /api/employees with query params (search, department, role, status)
   async getEmployees(params?: {
     search?: string;
     department?: string;
@@ -176,175 +67,137 @@ export const employeesApi = {
     page?: number;
     limit?: number;
   }): Promise<{ employees: EmployeeData[]; total: number; totalPages: number }> {
-    try {
-      const response = await apiClient.get('/users', { params });
-      if (response.data?.data) {
-        return {
-          employees: response.data.data,
-          total: response.data.total || response.data.data.length,
-          totalPages: response.data.totalPages || 1
-        };
-      }
-    } catch {
-      // Fallback to local mock data
-    }
+    const response = await apiClient.get('/employees', { params });
+    const list = extractList(response);
+    const totalElements = response.data?.data?.totalElements ?? response.data?.totalElements ?? list.length;
+    const totalPages = response.data?.data?.totalPages ?? response.data?.totalPages ?? 1;
 
-    let filtered = [...mockEmployees];
+    const rawList = Array.isArray(list) ? list : [];
+    const filteredList = rawList.filter((e: any) => {
+      if (!e) return false;
+      const type = (e.employmentType || e.role || '').toString().toUpperCase();
+      const empId = (e.employeeId || e.employeeCode || e.id || '').toString().toUpperCase();
+      return type !== 'INTERN' && type !== 'ROLE_INTERN' && !empId.startsWith('INT-');
+    });
 
-    if (params?.search) {
-      const q = params.search.toLowerCase();
-      filtered = filtered.filter(
-        e =>
-          `${e.firstName} ${e.lastName}`.toLowerCase().includes(q) ||
-          e.email.toLowerCase().includes(q) ||
-          e.id.toLowerCase().includes(q) ||
-          e.designation.toLowerCase().includes(q)
-      );
-    }
-
-    if (params?.department && params.department !== 'ALL') {
-      filtered = filtered.filter(e => e.department === params.department);
-    }
-
-    if (params?.role && params.role !== 'ALL') {
-      filtered = filtered.filter(e => e.role === params.role);
-    }
-
-    if (params?.status && params.status !== 'ALL') {
-      filtered = filtered.filter(e => e.status === params.status);
-    }
-
-    const page = params?.page || 1;
-    const limit = params?.limit || 6;
-    const startIndex = (page - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
-    const totalPages = Math.ceil(filtered.length / limit) || 1;
+    const mappedEmployees: EmployeeData[] = filteredList.map((e: any) => ({
+      id: e.employeeId || e.id || e._id,
+      employeeId: e.employeeId,
+      employeeCode: e.employeeCode,
+      firstName: e.firstName || e.fullName?.split(' ')[0] || 'Employee',
+      lastName: e.lastName || e.fullName?.split(' ')[1] || '',
+      email: e.officialEmail || e.email || '',
+      officialEmail: e.officialEmail || e.email || '',
+      phone: e.mobileNumber || e.phoneNumber || '',
+      mobileNumber: e.mobileNumber || e.phoneNumber || '',
+      role: e.role || 'ROLE_EMPLOYEE',
+      department: e.department || e.departmentId || 'Engineering',
+      designation: e.designation || e.designationId || 'Staff',
+      joinDate: e.joiningDate || '2025-01-01',
+      joiningDate: e.joiningDate || '2025-01-01',
+      status: e.employmentStatus || e.status || 'Active',
+      salary: e.payroll?.netSalary || e.salary || 100000,
+      avatarUrl: e.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim() || 'Employee')}`,
+      address: e.presentAddress || e.address || '',
+      skills: Array.isArray(e.skills) ? e.skills : [],
+    }));
 
     return {
-      employees: paginated,
-      total: filtered.length,
-      totalPages
+      employees: mappedEmployees,
+      total: totalElements,
+      totalPages: totalPages,
     };
   },
 
   // GET /api/employees/:id
   async getEmployeeById(id: string): Promise<EmployeeData | null> {
-    try {
-      const res = await apiClient.get(`/users/${id}`);
-      if (res.data?.data) return res.data.data;
-    } catch {
-      // Fallback
-    }
-    return mockEmployees.find(e => e.id === id) || null;
+    const res = await apiClient.get(`/employees/${id}`);
+    const e = res.data?.data;
+    if (!e) return null;
+
+    return {
+      id: e.employeeId || e.id || e._id,
+      employeeId: e.employeeId,
+      employeeCode: e.employeeCode,
+      firstName: e.firstName || e.fullName?.split(' ')[0] || 'Employee',
+      lastName: e.lastName || e.fullName?.split(' ')[1] || '',
+      email: e.officialEmail || e.email,
+      officialEmail: e.officialEmail || e.email,
+      phone: e.mobileNumber || e.phoneNumber || '',
+      mobileNumber: e.mobileNumber || e.phoneNumber || '',
+      role: e.role,
+      department: e.department,
+      designation: e.designation,
+      joinDate: e.joiningDate || '2025-01-01',
+      joiningDate: e.joiningDate || '2025-01-01',
+      status: e.employmentStatus || 'Active',
+      salary: e.payroll?.netSalary || 100000,
+      avatarUrl: e.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(e.fullName || e.firstName)}`,
+      address: e.presentAddress || '',
+      skills: e.skills || [],
+    };
   },
 
   // POST /api/employees
   async createEmployee(data: Partial<EmployeeData>): Promise<EmployeeData> {
-    try {
-      const res = await apiClient.post('/users', data);
-      if (res.data?.data) return res.data.data;
-    } catch {
-      // Fallback
-    }
-
-    const newEmp: EmployeeData = {
-      id: `EMP-${Math.floor(100 + Math.random() * 900)}`,
-      firstName: data.firstName || 'New',
-      lastName: data.lastName || 'Employee',
-      email: data.email || `emp.${Date.now()}@techknife.com`,
-      phone: data.phone || '+1 (555) 000-0000',
+    const res = await apiClient.post('/employees', {
+      firstName: data.firstName,
+      lastName: data.lastName,
+      officialEmail: data.email || data.officialEmail,
       role: data.role || 'ROLE_EMPLOYEE',
-      department: data.department || 'Engineering & DevOps',
       designation: data.designation || 'Software Engineer',
-      joinDate: data.joinDate || new Date().toISOString().split('T')[0],
-      status: data.status || 'Active',
-      salary: Number(data.salary) || 120000,
-      avatarUrl: data.avatarUrl || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300`,
-      address: data.address || 'San Francisco, CA',
-      bio: data.bio || 'Recently onboarded Tech Knife team member.',
-      skills: data.skills || ['Software Engineering', 'Problem Solving'],
-      managerId: data.managerId || ''
-    };
-
-    mockEmployees = [newEmp, ...mockEmployees];
-
-    // Add timeline event
-    mockTimelineEvents.push({
-      id: `TL-${Date.now()}`,
-      employeeId: newEmp.id,
-      date: newEmp.joinDate,
-      title: 'Employee Onboarded',
-      description: `Registered as ${newEmp.designation} in ${newEmp.department}`,
-      type: 'onboarding',
-      actor: 'HR Operations'
+      department: data.department || 'Engineering',
+      mobileNumber: data.phone || data.mobileNumber || '+91 98765 43210',
+      joiningDate: data.joinDate || data.joiningDate || new Date().toISOString().split('T')[0],
+      skills: data.skills || ['Enterprise Solutions'],
     });
 
-    return newEmp;
+    const e = res.data?.data;
+    return {
+      id: e.employeeId || e.id,
+      firstName: e.firstName,
+      lastName: e.lastName,
+      email: e.officialEmail,
+      phone: e.mobileNumber,
+      role: e.role,
+      department: e.department,
+      designation: e.designation,
+      joinDate: e.joiningDate,
+      status: 'Active',
+      salary: e.payroll?.netSalary || 100000,
+    };
   },
 
   // PUT /api/employees/:id
   async updateEmployee(id: string, updates: Partial<EmployeeData>): Promise<EmployeeData> {
-    try {
-      const res = await apiClient.put(`/users/${id}`, updates);
-      if (res.data?.data) return res.data.data;
-    } catch {
-      // Fallback
-    }
-
-    const index = mockEmployees.findIndex(e => e.id === id);
-    if (index !== -1) {
-      mockEmployees[index] = { ...mockEmployees[index], ...updates };
-      return mockEmployees[index];
-    }
-    throw new Error('Employee not found');
+    const res = await apiClient.put(`/employees/${id}`, updates);
+    return res.data?.data;
   },
 
   // DELETE /api/employees/:id
   async deleteEmployee(id: string): Promise<boolean> {
-    try {
-      await apiClient.delete(`/users/${id}`);
-    } catch {
-      // Fallback
-    }
-    mockEmployees = mockEmployees.filter(e => e.id !== id);
+    await apiClient.delete(`/employees/${id}`);
     return true;
-  },
-
-  // GET /api/employees/:id/timeline
-  async getEmployeeTimeline(employeeId: string): Promise<EmployeeTimelineEvent[]> {
-    try {
-      const res = await apiClient.get(`/users/${employeeId}/timeline`);
-      if (res.data?.data) return res.data.data;
-    } catch {
-      // Fallback
-    }
-    return mockTimelineEvents.filter(t => t.employeeId === employeeId);
   },
 
   // GET /api/employees/statistics
   async getStatistics(): Promise<EmployeeStats> {
-    try {
-      const res = await apiClient.get('/users/statistics');
-      if (res.data?.data) return res.data.data;
-    } catch {
-      // Fallback
-    }
-
-    const totalCount = mockEmployees.length;
-    const activeCount = mockEmployees.filter(e => e.status === 'Active').length;
-    const onLeaveCount = mockEmployees.filter(e => e.status === 'On Leave').length;
-    const suspendedCount = mockEmployees.filter(e => e.status === 'Suspended').length;
+    const { employees } = await this.getEmployees();
+    const totalCount = employees.length;
+    const activeCount = employees.filter((e) => e.status === 'Active').length;
+    const onLeaveCount = employees.filter((e) => e.status === 'On Leave').length;
+    const suspendedCount = employees.filter((e) => e.status === 'Suspended').length;
 
     const deptMap = new Map<string, number>();
     let sumSalary = 0;
-    mockEmployees.forEach(e => {
+    employees.forEach((e) => {
       deptMap.set(e.department, (deptMap.get(e.department) || 0) + 1);
-      sumSalary += e.salary;
+      sumSalary += e.salary || 0;
     });
 
     const departmentBreakdown = Array.from(deptMap.entries()).map(([department, count]) => ({
       department,
-      count
+      count,
     }));
 
     return {
@@ -354,19 +207,18 @@ export const employeesApi = {
       suspendedCount,
       departmentBreakdown,
       avgSalary: Math.round(sumSalary / (totalCount || 1)),
-      recentHiresCount: 2
+      recentHiresCount: employees.length,
     };
   },
 
-  // POST /api/employees/import
   async importEmployees(jsonList: Partial<EmployeeData>[]): Promise<number> {
-    let imported = 0;
+    let count = 0;
     for (const item of jsonList) {
       if (item.firstName && item.email) {
         await this.createEmployee(item);
-        imported++;
+        count++;
       }
     }
-    return imported;
-  }
+    return count;
+  },
 };

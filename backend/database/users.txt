@@ -1,0 +1,490 @@
+[
+  {
+    "_id": "6a696611447418848cf88383",
+    "userId": "admin",
+    "officialEmail": "admin@techknife.com",
+    "personalEmail": "admin.personal@techknife.com",
+    "password": "$2a$12$DAPnGzl1I/WzX5YjQU.jgOSD5FoMzhHkjuHTGtjtz1/ZdpK1VBhT2",
+    "firstName": "Super",
+    "lastName": "Admin",
+    "employeeId": "EMP-00001",
+    "department": "Executive Management",
+    "designation": "Super Administrator",
+    "accountStatus": "ACTIVE",
+    "accountType": "INTERNAL",
+    "roles": [
+      "ROLE_SUPER_ADMIN",
+      "ROLE_ADMIN"
+    ],
+    "permissions": [
+      "RECRUITMENT_WRITE",
+      "USER_WRITE",
+      "PAYROLL_WRITE",
+      "RECRUITMENT_READ",
+      "PROJECT_READ",
+      "CRM_READ",
+      "USER_READ",
+      "PAYROLL_READ",
+      "PROJECT_WRITE",
+      "CRM_WRITE"
+    ],
+    "emailVerified": true,
+    "mobileVerified": true,
+    "failedLoginAttempts": 0,
+    "accountLocked": false,
+    "createdAt": "2026-07-29T02:31:45.976Z",
+    "updatedAt": "2026-07-29T02:31:45.976Z",
+    "createdBy": "SYSTEM",
+    "updatedBy": "SYSTEM",
+    "_class": "com.techknife.iam.entity.User"
+  },
+  {
+    "_id": "6a696612447418848cf88384",
+    "email": "admin@techknife.com",
+    "password": "$2a$12$DAPnGzl1I/WzX5YjQU.jgOSD5FoMzhHkjuHTGtjtz1/ZdpK1VBhT2",
+    "firstName": "Super",
+    "lastName": "Admin",
+    "designation": "Super Administrator",
+    "department": "Executive Management",
+    "phoneNumber": "+1234567890",
+    "avatarUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250",
+    "enabled": true,
+    "accountNonLocked": true,
+    "emailVerified": true,
+    "roles": [
+      "ROLE_SUPER_ADMIN"
+    ],
+    "createdAt": "2026-07-29T02:31:46.123Z",
+    "updatedAt": "2026-07-29T02:31:46.123Z",
+    "createdBy": "SYSTEM",
+    "updatedBy": "SYSTEM",
+    "version": 0,
+    "deleted": false,
+    "_class": "com.techknife.backend.entity.User"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68abd",
+    "email": "ranadhir.pal@techknife.com",
+    "__v": 11,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Ranadhir%20Pal&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:42.618Z",
+    "department": "Management",
+    "designation": "Chief Executive Officer",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Ranadhir",
+    "lastName": "Pal",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T02:55:59.326Z",
+        "ip": "::1",
+        "userAgent": "node",
+        "_id": "6a696bbfaf987c2cb8082ed6"
+      },
+      {
+        "timestamp": "2026-07-29T03:04:32.369Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a696dc0af987c2cb8082ee4"
+      },
+      {
+        "timestamp": "2026-07-29T03:12:09.812Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a696f89f968e8881a4936f3"
+      },
+      {
+        "timestamp": "2026-07-29T03:15:27.836Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a69704ff968e8881a493709"
+      },
+      {
+        "timestamp": "2026-07-29T03:24:29.933Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a69726d99d9e4e33ba1d16e"
+      },
+      {
+        "timestamp": "2026-07-29T04:45:10.113Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a6985561d47c9c9aec10ca3"
+      },
+      {
+        "timestamp": "2026-07-29T04:45:28.465Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a6985681d47c9c9aec10cac"
+      },
+      {
+        "timestamp": "2026-07-29T04:45:58.056Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a6985861d47c9c9aec10cc6"
+      },
+      {
+        "timestamp": "2026-07-29T05:05:06.780Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a698a021d47c9c9aec10d04"
+      },
+      {
+        "timestamp": "2026-07-29T05:05:14.908Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a698a0a1d47c9c9aec10d1b"
+      },
+      {
+        "timestamp": "2026-07-29T05:05:51.008Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a698a2f1d47c9c9aec10d34"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43210",
+    "role": "ROLE_CEO",
+    "roles": [
+      "ROLE_CEO"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T05:05:51.014Z",
+    "userId": "EMP-001",
+    "username": "ranadhir",
+    "lastLoginAt": "2026-07-29T05:05:51.008Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmFmNmUyYTlkZjQ3N2M2OGFiZCIsInVzZXJJZCI6IkVNUC0wMDEiLCJlbWFpbCI6InJhbmFkaGlyLnBhbEB0ZWNoa25pZmUuY29tIiwicm9sZSI6IlJPTEVfQ0VPIiwicm9sZXMiOlsiUk9MRV9DRU8iXSwiZGVwYXJ0bWVudCI6Ik1hbmFnZW1lbnQiLCJpYXQiOjE3ODUzMDE1NTEsImV4cCI6MTc4NTkwNjM1MX0.qYN19RvjidhEOlQRhqy7XuyltPfP3Zm0POPu1mhJbcU"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68ac0",
+    "email": "sourav.roy@techknife.com",
+    "__v": 2,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Sourav%20Roy&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:42.806Z",
+    "department": "Management",
+    "designation": "Managing Director",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Sourav",
+    "lastName": "Roy",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T03:06:31.996Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a696e37af987c2cb8082eef"
+      },
+      {
+        "timestamp": "2026-07-29T04:45:29.031Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a6985691d47c9c9aec10cb0"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43211",
+    "role": "ROLE_MD",
+    "roles": [
+      "ROLE_MD"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:45:29.033Z",
+    "userId": "EMP-002",
+    "username": "sourav",
+    "lastLoginAt": "2026-07-29T04:45:29.030Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmFmNmUyYTlkZjQ3N2M2OGFjMCIsInVzZXJJZCI6IkVNUC0wMDIiLCJlbWFpbCI6InNvdXJhdi5yb3lAdGVjaGtuaWZlLmNvbSIsInJvbGUiOiJST0xFX01EIiwicm9sZXMiOlsiUk9MRV9NRCJdLCJkZXBhcnRtZW50IjoiTWFuYWdlbWVudCIsImlhdCI6MTc4NTMwMDMyOSwiZXhwIjoxNzg1OTA1MTI5fQ.CBKRrR2P9S8yF7gzI6GCdoLORPak4eYTF85Gofe0Nq0"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac3",
+    "email": "subrata.pal@techknife.com",
+    "__v": 2,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Subrata%20Pal&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:43.302Z",
+    "department": "Technology",
+    "designation": "Chief Technology Officer",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Subrata",
+    "lastName": "Pal",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T04:45:29.533Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a6985691d47c9c9aec10cb3"
+      },
+      {
+        "timestamp": "2026-07-29T04:53:42.511Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0",
+        "_id": "6a6987561d47c9c9aec10cea"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43212",
+    "role": "ROLE_CTO",
+    "roles": [
+      "ROLE_CTO"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:53:42.516Z",
+    "userId": "EMP-003",
+    "username": "subrata",
+    "lastLoginAt": "2026-07-29T04:53:42.511Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmIwNmUyYTlkZjQ3N2M2OGFjMyIsInVzZXJJZCI6IkVNUC0wMDMiLCJlbWFpbCI6InN1YnJhdGEucGFsQHRlY2hrbmlmZS5jb20iLCJyb2xlIjoiUk9MRV9DVE8iLCJyb2xlcyI6WyJST0xFX0NUTyJdLCJkZXBhcnRtZW50IjoiVGVjaG5vbG9neSIsImlhdCI6MTc4NTMwMDgyMiwiZXhwIjoxNzg1OTA1NjIyfQ.kz_r5jUGCGMNMmbIaRCmWuPR1B1j-jzNEr2S_dS6OgM"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac6",
+    "email": "anindita.c@techknife.com",
+    "__v": 1,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Anindita%20Chakraborty&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:43.514Z",
+    "department": "Marketing",
+    "designation": "Growth Head",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Anindita",
+    "lastName": "Chakraborty",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T04:45:30.462Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a69856a1d47c9c9aec10cb6"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43213",
+    "role": "ROLE_GROWTH_HEAD",
+    "roles": [
+      "ROLE_GROWTH_HEAD"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:45:30.464Z",
+    "userId": "EMP-004",
+    "username": "anindita",
+    "lastLoginAt": "2026-07-29T04:45:30.461Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmIwNmUyYTlkZjQ3N2M2OGFjNiIsInVzZXJJZCI6IkVNUC0wMDQiLCJlbWFpbCI6ImFuaW5kaXRhLmNAdGVjaGtuaWZlLmNvbSIsInJvbGUiOiJST0xFX0dST1dUSF9IRUFEIiwicm9sZXMiOlsiUk9MRV9HUk9XVEhfSEVBRCJdLCJkZXBhcnRtZW50IjoiTWFya2V0aW5nIiwiaWF0IjoxNzg1MzAwMzMwLCJleHAiOjE3ODU5MDUxMzB9.4xw9bfEixbg3r7Sq3dE54seRIpJiBHk7hR5Qf3CpHMo"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac9",
+    "email": "rahul.garai@techknife.com",
+    "__v": 1,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Rahul%20Garai&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:43.833Z",
+    "department": "Engineering",
+    "designation": "Senior Engineering Manager",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Rahul",
+    "lastName": "Garai",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T04:45:30.960Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a69856a1d47c9c9aec10cb9"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43214",
+    "role": "ROLE_SENIOR_ENGINEERING_MANAGER",
+    "roles": [
+      "ROLE_SENIOR_ENGINEERING_MANAGER"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:45:30.962Z",
+    "userId": "EMP-005",
+    "username": "rahulgarai",
+    "lastLoginAt": "2026-07-29T04:45:30.960Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmIwNmUyYTlkZjQ3N2M2OGFjOSIsInVzZXJJZCI6IkVNUC0wMDUiLCJlbWFpbCI6InJhaHVsLmdhcmFpQHRlY2hrbmlmZS5jb20iLCJyb2xlIjoiUk9MRV9TRU5JT1JfRU5HSU5FRVJJTkdfTUFOQUdFUiIsInJvbGVzIjpbIlJPTEVfU0VOSU9SX0VOR0lORUVSSU5HX01BTkFHRVIiXSwiZGVwYXJ0bWVudCI6IkVuZ2luZWVyaW5nIiwiaWF0IjoxNzg1MzAwMzMwLCJleHAiOjE3ODU5MDUxMzB9.n7uE5BWjdiohlTiFoIa7Q_QWxA9B9mOw36GkpF2uj-4"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68acc",
+    "email": "rahul.pal@techknife.com",
+    "__v": 0,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Rahul%20Pal&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:44.111Z",
+    "department": "Engineering",
+    "designation": "Engineering Intern",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Rahul",
+    "lastName": "Pal",
+    "loginHistory": [],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43215",
+    "role": "ROLE_INTERN",
+    "roles": [
+      "ROLE_INTERN"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.124Z",
+    "userId": "INT-001",
+    "username": "rahulpal"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68acf",
+    "email": "sangita.k@techknife.com",
+    "__v": 0,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Sangita%20Koner&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:44.363Z",
+    "department": "Marketing",
+    "designation": "Marketing Intern",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Sangita",
+    "lastName": "Koner",
+    "loginHistory": [],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43216",
+    "role": "ROLE_INTERN",
+    "roles": [
+      "ROLE_INTERN"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.404Z",
+    "userId": "INT-002",
+    "username": "sangita"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68ad2",
+    "email": "salman.k@techknife.com",
+    "__v": 0,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Salman%20Kaji&background=0D8ABC&color=fff",
+    "createdAt": "2026-07-29T02:55:44.651Z",
+    "department": "Technology",
+    "designation": "Technology Intern",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Salman",
+    "lastName": "Kaji",
+    "loginHistory": [],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "USER_READ",
+      "PROJECT_READ"
+    ],
+    "phoneNumber": "+91 98765 43217",
+    "role": "ROLE_INTERN",
+    "roles": [
+      "ROLE_INTERN"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.719Z",
+    "userId": "INT-003",
+    "username": "salman"
+  },
+  {
+    "_id": "6a696bb26e2a9df477c68ad5",
+    "email": "amit.sharma@example.com",
+    "__v": 1,
+    "accountNonLocked": true,
+    "avatarUrl": "https://ui-avatars.com/api/?name=Amit%20Sharma&background=28A745&color=fff",
+    "createdAt": "2026-07-29T02:55:45.293Z",
+    "department": "ABC Enterprises",
+    "designation": "Client Representative",
+    "emailVerified": true,
+    "enabled": true,
+    "failedLoginAttempts": 0,
+    "firstName": "Amit",
+    "lastName": "Sharma",
+    "loginHistory": [
+      {
+        "timestamp": "2026-07-29T04:45:31.415Z",
+        "ip": "::1",
+        "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.26100.8894",
+        "_id": "6a69856b1d47c9c9aec10cbc"
+      }
+    ],
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "permissions": [
+      "CRM_READ"
+    ],
+    "phoneNumber": "+91 98111 22334",
+    "role": "ROLE_CUSTOMER",
+    "roles": [
+      "ROLE_CUSTOMER"
+    ],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:45:31.418Z",
+    "userId": "CUST-001",
+    "username": "amitsharma",
+    "lastLoginAt": "2026-07-29T04:45:31.415Z",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmIyNmUyYTlkZjQ3N2M2OGFkNSIsInVzZXJJZCI6IkNVU1QtMDAxIiwiZW1haWwiOiJhbWl0LnNoYXJtYUBleGFtcGxlLmNvbSIsInJvbGUiOiJST0xFX0NVU1RPTUVSIiwicm9sZXMiOlsiUk9MRV9DVVNUT01FUiJdLCJkZXBhcnRtZW50IjoiQUJDIEVudGVycHJpc2VzIiwiaWF0IjoxNzg1MzAwMzMxLCJleHAiOjE3ODU5MDUxMzF9.7AdTwZt1Zxf5nSpns_jiaRiXwcOERlXRKt2C71lxVxg"
+  },
+  {
+    "_id": "6a696bc0af987c2cb8082edf",
+    "userId": "CUST-1785293759956",
+    "email": "newcust@example.com",
+    "username": "newcust",
+    "passwordHash": "$2a$10$KD0oq3dcCaYlHjYNUJYQ8.9uAayeJQGz46CDYsApk18k45K5.nBAG",
+    "firstName": "New",
+    "lastName": "Customer",
+    "role": "ROLE_CUSTOMER",
+    "roles": [
+      "ROLE_CUSTOMER"
+    ],
+    "department": "New Corp",
+    "designation": "Client Representative",
+    "phoneNumber": "",
+    "avatarUrl": "",
+    "enabled": true,
+    "accountNonLocked": true,
+    "emailVerified": true,
+    "permissions": [
+      "CRM_READ"
+    ],
+    "failedLoginAttempts": 0,
+    "twoFactorEnabled": false,
+    "loginHistory": [],
+    "createdAt": "2026-07-29T02:56:00.046Z",
+    "updatedAt": "2026-07-29T02:56:00.117Z",
+    "__v": 0,
+    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjk2YmMwYWY5ODdjMmNiODA4MmVkZiIsInVzZXJJZCI6IkNVU1QtMTc4NTI5Mzc1OTk1NiIsImVtYWlsIjoibmV3Y3VzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJST0xFX0NVU1RPTUVSIiwicm9sZXMiOlsiUk9MRV9DVVNUT01FUiJdLCJpYXQiOjE3ODUyOTM3NjAsImV4cCI6MTc4NTg5ODU2MH0.gjseWVMMjdAG8xe4vngXBb7NuR7QITyfWxRSwlHihmo"
+  }
+]

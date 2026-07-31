@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/interns")
+@RequestMapping({"/api/v1/interns", "/api/interns", "/api/v1/employees/interns", "/api/employees/interns"})
 @RequiredArgsConstructor
 @Tag(name = "Intern Management", description = "Endpoints for Intern Onboarding, Mentorship, Tasks, Evaluations, and Certificates")
 @SecurityRequirement(name = "bearerAuth")
@@ -50,7 +50,7 @@ public class InternController {
     private final InternService internService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INTERN_CREATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('INTERN_CREATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
     @Auditable(action = "CREATE_INTERN", resourceType = "INTERN")
     @Operation(summary = "Onboard new Intern", description = "Creates a new intern record and publishes onboarding notification")
     public ResponseEntity<ApiResponse<InternResponse>> createIntern(@Valid @RequestBody CreateInternRequest request) {
@@ -60,7 +60,7 @@ public class InternController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('INTERN_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('INTERN_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER')")
     @Auditable(action = "UPDATE_INTERN", resourceType = "INTERN")
     @Operation(summary = "Update Intern Profile", description = "Updates details of an existing intern")
     public ResponseEntity<ApiResponse<InternResponse>> updateIntern(
@@ -71,7 +71,7 @@ public class InternController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('INTERN_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'CMO', 'PROJECT_MANAGER', 'DEV') or hasAuthority('INTERN_READ')")
     @Operation(summary = "Get Intern by ID", description = "Retrieves intern record details by MongoDB ID")
     public ResponseEntity<ApiResponse<InternResponse>> getInternById(@PathVariable String id) {
         InternResponse response = internService.getInternById(id);
@@ -79,7 +79,7 @@ public class InternController {
     }
 
     @GetMapping("/code/{internCode}")
-    @PreAuthorize("hasAuthority('INTERN_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'CMO', 'PROJECT_MANAGER', 'DEV') or hasAuthority('INTERN_READ')")
     @Operation(summary = "Get Intern by Code", description = "Retrieves intern details by unique intern code")
     public ResponseEntity<ApiResponse<InternResponse>> getInternByCode(@PathVariable String internCode) {
         InternResponse response = internService.getInternByCode(internCode);
@@ -87,14 +87,19 @@ public class InternController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('INTERN_READ') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'CMO', 'PROJECT_MANAGER', 'DEV') or hasAuthority('INTERN_READ')")
     @Operation(summary = "Get All Interns", description = "Paginated search and list of interns")
     public ResponseEntity<ApiResponse<PagedResponse<InternResponse>>> getAllInterns(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Integer limit,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) InternStatus status) {
-        PagedResponse<InternResponse> response = internService.getAllInterns(page, size, search, status);
+            @RequestParam(required = false) String departmentId,
+            @RequestParam(required = false) String department,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String mentor) {
+        int effectiveSize = (limit != null && limit > 0) ? limit : size;
+        PagedResponse<InternResponse> response = internService.getAllInterns(page, effectiveSize, search, departmentId, department, status, mentor);
         return ResponseEntity.ok(ApiResponse.success(response, "Interns retrieved successfully"));
     }
 

@@ -35,7 +35,7 @@ public interface InternService {
 
     InternResponse getInternByOfficialEmail(String officialEmail);
 
-    PagedResponse<InternResponse> getAllInterns(int page, int size, String search, InternStatus status);
+    PagedResponse<InternResponse> getAllInterns(int page, int size, String search, String departmentId, String department, String status, String mentor);
 
     List<InternResponse> getInternsByDepartment(String departmentId);
 

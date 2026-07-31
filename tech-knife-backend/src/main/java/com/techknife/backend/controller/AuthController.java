@@ -13,7 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping({"/api/v1/auth", "/api/auth"})
 @RequiredArgsConstructor
 @Tag(name = "Authentication Module", description = "Official Email Authentication, JWT Token Management, OTP Verification & Credentials Lifecycle")
 public class AuthController {
@@ -24,7 +24,7 @@ public class AuthController {
     @Operation(summary = "Reject GET login attempts", description = "Authentication requires HTTP POST with JSON body payload.")
     public ResponseEntity<ApiResponse<Void>> loginGet() {
         return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(ApiResponse.error("HTTP Method GET is not supported for authentication. Please send credentials via HTTP POST /auth/login", null));
+                .body(ApiResponse.error("HTTP Method GET is not supported for authentication. Please send credentials via HTTP POST /api/v1/auth/login", null));
     }
 
     @PostMapping("/login")
@@ -42,7 +42,7 @@ public class AuthController {
                 .body(ApiResponse.success(response, "Enterprise account registered successfully"));
     }
 
-    @PostMapping("/refresh")
+    @PostMapping({"/refresh-token", "/refresh"})
     @Operation(summary = "Rotate refresh token and issue new JWT access token")
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refreshToken(request.getRefreshToken());
@@ -95,7 +95,7 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success(null, "Password updated successfully"));
     }
 
-    @GetMapping("/me")
+    @GetMapping({"/me", "/current-user"})
     @Operation(summary = "Retrieve active authenticated user details and mapped permissions")
     public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal UserPrincipal currentUser) {
         UserResponse response = authService.getCurrentUser(currentUser.getId());

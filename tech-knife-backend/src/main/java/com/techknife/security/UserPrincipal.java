@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Principal user details model representing the authenticated user in Spring Security Context.
@@ -46,53 +47,62 @@ public class UserPrincipal implements UserDetails {
 
     public static UserPrincipal create(com.techknife.backend.entity.User user) {
         List<String> roles = user.getRoles() != null
-                ? user.getRoles().stream().map(Enum::name).collect(java.util.stream.Collectors.toList())
+                ? user.getRoles().stream().map(Enum::name).collect(Collectors.toList())
                 : new ArrayList<>();
 
-        List<GrantedAuthority> authorities = roles.stream()
-                .map(role -> new SimpleGrantedAuthority(role.startsWith("ROLE_") ? role : "ROLE_" + role))
-                .collect(java.util.stream.Collectors.toList());
+        Set<String> permissions = user.getPermissions() != null
+                ? new HashSet<>(user.getPermissions())
+                : new HashSet<>();
 
-        return UserPrincipal.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .password(user.getPassword())
-                .enabled(user.isEnabled())
-                .accountNonLocked(user.isAccountNonLocked())
-                .roles(roles)
-                .authorities(authorities)
-                .build();
+        return create(user.getId(), user.getEmail(), user.getPassword(), user.isEnabled(), user.isAccountNonLocked(), roles, permissions);
     }
-
 
     /**
      * Factory method to build UserPrincipal from token claims without raw password.
-     *
-     * @param id          User ID
-     * @param email       User Email
-     * @param roles       Assigned roles
-     * @param permissions Assigned permissions
-     * @return UserPrincipal instance
      */
     public static UserPrincipal create(String id, String email, List<String> roles, Set<String> permissions) {
         Set<GrantedAuthority> grantedAuthorities = new HashSet<>();
 
-        if (roles != null) {
-            roles.forEach(role -> {
-                String authority = role.startsWith("ROLE_") ? role : "ROLE_" + role;
-                grantedAuthorities.add(new SimpleGrantedAuthority(authority));
-            });
+        List<String> cleanRoles = roles != null ? roles : new ArrayList<>();
+        Set<String> cleanPermissions = permissions != null ? new HashSet<>(permissions) : new HashSet<>();
+
+        // 1. Add Role Authorities (both ROLE_XXX and XXX for robust Spring Security matching)
+        for (String role : cleanRoles) {
+            String roleName = role.startsWith("ROLE_") ? role : "ROLE_" + role;
+            grantedAuthorities.add(new SimpleGrantedAuthority(roleName));
+            grantedAuthorities.add(new SimpleGrantedAuthority(roleName.replace("ROLE_", "")));
         }
 
-        if (permissions != null) {
-            permissions.forEach(permission -> grantedAuthorities.add(new SimpleGrantedAuthority(permission)));
+        // 2. Auto-confer Executive Project Permissions for Executive Roles
+        boolean isExecutive = cleanRoles.stream().anyMatch(r ->
+                r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
+                r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
+                r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
+                r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO") ||
+                r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO")
+        );
+
+        if (isExecutive) {
+            cleanPermissions.add("PROJECT_CREATE");
+            cleanPermissions.add("PROJECT_READ");
+            cleanPermissions.add("PROJECT_UPDATE");
+            cleanPermissions.add("PROJECT_DELETE");
+            cleanPermissions.add("PROJECT_ASSIGN");
+            cleanPermissions.add("PROJECT_STATUS_UPDATE");
+            cleanPermissions.add("PROJECT_LINK_UPDATE");
+            cleanPermissions.add("PROJECT_VIEW_ALL");
+        }
+
+        // 3. Add Permission Authorities
+        for (String perm : cleanPermissions) {
+            grantedAuthorities.add(new SimpleGrantedAuthority(perm));
         }
 
         return UserPrincipal.builder()
                 .id(id)
                 .email(email)
-                .roles(roles != null ? roles : new ArrayList<>())
-                .permissions(permissions != null ? permissions : new HashSet<>())
+                .roles(cleanRoles)
+                .permissions(cleanPermissions)
                 .enabled(true)
                 .accountNonLocked(true)
                 .authorities(grantedAuthorities)
@@ -101,15 +111,6 @@ public class UserPrincipal implements UserDetails {
 
     /**
      * Factory method to build UserPrincipal with full user details including password.
-     *
-     * @param id               User ID
-     * @param email            User Email
-     * @param password         User Encrypted Password
-     * @param enabled          Account Enabled flag
-     * @param accountNonLocked Account Non Locked flag
-     * @param roles            Assigned roles
-     * @param permissions      Assigned permissions
-     * @return UserPrincipal instance
      */
     public static UserPrincipal create(String id, String email, String password, boolean enabled, boolean accountNonLocked, List<String> roles, Set<String> permissions) {
         UserPrincipal principal = create(id, email, roles, permissions);

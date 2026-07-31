@@ -5,8 +5,10 @@ import com.techknife.backend.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,6 +27,22 @@ import java.util.Map;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    /**
+     * Handle HttpMessageNotReadableException for malformed JSON or invalid enum values.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.error("HTTP message not readable (JSON parse error): {}", ex.getMessage());
+        ApiError error = ApiError.builder()
+                .code("INVALID_JSON")
+                .details(ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Invalid Request Payload Format", error));
+    }
 
     /**
      * Handle Jakarta Validation exceptions.
@@ -97,8 +115,9 @@ public class GlobalExceptionHandler {
                 .details(ex.getMessage() != null ? ex.getMessage() : "Authentication credentials missing or invalid")
                 .path(request.getRequestURI())
                 .build();
+        String message = ex.getMessage() != null && !ex.getMessage().isBlank() ? ex.getMessage() : "Invalid email or password";
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Authentication Failed", error));
+                .body(ApiResponse.error(message, error));
     }
 
     /**
@@ -130,7 +149,23 @@ public class GlobalExceptionHandler {
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Bad Request", error));
+                .body(ApiResponse.error(ex.getMessage(), error));
+    }
+
+    /**
+     * Handle MongoDB DuplicateKeyException for duplicate unique keys (projectCode, projectId, etc.).
+     */
+    @ExceptionHandler(DuplicateKeyException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicateKeyException(
+            DuplicateKeyException ex, HttpServletRequest request) {
+        log.error("Duplicate key conflict encountered: {}", ex.getMessage());
+        ApiError error = ApiError.builder()
+                .code("DUPLICATE_KEY")
+                .details("A resource with the specified unique key already exists")
+                .path(request.getRequestURI())
+                .build();
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("Resource Conflict: Duplicate key error", error));
     }
 
     /**
@@ -191,11 +226,11 @@ public class GlobalExceptionHandler {
         log.error("Runtime exception encountered: ", ex);
         ApiError error = ApiError.builder()
                 .code("RUNTIME_ERROR")
-                .details(ex.getMessage())
+                .details(ex.getClass().getName() + ": " + (ex.getMessage() != null ? ex.getMessage() : ex.toString()))
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Application Error", error));
+                .body(ApiResponse.error("Application Error: " + ex.getMessage(), error));
     }
 
     /**
@@ -207,10 +242,10 @@ public class GlobalExceptionHandler {
         log.error("Unhandled exception encountered: ", ex);
         ApiError error = ApiError.builder()
                 .code("INTERNAL_SERVER_ERROR")
-                .details("An unexpected server error occurred")
+                .details(ex.getClass().getName() + ": " + (ex.getMessage() != null ? ex.getMessage() : ex.toString()))
                 .path(request.getRequestURI())
                 .build();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Internal Server Error", error));
+                .body(ApiResponse.error("Internal Server Error: " + ex.getMessage(), error));
     }
 }

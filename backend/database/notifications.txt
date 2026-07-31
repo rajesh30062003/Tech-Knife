@@ -1,0 +1,14 @@
+[
+  {
+    "_id": "6a696bb26e2a9df477c68ada",
+    "notificationId": "NTF-001",
+    "__v": 0,
+    "createdAt": "2026-07-29T02:55:45.707Z",
+    "message": "MongoDB Atlas live database connection established successfully.",
+    "read": false,
+    "title": "System Initialized",
+    "type": "success",
+    "updatedAt": "2026-07-29T04:44:45.424Z",
+    "userId": "EMP-001"
+  }
+]

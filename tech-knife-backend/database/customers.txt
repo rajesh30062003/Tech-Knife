@@ -1,0 +1,70 @@
+[
+  {
+    "_id": "6a696bb26e2a9df477c68ad6",
+    "email": "amit.sharma@example.com",
+    "__v": 0,
+    "address": "Plot 45, Technology Park, Sector V, Salt Lake, Kolkata",
+    "alternateMobile": "",
+    "city": "Kolkata",
+    "companyName": "ABC Enterprises",
+    "createdAt": "2026-07-29T02:55:45.420Z",
+    "customerId": "CUST-001",
+    "fullName": "Amit Sharma",
+    "gstNumber": "",
+    "invoices": [],
+    "loginHistory": [],
+    "mobile": "+91 98111 22334",
+    "notifications": [],
+    "orders": [
+      {
+        "orderId": "ORD-101",
+        "title": "Enterprise Management Cloud Suite",
+        "amount": 150000,
+        "date": "2026-01-10",
+        "status": "Completed"
+      }
+    ],
+    "pan": "",
+    "passwordHash": "$2a$10$siL5jObTi8VNU0pDL1P74ufC0TWYi.4FukgAuC30pdLi43g49Uk8W",
+    "payments": [],
+    "pin": "700091",
+    "projects": [
+      {
+        "projectId": "PRJ-201",
+        "name": "ABC ERP Integration",
+        "status": "In Progress"
+      }
+    ],
+    "state": "West Bengal",
+    "status": "Active",
+    "supportTickets": [],
+    "updatedAt": "2026-07-29T04:44:45.046Z"
+  },
+  {
+    "_id": "6a696bbfaf987c2cb8082edd",
+    "customerId": "CUST-1785293759956",
+    "fullName": "New Customer",
+    "companyName": "New Corp",
+    "gstNumber": "",
+    "pan": "",
+    "email": "newcust@example.com",
+    "mobile": "+91 90000 00000",
+    "alternateMobile": "",
+    "address": "",
+    "state": "",
+    "city": "",
+    "pin": "",
+    "passwordHash": "$2a$10$KD0oq3dcCaYlHjYNUJYQ8.9uAayeJQGz46CDYsApk18k45K5.nBAG",
+    "orders": [],
+    "projects": [],
+    "invoices": [],
+    "payments": [],
+    "supportTickets": [],
+    "notifications": [],
+    "loginHistory": [],
+    "status": "Active",
+    "createdAt": "2026-07-29T02:55:59.958Z",
+    "updatedAt": "2026-07-29T02:55:59.958Z",
+    "__v": 0
+  }
+]

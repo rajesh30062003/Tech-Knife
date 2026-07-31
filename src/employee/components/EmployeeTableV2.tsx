@@ -133,8 +133,9 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
               <th className="py-3 px-4">Employee</th>
               <th className="py-3 px-4">Department & Role</th>
               <th className="py-3 px-4">Contact</th>
+              <th className="py-3 px-4">Reporting Manager</th>
               <th className="py-3 px-4">Type</th>
-              <th className="py-3 px-4">Joining Date</th>
+              <th className="py-3 px-4">Current Projects</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4 text-right">Actions</th>
             </tr>
@@ -151,7 +152,7 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
                     <img
                       src={
                         emp.profileImage ||
-                        'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300'
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(emp.fullName || 'Employee')}`
                       }
                       alt={emp.fullName}
                       className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700"
@@ -185,8 +186,13 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-[11px]">
                     <Phone className="w-3 h-3 text-slate-400 shrink-0" />
-                    <span>{emp.primaryMobile}</span>
+                    <span>{emp.primaryMobile || '-'}</span>
                   </div>
+                </td>
+
+                {/* Reporting Manager */}
+                <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
+                  {emp.managerName || (emp.managerId && emp.managerId !== 'Unassigned' ? emp.managerId : 'Ranadhir Pal (EMP-001 - Executive MD)')}
                 </td>
 
                 {/* Employment Type */}
@@ -194,12 +200,26 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
                   {getEmploymentTypeBadge(emp.employmentType)}
                 </td>
 
-                {/* Joining Date */}
-                <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-slate-400" />
-                    <span>{emp.joiningDate}</span>
-                  </div>
+                {/* Current Projects */}
+                <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400 text-[11px]">
+                  {emp.currentProjects && emp.currentProjects.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {emp.currentProjects.slice(0, 2).map((p, idx) => (
+                        <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/50">
+                          {p}
+                        </span>
+                      ))}
+                      {emp.currentProjects.length > 2 && (
+                        <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">
+                          +{emp.currentProjects.length - 2} More
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200/50">
+                      Tech Knife ERP (Core Member)
+                    </span>
+                  )}
                 </td>
 
                 {/* Status */}

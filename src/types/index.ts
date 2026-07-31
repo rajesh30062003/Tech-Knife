@@ -2,9 +2,14 @@ export type Role =
   | 'ROLE_SUPER_ADMIN'
   | 'ROLE_ADMIN'
   | 'ROLE_CEO'
+  | 'ROLE_MD'
   | 'ROLE_CTO'
   | 'ROLE_CMO'
-  | 'ROLE_MD'
+  | 'ROLE_CFO'
+  | 'ROLE_COO'
+  | 'ROLE_GROWTH_HEAD'
+  | 'ROLE_RELATIONS_HEAD'
+  | 'ROLE_SENIOR_ENGINEERING_MANAGER'
   | 'ROLE_DIRECTOR'
   | 'ROLE_MANAGER'
   | 'ROLE_EMPLOYEE'
@@ -98,6 +103,7 @@ export interface RegisterRequest {
   designation?: string;
   department?: string;
   phoneNumber?: string;
+  role?: Role;
   roles?: Role[];
 }
 

@@ -119,8 +119,8 @@ export const Logo: React.FC<LogoProps> = ({
             TECH<span className={`${knifeTextColor} ml-1`}>KNIFE</span>
           </div>
           {showTagline && (
-            <div className={`mt-0.5 tracking-[0.2em] font-bold ${taglineColor} uppercase ${dimensions.taglineSize}`}>
-              IT'S TIME FOR TECHNOLOGY
+            <div className={`mt-0.5 tracking-[0.18em] font-extrabold ${taglineColor} uppercase ${dimensions.taglineSize}`}>
+              INFRASTRUCTURE TO INTELLIGENCE
             </div>
           )}
         </div>

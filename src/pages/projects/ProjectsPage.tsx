@@ -1,120 +1,1093 @@
-import React, { useState } from 'react';
-import { FolderKanban, Plus, GitBranch, Calendar, Search, Filter } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  FolderKanban, Plus, GitBranch, Calendar, Search, Filter, 
+  ExternalLink, Github, Globe, Shield, Users, Layers, DollarSign, 
+  Clock, Activity, Edit3, Trash2, Link2, CheckCircle2, ChevronRight, 
+  FileText, ArrowUpRight, Cpu, Sparkles, UserPlus, AlertCircle, X, ShieldAlert,
+  Server, Database, Cloud, Terminal, Code2, Lock, Tag, MessageSquare
+} from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { projectsApi, EnterpriseProject, ProjectActivity, ProjectLinksData } from '../../api/projects';
 import { StatusBadge } from '../../components/common/StatusBadge';
+import { EmployeeSelect } from '../../components/common/EmployeeSelect';
+import { InternSelect } from '../../components/common/InternSelect';
 
 export const ProjectsPage: React.FC = () => {
-  const [activeView, setActiveView] = useState<'kanban' | 'list'>('kanban');
+  const { user } = useAuth();
+  const [projects, setProjects] = useState<EnterpriseProject[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [categoryFilter, setCategoryFilter] = useState<string>('ALL');
 
-  const columns = [
-    {
-      title: 'Backlog',
-      color: 'border-slate-300 dark:border-slate-700',
-      tasks: [
-        { id: 'TK-12', title: 'OAuth2 Social Login Provider Interceptor', assignee: 'Lucas Chen', priority: 'Medium', tags: ['Backend', 'Security'] },
-        { id: 'TK-15', title: 'Export Payroll Summary to PDF/XLSX', assignee: 'Elena Rostova', priority: 'Low', tags: ['Reports'] },
-      ]
+  // Modal / Drawer States
+  const [selectedProject, setSelectedProject] = useState<EnterpriseProject | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form Section State in Create Modal
+  const [activeTab, setActiveTab] = useState<'basic' | 'tech' | 'schedule' | 'team' | 'urls'>('basic');
+
+  // Form Data State
+  const [formData, setFormData] = useState<Partial<EnterpriseProject>>({
+    projectCode: '',
+    projectName: '',
+    shortName: '',
+    description: '',
+    objectives: '',
+    client: '',
+    clientOrganization: '',
+    department: 'Engineering',
+    category: 'Technical',
+    businessUnit: 'Enterprise Solutions',
+    projectType: 'FIXED_BID',
+    priority: 'MEDIUM',
+    status: 'PLANNED',
+    estimatedCost: 75000,
+    budget: 75000,
+    estimatedDuration: 90,
+    startDate: new Date().toISOString().split('T')[0],
+    targetEndDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    technologyStack: ['React', 'Spring Boot', 'MongoDB Atlas', 'Docker'],
+    programmingLanguages: ['Java', 'TypeScript', 'SQL'],
+    frameworks: ['Spring Boot 3', 'React 18', 'Tailwind CSS'],
+    databaseTech: 'MongoDB Atlas',
+    cloudProvider: 'AWS / GCP Cloud',
+    repositoryType: 'GIT',
+    repositoryVisibility: 'PRIVATE',
+    projectVisibility: 'PRIVATE',
+    deploymentType: 'CLOUD',
+    projectManagerId: '',
+    projectLeadId: '',
+    projectSponsor: '',
+    customerRepresentative: '',
+    assignedEmployees: [],
+    assignedInterns: [],
+    links: {
+      githubUrl: '',
+      frontendRepoUrl: '',
+      backendRepoUrl: '',
+      dockerRepoUrl: '',
+      cicdPipelineUrl: '',
+      productionUrl: '',
+      stagingUrl: '',
+      swaggerUrl: '',
+      figmaUrl: '',
+      jiraUrl: '',
+      confluenceUrl: '',
     },
-    {
-      title: 'In Progress',
-      color: 'border-blue-500',
-      tasks: [
-        { id: 'TK-04', title: 'Spring Security 6 Stateless JWT Filter', assignee: 'Sarah Connor', priority: 'High', tags: ['Spring Boot', 'Auth'] },
-        { id: 'TK-08', title: 'Client Ticket Resolution Escalation Matrix', assignee: 'David Miller', priority: 'Urgent', tags: ['Support'] },
-      ]
-    },
-    {
-      title: 'Code Review',
-      color: 'border-purple-500',
-      tasks: [
-        { id: 'TK-02', title: 'MongoDB Atlas Indexing & Sharding Rules', assignee: 'Alexander Vance', priority: 'High', tags: ['Database'] },
-      ]
-    },
-    {
-      title: 'Completed',
-      color: 'border-emerald-500',
-      tasks: [
-        { id: 'TK-01', title: 'Tailwind CSS Enterprise Theme System', assignee: 'Elena Rostova', priority: 'Medium', tags: ['Frontend'] },
-      ]
+    remarks: '',
+    tags: ['Enterprise', 'Production-Ready'],
+  });
+
+  const [assignData, setAssignData] = useState<{
+    projectManagerId: string;
+    projectLeadId: string;
+    assignedEmployees: string[];
+    assignedInterns: string[];
+  }>({
+    projectManagerId: '',
+    projectLeadId: '',
+    assignedEmployees: [],
+    assignedInterns: [],
+  });
+
+  const [linksData, setLinksData] = useState<ProjectLinksData>({});
+  const [activities, setActivities] = useState<ProjectActivity[]>([]);
+
+  const userRole = user?.role || 'ROLE_EMPLOYEE';
+  const userRoles = user?.roles || [userRole];
+
+  // RBAC Permission Checks (null-safe)
+  const isExecutive = (userRoles ?? []).some(r => 
+    Boolean(r) && ['ROLE_SUPER_ADMIN', 'SUPER_ADMIN', 'ROLE_ADMIN', 'ADMIN', 'ROLE_CEO', 'CEO', 'ROLE_MD', 'MD', 'ROLE_CTO', 'CTO', 'ROLE_CMO', 'CMO', 'ROLE_COO', 'COO', 'ROLE_VP', 'VP', 'ROLE_DIRECTOR', 'DIRECTOR'].includes(r)
+  );
+
+  const canCreate = isExecutive || (userRoles ?? []).some(r => Boolean(r) && ['ROLE_MANAGER', 'MANAGER'].includes(r));
+  const canAssign = isExecutive || (userRoles ?? []).some(r => Boolean(r) && ['ROLE_MANAGER', 'MANAGER', 'ROLE_PROJECT_LEAD', 'PROJECT_LEAD'].includes(r));
+  const canEditLinks = isExecutive || (userRoles ?? []).some(r => Boolean(r) && ['ROLE_MANAGER', 'MANAGER', 'ROLE_PROJECT_LEAD', 'PROJECT_LEAD'].includes(r));
+  const canDelete = isExecutive; // Executive authority required to delete projects
+
+  const loadProjects = async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const res = await projectsApi.getAll();
+      if (res?.success && res?.data && Array.isArray(res.data)) {
+        setProjects(res.data);
+      } else {
+        setProjects([]);
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch projects from MongoDB Atlas:', err);
+      setErrorMessage(err?.response?.data?.message || err?.message || 'Failed to load projects from MongoDB');
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
+
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setIsSubmitting(true);
+    try {
+      const res = await projectsApi.create(formData);
+      if (res?.success) {
+        setIsCreateModalOpen(false);
+        loadProjects();
+      }
+    } catch (err: any) {
+      console.error('Create project failed:', err);
+      const detail = err?.response?.data?.error?.details || err?.response?.data?.message || err?.message;
+      setErrorMessage(`Failed to create project: ${detail}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleAssignSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !selectedProject.id) return;
+
+    // Duplicate selections validation
+    const empDuplicates = assignData.assignedEmployees.filter((item, index) => assignData.assignedEmployees.indexOf(item) !== index);
+    if (empDuplicates.length > 0) {
+      setErrorMessage('Employees cannot appear twice in assigned team members.');
+      return;
+    }
+
+    const intDuplicates = assignData.assignedInterns.filter((item, index) => assignData.assignedInterns.indexOf(item) !== index);
+    if (intDuplicates.length > 0) {
+      setErrorMessage('Interns cannot appear twice in assigned interns.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const res = await projectsApi.assignMembers(selectedProject.id, {
+        projectManagerId: assignData.projectManagerId,
+        projectLeadId: assignData.projectLeadId,
+        assignedEmployees: assignData.assignedEmployees,
+        assignedInterns: assignData.assignedInterns,
+        employeeIds: assignData.assignedEmployees,
+        internIds: assignData.assignedInterns,
+      });
+
+      if (res?.success) {
+        setIsAssignModalOpen(false);
+        loadProjects();
+      }
+    } catch (err: any) {
+      console.error('Assign members failed:', err);
+      setErrorMessage(err?.response?.data?.message || err?.message || 'Failed to assign members');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleLinksSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !selectedProject.id) return;
+    setIsSubmitting(true);
+    try {
+      const res = await projectsApi.updateLinks(selectedProject.id, {
+        links: linksData,
+      });
+      if (res?.success) {
+        setIsLinksModalOpen(false);
+        loadProjects();
+      }
+    } catch (err: any) {
+      console.error('Update links failed:', err);
+      setErrorMessage(err?.response?.data?.message || err?.message || 'Failed to update links');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!id) return;
+    if (!window.confirm('Are you sure you want to delete this project?')) return;
+    try {
+      await projectsApi.delete(id);
+      loadProjects();
+    } catch (err: any) {
+      console.error('Delete project failed:', err);
+      setErrorMessage(err?.response?.data?.message || err?.message || 'Failed to delete project');
+    }
+  };
+
+  const openActivityTrail = async (project: EnterpriseProject) => {
+    if (!project || !project.id) return;
+    setSelectedProject(project);
+    try {
+      const res = await projectsApi.getActivities(project.id);
+      if (res?.success && res?.data && Array.isArray(res.data)) {
+        setActivities(res.data);
+      } else {
+        setActivities([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch project activities:', err);
+      setActivities([]);
+    }
+    setIsActivityModalOpen(true);
+  };
+
+  // ---------------------------------------------------------------------------
+  // Null-safe Filter & Search Callback (Fixes crash on line 232)
+  // Ensures p.projectName, p.projectCode, p.client, and all other fields are null-safe
+  // ---------------------------------------------------------------------------
+  const keyword = String(searchTerm ?? '').toLowerCase().trim();
+
+  const filteredProjects = (projects || []).filter((p) => {
+    if (!p) return false;
+
+    // Search filter matching against all project searchable fields (null-safe with optional chaining)
+    const matchesSearch =
+      !keyword ||
+      [
+        p.projectName,
+        p.projectCode,
+        p.shortName,
+        p.client,
+        p.clientOrganization,
+        p.customerRepresentative,
+        p.department,
+        p.businessUnit,
+        p.category,
+        p.status,
+        p.priority,
+        p.description,
+        p.objectives,
+        p.projectManagerName,
+        p.projectLeadName,
+        p.projectSponsor,
+        p.createdBy,
+        p.databaseTech,
+        p.cloudProvider,
+        p.technologyStack,
+        p.frameworks,
+        p.programmingLanguages,
+        p.links?.githubUrl,
+        p.links?.productionUrl,
+        p.links?.stagingUrl,
+      ]
+        .flatMap((value) => (Array.isArray(value) ? value : [value]))
+        .map((value) => String(value ?? '').toLowerCase())
+        .some((value) => value.includes(keyword));
+
+    // Status filter (null-safe)
+    const matchesStatus =
+      statusFilter === 'ALL' ||
+      String(p.status ?? '').toUpperCase() === String(statusFilter ?? '').toUpperCase();
+
+    // Category filter (null-safe)
+    const matchesCategory =
+      categoryFilter === 'ALL' ||
+      String(p.category ?? '').toLowerCase() === String(categoryFilter ?? '').toLowerCase();
+
+    return matchesSearch && matchesStatus && matchesCategory;
+  });
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold text-xs uppercase tracking-wider mb-1">
-            <FolderKanban className="w-4 h-4" />
-            <span>Agile Sprint Delivery</span>
+      
+      {/* Global Error Alert Banner */}
+      {errorMessage && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-between text-rose-600 dark:text-rose-400 text-xs font-bold animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMessage}</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Projects & Kanban Board</h1>
-          <p className="text-xs text-slate-500">Track user story cards, pull requests, and sprint milestone delivery</p>
+          <button onClick={() => setErrorMessage(null)} className="p-1 hover:bg-rose-500/20 rounded-lg">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Enterprise Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-xs">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-xs font-extrabold mb-2 border border-cyan-500/20">
+            <Cpu className="w-3.5 h-3.5" />
+            <span>MongoDB Atlas Production Core</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            Enterprise Projects & Delivery Management
+          </h1>
+          <p className="text-xs text-slate-500">
+            Lifecycle governance, GitHub/CI-CD integrations, and SLA compliance tracking
+          </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center text-xs font-semibold">
-            <button
-              onClick={() => setActiveView('kanban')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeView === 'kanban' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500'
-              }`}
-            >
-              Kanban Board
-            </button>
-            <button
-              onClick={() => setActiveView('list')}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                activeView === 'list' ? 'bg-white dark:bg-slate-900 text-indigo-600 shadow-xs' : 'text-slate-500'
-              }`}
-            >
-              List View
-            </button>
-          </div>
-
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition-all shadow-md">
-            <Plus className="w-3.5 h-3.5" /> Create Task Card
+        {canCreate && (
+          <button
+            onClick={() => {
+              setFormData({
+                projectCode: `TK-PRJ-${Math.floor(1000 + Math.random() * 9000)}`,
+                projectName: '',
+                shortName: '',
+                description: '',
+                objectives: '',
+                client: '',
+                clientOrganization: '',
+                department: 'Engineering',
+                category: 'Technical',
+                businessUnit: 'Enterprise Solutions',
+                projectType: 'FIXED_BID',
+                priority: 'MEDIUM',
+                status: 'PLANNED',
+                estimatedCost: 85000,
+                budget: 85000,
+                estimatedDuration: 90,
+                startDate: new Date().toISOString().split('T')[0],
+                targetEndDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                technologyStack: ['React 18', 'Spring Boot 3', 'MongoDB Atlas', 'Docker'],
+                programmingLanguages: ['Java 21', 'TypeScript'],
+                frameworks: ['Spring Boot', 'React', 'Tailwind CSS'],
+                databaseTech: 'MongoDB Atlas',
+                cloudProvider: 'AWS Cloud Services',
+                repositoryType: 'GIT',
+                repositoryVisibility: 'PRIVATE',
+                projectVisibility: 'PRIVATE',
+                deploymentType: 'CLOUD',
+                projectManagerId: '',
+                projectLeadId: '',
+                assignedEmployees: [],
+                assignedInterns: [],
+                links: {
+                  githubUrl: '',
+                  frontendRepoUrl: '',
+                  backendRepoUrl: '',
+                  productionUrl: '',
+                  stagingUrl: '',
+                  swaggerUrl: '',
+                },
+                remarks: '',
+                tags: ['Production', 'Enterprise'],
+              });
+              setActiveTab('basic');
+              setIsCreateModalOpen(true);
+            }}
+            className="px-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-extrabold rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Enterprise Project</span>
           </button>
+        )}
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="relative w-full md:w-80">
+          <Search className="w-4 h-4 absolute left-3.5 top-3 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by project name, code, or client..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-bold text-slate-500">Status:</span>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="PLANNED">Planned</option>
+              <option value="REQUIREMENT_GATHERING">Req Gathering</option>
+              <option value="DESIGN">Design</option>
+              <option value="BACKEND_DEVELOPMENT">Backend Dev</option>
+              <option value="FRONTEND_DEVELOPMENT">Frontend Dev</option>
+              <option value="FULLSTACK_DEVELOPMENT">Fullstack Dev</option>
+              <option value="API_INTEGRATION">API Integration</option>
+              <option value="TESTING">Testing</option>
+              <option value="QA">QA</option>
+              <option value="UAT">UAT</option>
+              <option value="DEPLOYMENT">Deployment</option>
+              <option value="LIVE">Live</option>
+              <option value="MAINTENANCE">Maintenance</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      {/* Kanban Board Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {columns.map((col) => (
-          <div key={col.title} className="bg-slate-100/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
-            <div className={`flex items-center justify-between border-l-4 ${col.color} pl-2.5 py-1`}>
-              <span className="font-bold text-xs text-slate-900 dark:text-slate-100">{col.title}</span>
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                {col.tasks.length}
-              </span>
-            </div>
+      {/* Projects Grid Container */}
+      {isLoading ? (
+        <div className="p-12 text-center text-slate-400 text-xs font-bold animate-pulse">
+          Loading enterprise projects from MongoDB Atlas...
+        </div>
+      ) : filteredProjects.length === 0 ? (
+        <div className="p-12 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl text-center space-y-3">
+          <FolderKanban className="w-10 h-10 text-slate-300 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">No Projects Found</h3>
+          <p className="text-xs text-slate-400">No projects match your current role visibility or search filter.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProjects.map((prj) => {
+            const projectCode = prj.projectCode ?? '-';
+            const projectName = prj.projectName ?? '-';
+            const description = prj.description || 'Enterprise project delivery module';
+            const progress = Math.round(Number(prj.overallProgressPercentage ?? prj.progressPercentage ?? 0));
+            const managerName = prj.projectManagerName || 'Unassigned';
+            const leadName = prj.projectLeadName || 'Unassigned';
+            const githubUrl = prj.links?.githubUrl;
+            const techStack = (prj.technologyStack ?? []).filter(Boolean);
 
-            <div className="space-y-3">
-              {col.tasks.map((task) => (
-                <div key={task.id} className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xs space-y-2 hover:border-indigo-400 transition-colors cursor-pointer">
+            return (
+              <div
+                key={prj.id || Math.random().toString()}
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-xs hover:border-cyan-500/50 transition-all flex flex-col justify-between group"
+              >
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] font-bold text-indigo-600 dark:text-indigo-400">{task.id}</span>
-                    <StatusBadge status={task.priority} />
+                    <span className="px-2.5 py-0.5 rounded-md bg-slate-900 text-cyan-400 text-[10px] font-mono font-bold tracking-wide">
+                      {projectCode}
+                    </span>
+                    <StatusBadge status={prj.status ?? 'PLANNED'} />
                   </div>
-                  <h4 className="font-semibold text-xs text-slate-900 dark:text-slate-100 leading-snug">{task.title}</h4>
-                  
-                  <div className="flex flex-wrap gap-1">
-                    {task.tags.map(t => (
-                      <span key={t} className="px-1.5 py-0.5 text-[9px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 rounded">
-                        {t}
+
+                  <div>
+                    <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                      {projectName}
+                    </h3>
+                    <p className="text-xs text-slate-500 line-clamp-2 mt-1">
+                      {description}
+                    </p>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-slate-500">Progress</span>
+                      <span className="text-cyan-600 dark:text-cyan-400">
+                        {progress}%
+                      </span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-cyan-500 rounded-full transition-all"
+                        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Key Roles & URLs Info */}
+                  <div className="text-xs space-y-1 text-slate-500 border-t border-slate-100 dark:border-slate-800/80 pt-2">
+                    <p><strong className="text-slate-700 dark:text-slate-300">Manager:</strong> {managerName}</p>
+                    <p><strong className="text-slate-700 dark:text-slate-300">Lead:</strong> {leadName}</p>
+                    {githubUrl && (
+                      <p className="truncate text-[11px] text-cyan-600 dark:text-cyan-400">
+                        <a href={githubUrl} target="_blank" rel="noreferrer" className="hover:underline inline-flex items-center gap-1">
+                          <Github className="w-3 h-3" /> Repository Link
+                        </a>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Stack Pills */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {techStack.slice(0, 4).map((tech, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 text-[10px] font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      >
+                        {tech ?? '-'}
                       </span>
                     ))}
                   </div>
+                </div>
 
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="truncate">Assignee: {task.assignee}</span>
-                    <GitBranch className="w-3.5 h-3.5 text-slate-400" />
+                {/* Action Buttons Toolbar */}
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => openActivityTrail(prj)}
+                      className="p-2 text-slate-500 hover:text-cyan-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                      title="Audit Activity History"
+                    >
+                      <Activity className="w-4 h-4" />
+                    </button>
+
+                    {canEditLinks && (
+                      <button
+                        onClick={() => {
+                          setSelectedProject(prj);
+                          setLinksData(prj.links || {});
+                          setIsLinksModalOpen(true);
+                        }}
+                        className="p-2 text-slate-500 hover:text-cyan-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Manage URLs & Repositories"
+                      >
+                        <Link2 className="w-4 h-4" />
+                      </button>
+                    )}
+
+                    {canAssign && (
+                      <button
+                        onClick={() => {
+                          setSelectedProject(prj);
+                          setAssignData({
+                            projectManagerId: prj.projectManagerId || '',
+                            projectLeadId: prj.projectLeadId || '',
+                            assignedEmployees: prj.assignedEmployees || [],
+                            assignedInterns: prj.assignedInterns || [],
+                          });
+                          setIsAssignModalOpen(true);
+                        }}
+                        className="p-2 text-slate-500 hover:text-cyan-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                        title="Assign Members & Roles"
+                      >
+                        <UserPlus className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {canDelete && (
+                      <button
+                        onClick={() => prj.id && handleDelete(prj.id)}
+                        className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                        title="Delete Project"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
-              ))}
+
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* CREATE ENTERPRISE PROJECT MODAL (Redesigned with Sticky Footer & Tabbed Navigation) */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in zoom-in-95">
+            
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Create Enterprise Project</h2>
+                <p className="text-xs text-slate-500">Configure architecture, stakeholders, repositories, and budget SLA</p>
+              </div>
+              <button
+                onClick={() => setIsCreateModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 px-5 bg-slate-100/50 dark:bg-slate-800/50 text-xs font-bold overflow-x-auto shrink-0">
+              {[
+                { id: 'basic', label: 'Basic Info', icon: FileText },
+                { id: 'tech', label: 'Tech Stack & Cloud', icon: Cpu },
+                { id: 'schedule', label: 'Cost & Schedule', icon: DollarSign },
+                { id: 'team', label: 'Team Leadership', icon: Users },
+                { id: 'urls', label: 'Repositories & URLs', icon: GitBranch },
+              ].map((tab) => {
+                const IconComp = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`px-4 py-3 border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${
+                      activeTab === tab.id
+                        ? 'border-cyan-500 text-cyan-600 dark:text-cyan-400 bg-white dark:bg-slate-900'
+                        : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                    }`}
+                  >
+                    <IconComp className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Scrollable Form Body */}
+            <form id="create-project-form" onSubmit={handleCreateSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+              
+              {/* TAB 1: BASIC INFO */}
+              {activeTab === 'basic' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Project Code *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.projectCode || ''}
+                        onChange={(e) => setFormData({ ...formData, projectCode: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Project Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.projectName || ''}
+                        onChange={(e) => setFormData({ ...formData, projectName: e.target.value })}
+                        placeholder="e.g. Next-Gen Enterprise AI Portal"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Client Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.client || ''}
+                        onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                        placeholder="e.g. Apex Global Logistics"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Status Lifecycle *</label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      >
+                        <option value="PLANNED">PLANNED</option>
+                        <option value="REQUIREMENT_GATHERING">REQUIREMENT_GATHERING</option>
+                        <option value="DESIGN">DESIGN</option>
+                        <option value="BACKEND_DEVELOPMENT">BACKEND_DEVELOPMENT</option>
+                        <option value="FRONTEND_DEVELOPMENT">FRONTEND_DEVELOPMENT</option>
+                        <option value="FULLSTACK_DEVELOPMENT">FULLSTACK_DEVELOPMENT</option>
+                        <option value="API_INTEGRATION">API_INTEGRATION</option>
+                        <option value="TESTING">TESTING</option>
+                        <option value="QA">QA</option>
+                        <option value="UAT">UAT</option>
+                        <option value="DEPLOYMENT">DEPLOYMENT</option>
+                        <option value="LIVE">LIVE</option>
+                        <option value="MAINTENANCE">MAINTENANCE</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Priority</label>
+                      <select
+                        value={formData.priority}
+                        onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      >
+                        <option value="LOW">LOW</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                        <option value="CRITICAL">CRITICAL</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 block mb-1">Project Description</label>
+                    <textarea
+                      rows={3}
+                      value={formData.description || ''}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Detailed scope of deliverable..."
+                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: TECH STACK & CLOUD */}
+              {activeTab === 'tech' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Technology Stack (Comma-separated)</label>
+                      <input
+                        type="text"
+                        value={(formData.technologyStack || []).join(', ')}
+                        onChange={(e) => setFormData({ ...formData, technologyStack: e.target.value.split(',').map(s => s.trim()) })}
+                        placeholder="React, Spring Boot, MongoDB, Docker"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Database Technology</label>
+                      <input
+                        type="text"
+                        value={formData.databaseTech || ''}
+                        onChange={(e) => setFormData({ ...formData, databaseTech: e.target.value })}
+                        placeholder="MongoDB Atlas"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Cloud Provider</label>
+                      <input
+                        type="text"
+                        value={formData.cloudProvider || ''}
+                        onChange={(e) => setFormData({ ...formData, cloudProvider: e.target.value })}
+                        placeholder="AWS / GCP Cloud"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Deployment Architecture</label>
+                      <select
+                        value={formData.deploymentType}
+                        onChange={(e) => setFormData({ ...formData, deploymentType: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      >
+                        <option value="CLOUD">CLOUD</option>
+                        <option value="ON_PREMISE">ON_PREMISE</option>
+                        <option value="HYBRID">HYBRID</option>
+                        <option value="SERVERLESS">SERVERLESS</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: COST & SCHEDULE */}
+              {activeTab === 'schedule' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Estimated Budget ($)</label>
+                      <input
+                        type="number"
+                        value={formData.budget || 0}
+                        onChange={(e) => setFormData({ ...formData, budget: parseFloat(e.target.value) || 0, estimatedCost: parseFloat(e.target.value) || 0 })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={formData.startDate || ''}
+                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Target End Date</label>
+                      <input
+                        type="date"
+                        value={formData.targetEndDate || ''}
+                        onChange={(e) => setFormData({ ...formData, targetEndDate: e.target.value, endDate: e.target.value })}
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: TEAM LEADERSHIP */}
+              {activeTab === 'team' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EmployeeSelect
+                      label="Project Manager"
+                      placeholder="Search & select Project Manager..."
+                      isMulti={false}
+                      value={formData.projectManagerId || ''}
+                      onChange={(val) => setFormData({ ...formData, projectManagerId: val })}
+                    />
+                    <EmployeeSelect
+                      label="Project Lead"
+                      placeholder="Search & select Project Lead..."
+                      isMulti={false}
+                      value={formData.projectLeadId || ''}
+                      onChange={(val) => setFormData({ ...formData, projectLeadId: val })}
+                    />
+                  </div>
+
+                  <div>
+                    <EmployeeSelect
+                      label="Assigned Team Members / Employees"
+                      placeholder="Search & select team members..."
+                      isMulti={true}
+                      value={formData.assignedEmployees || []}
+                      onChange={(val) => setFormData({ ...formData, assignedEmployees: val })}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: REPOSITORIES & URLS */}
+              {activeTab === 'urls' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 block mb-1">GitHub Repository URL</label>
+                    <input
+                      type="url"
+                      value={formData.links?.githubUrl || ''}
+                      onChange={(e) => setFormData({ ...formData, links: { ...formData.links, githubUrl: e.target.value } })}
+                      placeholder="https://github.com/techknife/enterprise-repo"
+                      className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Production URL</label>
+                      <input
+                        type="url"
+                        value={formData.links?.productionUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, links: { ...formData.links, productionUrl: e.target.value } })}
+                        placeholder="https://app.techknife.com"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-500 block mb-1">Staging URL</label>
+                      <input
+                        type="url"
+                        value={formData.links?.stagingUrl || ''}
+                        onChange={(e) => setFormData({ ...formData, links: { ...formData.links, stagingUrl: e.target.value } })}
+                        placeholder="https://staging.techknife.com"
+                        className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+            </form>
+
+            {/* Sticky Modal Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50 shrink-0">
+              <span className="text-[11px] font-bold text-slate-400">All fields saved directly to MongoDB Atlas</span>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCreateModalOpen(false)}
+                  className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  form="create-project-form"
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {isSubmitting ? (
+                    <span>Saving to MongoDB Atlas...</span>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Create Project</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Activity Trail Modal */}
+      {isActivityModalOpen && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-2xl w-full space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
+                  Audit Activity Trail — {selectedProject?.projectName ?? '-'}
+                </h3>
+                <p className="text-xs text-slate-500">Recorded enterprise audit events</p>
+              </div>
+              <button onClick={() => setIsActivityModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-1">
+              {(activities ?? []).length === 0 ? (
+                <div className="text-xs text-slate-400 text-center py-8">No recorded activity logs yet.</div>
+              ) : (
+                (activities ?? []).map((act) => (
+                  <div key={act.id || Math.random().toString()} className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-800 text-xs space-y-1">
+                    <div className="flex items-center justify-between font-bold">
+                      <span className="text-cyan-600 dark:text-cyan-400">{act.action ?? '-'}</span>
+                      <span className="text-slate-400 text-[10px] font-mono">
+                        {act.timestamp ? new Date(act.timestamp).toLocaleString() : '-'}
+                      </span>
+                    </div>
+                    <p className="text-slate-600 dark:text-slate-400 text-[11px]">
+                      By: <strong className="text-slate-800 dark:text-slate-200">{act.performedBy ?? '-'}</strong> ({act.userRole ?? '-'})
+                    </p>
+                    {act.newValue && (
+                      <p className="text-slate-500 text-[10px]">
+                        Details: {act.oldValue ? `${act.oldValue} ➔ ` : ''}{act.newValue}
+                      </p>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
+
+      {/* Links & Repository Modal */}
+      {isLinksModalOpen && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
+                  Update Links & Repositories
+                </h3>
+                <p className="text-xs text-slate-500">{selectedProject?.projectName ?? '-'}</p>
+              </div>
+              <button onClick={() => setIsLinksModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleLinksSubmit} className="flex-1 overflow-y-auto space-y-3 custom-scrollbar pr-1">
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1">GitHub Repository URL</label>
+                <input
+                  type="url"
+                  value={linksData.githubUrl || ''}
+                  onChange={(e) => setLinksData({ ...linksData, githubUrl: e.target.value })}
+                  placeholder="https://github.com/techknife/project-repo"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-500 block mb-1">Production Deployment URL</label>
+                <input
+                  type="url"
+                  value={linksData.productionUrl || ''}
+                  onChange={(e) => setLinksData({ ...linksData, productionUrl: e.target.value })}
+                  placeholder="https://app.techknife.com"
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLinksModalOpen(false)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-cyan-500 text-slate-950 font-extrabold text-xs rounded-xl disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Links'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Member Assignment Modal */}
+      {isAssignModalOpen && selectedProject && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-xl w-full space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900 dark:text-white">
+                  Assign Members — {selectedProject?.projectName ?? '-'}
+                </h3>
+                <p className="text-xs text-slate-500">Configure Project Manager, Lead, Employees & Interns</p>
+              </div>
+              <button onClick={() => setIsAssignModalOpen(false)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleAssignSubmit} className="space-y-4">
+              <EmployeeSelect
+                label="Project Manager"
+                placeholder="Search & select Project Manager..."
+                isMulti={false}
+                value={assignData.projectManagerId}
+                onChange={(val) => setAssignData({ ...assignData, projectManagerId: val })}
+              />
+
+              <EmployeeSelect
+                label="Project Lead"
+                placeholder="Search & select Project Lead..."
+                isMulti={false}
+                value={assignData.projectLeadId}
+                onChange={(val) => setAssignData({ ...assignData, projectLeadId: val })}
+              />
+
+              <EmployeeSelect
+                label="Assigned Team Members / Employees"
+                placeholder="Search & select team members..."
+                isMulti={true}
+                value={assignData.assignedEmployees}
+                onChange={(val) => setAssignData({ ...assignData, assignedEmployees: val })}
+              />
+
+              <InternSelect
+                label="Assigned Interns"
+                placeholder="Search & select interns..."
+                isMulti={true}
+                value={assignData.assignedInterns}
+                onChange={(val) => setAssignData({ ...assignData, assignedInterns: val })}
+              />
+
+              <div className="pt-3 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-xs font-bold rounded-xl"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-cyan-500 text-slate-950 font-extrabold text-xs rounded-xl disabled:opacity-50"
+                >
+                  {isSubmitting ? 'Saving...' : 'Save Assignments'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

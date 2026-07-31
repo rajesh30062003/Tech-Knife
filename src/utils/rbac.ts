@@ -10,6 +10,11 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
   ROLE_CEO: 85,
   ROLE_CTO: 80,
   ROLE_CMO: 80,
+  ROLE_CFO: 80,
+  ROLE_COO: 80,
+  ROLE_GROWTH_HEAD: 75,
+  ROLE_RELATIONS_HEAD: 75,
+  ROLE_SENIOR_ENGINEERING_MANAGER: 65,
   ROLE_DIRECTOR: 70,
   ROLE_MANAGER: 60,
   ROLE_EMPLOYEE: 30,
@@ -28,11 +33,16 @@ export const EXECUTIVE_ROLES: Role[] = [
   'ROLE_CEO',
   'ROLE_CTO',
   'ROLE_CMO',
+  'ROLE_CFO',
+  'ROLE_COO',
+  'ROLE_GROWTH_HEAD',
+  'ROLE_RELATIONS_HEAD',
   'ROLE_DIRECTOR',
 ];
 
 export const MANAGEMENT_ROLES: Role[] = [
   ...EXECUTIVE_ROLES,
+  'ROLE_SENIOR_ENGINEERING_MANAGER',
   'ROLE_MANAGER',
 ];
 
@@ -95,6 +105,31 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'CRM_READ', 'CRM_WRITE',
     'RECRUITMENT_READ', 'RECRUITMENT_WRITE',
   ],
+  ROLE_CFO: [
+    'USER_READ', 'USER_WRITE',
+    'PROJECT_READ', 'PROJECT_WRITE',
+    'PAYROLL_READ', 'PAYROLL_WRITE',
+  ],
+  ROLE_COO: [
+    'USER_READ', 'USER_WRITE',
+    'PROJECT_READ', 'PROJECT_WRITE',
+  ],
+  ROLE_GROWTH_HEAD: [
+    'USER_READ', 'USER_WRITE',
+    'PROJECT_READ', 'PROJECT_WRITE',
+    'CRM_READ', 'CRM_WRITE',
+    'RECRUITMENT_READ', 'RECRUITMENT_WRITE',
+  ],
+  ROLE_RELATIONS_HEAD: [
+    'USER_READ', 'USER_WRITE',
+    'CRM_READ', 'CRM_WRITE',
+  ],
+  ROLE_SENIOR_ENGINEERING_MANAGER: [
+    'USER_READ', 'USER_WRITE',
+    'PROJECT_READ', 'PROJECT_WRITE',
+    'PAYROLL_READ', 'PAYROLL_WRITE',
+    'CRM_READ', 'CRM_WRITE',
+  ],
   ROLE_DIRECTOR: [
     'USER_READ', 'USER_WRITE', 'USER_DELETE',
     'PROJECT_READ', 'PROJECT_WRITE', 'PROJECT_DELETE',
@@ -121,9 +156,6 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   ],
 };
 
-/**
- * Evaluates whether a user has a required permission
- */
 export const checkUserPermission = (user: UserProfile | null, permission: Permission): boolean => {
   if (!user) return false;
   if (user.permissions && user.permissions.includes(permission)) {
@@ -133,54 +165,39 @@ export const checkUserPermission = (user: UserProfile | null, permission: Permis
   return userRoles.some((r) => ROLE_PERMISSIONS[r]?.includes(permission));
 };
 
-/**
- * Checks if user holds any of the given roles
- */
 export const checkUserHasRole = (user: UserProfile | null, allowedRoles: Role[]): boolean => {
   if (!user) return false;
   const userRoles = user.roles && user.roles.length > 0 ? user.roles : [user.role];
   return userRoles.some((r) => allowedRoles.includes(r));
 };
 
-/**
- * Specific Granular Action Security Checks according to system requirements
- */
+export const canCreateEmployee = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canCreateIntern = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canDeleteEmployee = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canSuspendEmployee = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canAssignProjects = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canApprovePayroll = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canManageAttendance = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canManageLeave = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canManageDepartments = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canManageRecruitment = (user: UserProfile | null): boolean => checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canChangeSalary = (user: UserProfile | null): boolean => checkUserHasRole(user, EXECUTIVE_ROLES);
 
-// Admins, Owner, MD, CEO, CTO, CMO, Director, Manager permissions
-export const canCreateEmployee = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
+export const canCreateProject = (user: UserProfile | null): boolean =>
+  checkUserHasRole(user, [...EXECUTIVE_ROLES, 'ROLE_MANAGER']);
 
-export const canCreateIntern = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canDeleteEmployee = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canSuspendEmployee = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canAssignProjects = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canApprovePayroll = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canManageAttendance = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canManageLeave = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canManageDepartments = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canManageRecruitment = (user: UserProfile | null): boolean =>
-  checkUserHasRole(user, MANAGEMENT_ROLES);
-
-export const canChangeSalary = (user: UserProfile | null): boolean =>
+export const canDeleteProject = (user: UserProfile | null): boolean =>
   checkUserHasRole(user, EXECUTIVE_ROLES);
 
-// Employee constraints
+export const canAssignManagerLead = (user: UserProfile | null): boolean =>
+  checkUserHasRole(user, EXECUTIVE_ROLES);
+
+export const canManageProject = (user: UserProfile | null, projectManagerId?: string): boolean => {
+  if (!user) return false;
+  if (checkUserHasRole(user, EXECUTIVE_ROLES)) return true;
+  return Boolean(user.employeeId && projectManagerId && user.employeeId === projectManagerId);
+};
+
 export const canUpdateProjectStatus = (user: UserProfile | null): boolean =>
   checkUserHasRole(user, [...MANAGEMENT_ROLES, 'ROLE_EMPLOYEE', 'ROLE_INTERN']);
 
@@ -190,7 +207,6 @@ export const canViewSalary = (user: UserProfile | null): boolean =>
 export const canViewTasks = (user: UserProfile | null): boolean =>
   checkUserHasRole(user, [...MANAGEMENT_ROLES, 'ROLE_EMPLOYEE', 'ROLE_INTERN', 'ROLE_CUSTOMER']);
 
-// Customer capabilities
 export const canTrackProject = (user: UserProfile | null): boolean =>
   checkUserHasRole(user, [...MANAGEMENT_ROLES, 'ROLE_EMPLOYEE', 'ROLE_CUSTOMER']);
 

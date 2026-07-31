@@ -158,8 +158,8 @@ export const InternsPage: React.FC = () => {
     }
   };
 
-  const handleConvert = async (internId: string, designation: string, salary: number) => {
-    await internsApi.convertToEmployee(internId, designation, salary);
+  const handleConvert = async (internId: string) => {
+    await internsApi.convertToEmployee(internId);
     await loadData();
   };
 
@@ -268,6 +268,7 @@ export const InternsPage: React.FC = () => {
           setDepartmentFilter('ALL');
           setStatusFilter('ALL');
           setMentorFilter('ALL');
+          setCurrentPage(1);
         }}
       />
 
@@ -322,6 +323,21 @@ export const InternsPage: React.FC = () => {
                   <div className="flex justify-between text-[11px]">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Mentor:</span>
                     <span className="font-semibold text-cyan-600 dark:text-cyan-400">{intern.mentor}</span>
+                  </div>
+
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Email:</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">{intern.officialEmail || intern.personalEmail || '-'}</span>
+                  </div>
+
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Phone:</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{intern.mobileNumber || intern.phoneNumber || '-'}</span>
+                  </div>
+
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Tenure:</span>
+                    <span className="font-medium text-slate-700 dark:text-slate-300">{intern.startDate || intern.joiningDate || '-'} ➔ {intern.endDate || intern.internshipEndDate || '-'}</span>
                   </div>
 
                   {/* Progress Bar */}

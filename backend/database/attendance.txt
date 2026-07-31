@@ -1,0 +1,330 @@
+[
+  {
+    "_id": "6a696baf6e2a9df477c68abf",
+    "userId": "EMP-001",
+    "date": "2026-07-29",
+    "__v": 2,
+    "attendanceId": "ATT-EMP-001-2026-07-29",
+    "checkInTime": "10:48 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "10:48 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:42.744Z",
+    "department": "Management",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T05:18:27.889Z"
+      },
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T05:18:30.341Z"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T05:18:30.342Z",
+    "userEmail": "ranadhir.pal@techknife.com",
+    "userName": "Ranadhir Pal"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac2",
+    "userId": "EMP-002",
+    "date": "2026-07-29",
+    "__v": 0,
+    "attendanceId": "ATT-EMP-002-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:43.219Z",
+    "department": "Management",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:43.305Z",
+    "userEmail": "sourav.roy@techknife.com",
+    "userName": "Sourav Roy"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac5",
+    "userId": "EMP-003",
+    "date": "2026-07-29",
+    "__v": 0,
+    "attendanceId": "ATT-EMP-003-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:43.443Z",
+    "department": "Technology",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:43.528Z",
+    "userEmail": "subrata.pal@techknife.com",
+    "userName": "Subrata Pal"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac8",
+    "date": "2026-07-29",
+    "userId": "EMP-004",
+    "__v": 0,
+    "attendanceId": "ATT-EMP-004-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:43.733Z",
+    "department": "Marketing",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:43.775Z",
+    "userEmail": "anindita.c@techknife.com",
+    "userName": "Anindita Chakraborty"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68acb",
+    "userId": "EMP-005",
+    "date": "2026-07-29",
+    "__v": 0,
+    "attendanceId": "ATT-EMP-005-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:44.029Z",
+    "department": "Engineering",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:44.038Z",
+    "userEmail": "rahul.garai@techknife.com",
+    "userName": "Rahul Garai"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68ace",
+    "date": "2026-07-29",
+    "userId": "INT-001",
+    "__v": 0,
+    "attendanceId": "ATT-INT-001-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:44.253Z",
+    "department": "Engineering",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:44.319Z",
+    "userEmail": "rahul.pal@techknife.com",
+    "userName": "Rahul Pal"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68ad1",
+    "date": "2026-07-29",
+    "userId": "INT-002",
+    "__v": 0,
+    "attendanceId": "ATT-INT-002-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:44.563Z",
+    "department": "Marketing",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:44.650Z",
+    "userEmail": "sangita.k@techknife.com",
+    "userName": "Sangita Koner"
+  },
+  {
+    "_id": "6a696bb26e2a9df477c68ad4",
+    "userId": "INT-003",
+    "date": "2026-07-29",
+    "__v": 0,
+    "attendanceId": "ATT-INT-003-2026-07-29",
+    "checkInTime": "09:00 AM",
+    "checkOutTime": "06:00 PM",
+    "clockIn": "09:00 AM",
+    "clockOut": "06:00 PM",
+    "createdAt": "2026-07-29T02:55:45.138Z",
+    "department": "Technology",
+    "isEarlyLeaving": false,
+    "isHalfDay": false,
+    "isHoliday": false,
+    "isLateArrival": false,
+    "isWeekend": false,
+    "isWorkFromHome": false,
+    "overtimeMinutes": 0,
+    "punches": [
+      {
+        "punchType": "CHECK_IN",
+        "timestamp": "2026-07-29T09:00:00.000Z",
+        "location": "Kolkata HQ"
+      },
+      {
+        "punchType": "CHECK_OUT",
+        "timestamp": "2026-07-29T18:00:00.000Z",
+        "location": "Kolkata HQ"
+      }
+    ],
+    "remarks": "On-time enterprise check-in",
+    "status": "PRESENT",
+    "totalBreakMinutes": 60,
+    "totalHours": "9.0 hrs",
+    "totalWorkMinutes": 480,
+    "updatedAt": "2026-07-29T04:44:44.879Z",
+    "userEmail": "salman.k@techknife.com",
+    "userName": "Salman Kaji"
+  }
+]

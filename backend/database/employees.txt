@@ -1,0 +1,1262 @@
+[
+  {
+    "_id": "6a696baf6e2a9df477c68abe",
+    "officialEmail": "ranadhir.pal@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:42.680Z",
+    "dateOfBirth": "",
+    "department": "Management",
+    "designation": "Chief Executive Officer",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "ranadhir.pal@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-001",
+    "employeeId": "EMP-001",
+    "employmentStatus": "Active",
+    "employmentType": "Full-Time",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Ranadhir",
+    "fullName": "Ranadhir Pal",
+    "gender": "Unspecified",
+    "hierarchyLevel": 1,
+    "joiningDate": "2020-01-01",
+    "lastName": "Pal",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "",
+    "managerName": "",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43210",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 210000,
+      "hra": 87500,
+      "bonus": 35000,
+      "incentives": 17500,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 350000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "ranadhir@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_CEO",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Executive Strategy",
+      "Enterprise Governance",
+      "Venture Growth"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:42.945Z",
+    "username": "ranadhir",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696baf6e2a9df477c68ac1",
+    "officialEmail": "sourav.roy@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:43.105Z",
+    "dateOfBirth": "",
+    "department": "Management",
+    "designation": "Managing Director",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "sourav.roy@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-002",
+    "employeeId": "EMP-002",
+    "employmentStatus": "Active",
+    "employmentType": "Full-Time",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Sourav",
+    "fullName": "Sourav Roy",
+    "gender": "Unspecified",
+    "hierarchyLevel": 1,
+    "joiningDate": "2020-02-01",
+    "lastName": "Roy",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "",
+    "managerName": "",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43211",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 192000,
+      "hra": 80000,
+      "bonus": 32000,
+      "incentives": 16000,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 320000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "sourav@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_MD",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Operations Strategy",
+      "Global Partnerships",
+      "Enterprise Growth"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:43.199Z",
+    "username": "sourav",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac4",
+    "officialEmail": "subrata.pal@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:43.372Z",
+    "dateOfBirth": "",
+    "department": "Technology",
+    "designation": "Chief Technology Officer",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "subrata.pal@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-003",
+    "employeeId": "EMP-003",
+    "employmentStatus": "Active",
+    "employmentType": "Full-Time",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Subrata",
+    "fullName": "Subrata Pal",
+    "gender": "Unspecified",
+    "hierarchyLevel": 2,
+    "joiningDate": "2020-03-01",
+    "lastName": "Pal",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "EMP-001",
+    "managerName": "Ranadhir Pal",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43212",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 180000,
+      "hra": 75000,
+      "bonus": 30000,
+      "incentives": 15000,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 300000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "subrata@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_CTO",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Cloud Architecture",
+      "System Scalability",
+      "AI/ML Engineering",
+      "MongoDB Atlas"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:43.445Z",
+    "username": "subrata",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68ac7",
+    "officialEmail": "anindita.c@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:43.633Z",
+    "dateOfBirth": "",
+    "department": "Marketing",
+    "designation": "Growth Head",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "anindita.c@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-004",
+    "employeeId": "EMP-004",
+    "employmentStatus": "Active",
+    "employmentType": "Full-Time",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Anindita",
+    "fullName": "Anindita Chakraborty",
+    "gender": "Unspecified",
+    "hierarchyLevel": 2,
+    "joiningDate": "2021-05-15",
+    "lastName": "Chakraborty",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "EMP-002",
+    "managerName": "Sourav Roy",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43213",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 132000,
+      "hra": 55000,
+      "bonus": 22000,
+      "incentives": 11000,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 220000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "anindita@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_GROWTH_HEAD",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Performance Marketing",
+      "Brand Scaling",
+      "User Acquisition"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:43.675Z",
+    "username": "anindita",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb06e2a9df477c68aca",
+    "officialEmail": "rahul.garai@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:43.919Z",
+    "dateOfBirth": "",
+    "department": "Engineering",
+    "designation": "Senior Engineering Manager",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "rahul.garai@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-005",
+    "employeeId": "EMP-005",
+    "employmentStatus": "Active",
+    "employmentType": "Full-Time",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Rahul",
+    "fullName": "Rahul Garai",
+    "gender": "Unspecified",
+    "hierarchyLevel": 3,
+    "joiningDate": "2021-08-01",
+    "lastName": "Garai",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "EMP-003",
+    "managerName": "Subrata Pal",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43214",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 150000,
+      "hra": 62500,
+      "bonus": 25000,
+      "incentives": 12500,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 250000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "rahulgarai@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_SENIOR_ENGINEERING_MANAGER",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Engineering Leadership",
+      "Microservices",
+      "System Architecture",
+      "Agile Operations"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:43.930Z",
+    "username": "rahulgarai",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68acd",
+    "officialEmail": "rahul.pal@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:44.185Z",
+    "dateOfBirth": "",
+    "department": "Engineering",
+    "designation": "Engineering Intern",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "rahul.pal@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-INT-01",
+    "employeeId": "INT-001",
+    "employmentStatus": "Active",
+    "employmentType": "Intern",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Rahul",
+    "fullName": "Rahul Pal",
+    "gender": "Unspecified",
+    "hierarchyLevel": 4,
+    "joiningDate": "2025-06-01",
+    "lastName": "Pal",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "",
+    "managerName": "",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43215",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 15000,
+      "hra": 6250,
+      "bonus": 2500,
+      "incentives": 1250,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 25000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "rahulpal.intern@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_INTERN",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "React",
+      "TypeScript",
+      "Node.js",
+      "MongoDB"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.207Z",
+    "username": "rahulpal",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68ad0",
+    "officialEmail": "sangita.k@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:44.463Z",
+    "dateOfBirth": "",
+    "department": "Marketing",
+    "designation": "Marketing Intern",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "sangita.k@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-INT-02",
+    "employeeId": "INT-002",
+    "employmentStatus": "Active",
+    "employmentType": "Intern",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Sangita",
+    "fullName": "Sangita Koner",
+    "gender": "Unspecified",
+    "hierarchyLevel": 4,
+    "joiningDate": "2025-06-01",
+    "lastName": "Koner",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "",
+    "managerName": "",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43216",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 15000,
+      "hra": 6250,
+      "bonus": 2500,
+      "incentives": 1250,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 25000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "sangitakoner@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_INTERN",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "SEO",
+      "Content Strategy",
+      "Social Media Analytics"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.538Z",
+    "username": "sangita",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  },
+  {
+    "_id": "6a696bb16e2a9df477c68ad3",
+    "officialEmail": "salman.k@techknife.com",
+    "__v": 0,
+    "aadhaarNumber": "",
+    "accountLocked": false,
+    "activeStatus": true,
+    "alternateMobileNumber": "",
+    "attendanceStatus": "PRESENT",
+    "bankDetails": {
+      "accountHolderName": "",
+      "accountNumber": "",
+      "bankName": "HDFC Bank",
+      "branchName": "Salt Lake Sector V",
+      "esiNumber": "",
+      "ifscCode": "HDFC0001234",
+      "pfNumber": "",
+      "salaryAccount": true,
+      "uanNumber": "",
+      "upiId": ""
+    },
+    "bloodGroup": "",
+    "businessUnit": "Core Operations",
+    "certifications": [],
+    "companyAssets": [],
+    "companyName": "Tech Knife Enterprises",
+    "confirmationDate": "",
+    "createdAt": "2026-07-29T02:55:44.991Z",
+    "dateOfBirth": "",
+    "department": "Technology",
+    "designation": "Technology Intern",
+    "division": "Technology",
+    "documents": {
+      "aadhaarUrl": "",
+      "appointmentLetterUrl": "",
+      "educationalCertsUrl": "",
+      "experienceCertUrl": "",
+      "joiningDocsUrl": "",
+      "medicalCertificateUrl": "",
+      "ndaUrl": "",
+      "offerLetterUrl": "",
+      "panUrl": "",
+      "passportUrl": "",
+      "policeVerificationUrl": "",
+      "relievingLetterUrl": "",
+      "resumeUrl": ""
+    },
+    "drivingLicenseNumber": "",
+    "education": [],
+    "email": "salman.k@techknife.com",
+    "emergencyContactName": "",
+    "emergencyContactNumber": "",
+    "emergencyContactRelation": "",
+    "employeeCode": "TK-INT-03",
+    "employeeId": "INT-003",
+    "employmentStatus": "Active",
+    "employmentType": "Intern",
+    "experience": "3+ Years",
+    "failedLoginAttempts": 0,
+    "firstName": "Salman",
+    "fullName": "Salman Kaji",
+    "gender": "Unspecified",
+    "hierarchyLevel": 4,
+    "joiningDate": "2025-06-01",
+    "lastName": "Kaji",
+    "leaveBalance": {
+      "annual": 18,
+      "casual": 10,
+      "sick": 12
+    },
+    "loginHistory": [],
+    "managerId": "",
+    "managerName": "",
+    "maritalStatus": "",
+    "mobileNumber": "+91 98765 43217",
+    "nationality": "Indian",
+    "officeBranch": "Kolkata Main",
+    "panNumber": "",
+    "passportNumber": "",
+    "passwordHash": "$2a$10$.ectoBDxDXXwSwvhjvRNl.CuI.OcyN0dVvh6qNuE7wlQf7cadvj4y",
+    "payroll": {
+      "basicSalary": 15000,
+      "hra": 6250,
+      "bonus": 2500,
+      "incentives": 1250,
+      "tax": 5000,
+      "professionalTax": 200,
+      "netSalary": 25000,
+      "salarySlipHistory": []
+    },
+    "performance": {
+      "achievements": [
+        "Excellence Award 2025"
+      ],
+      "awards": [
+        "Employee of the Month"
+      ],
+      "goals": [
+        "Q3 Enterprise Refactor",
+        "Team Mentorship"
+      ],
+      "kpis": [
+        "System Reliability 99.9%",
+        "On-time Delivery"
+      ],
+      "rating": 4.8,
+      "reviews": [],
+      "trainingHistory": [],
+      "warningLetters": []
+    },
+    "permanentAddress": "",
+    "personalEmail": "salmankaji@gmail.com",
+    "presentAddress": "",
+    "previousCompany": "",
+    "probationStatus": "Passed",
+    "profilePhoto": "",
+    "promotionHistory": [],
+    "refreshToken": "",
+    "reportingManager": "",
+    "role": "ROLE_INTERN",
+    "salaryGrade": "G4",
+    "shift": "General Shift (9:00 AM - 6:00 PM)",
+    "skills": [
+      "Python",
+      "Docker",
+      "Linux",
+      "Database Tuning"
+    ],
+    "systemPermissions": {
+      "accessibleModules": [
+        "Dashboard",
+        "Profile",
+        "Attendance",
+        "Projects"
+      ],
+      "approvalLevel": 1,
+      "featureAccess": [
+        "Standard"
+      ],
+      "menuVisibility": [
+        "Core",
+        "Operations"
+      ],
+      "permissions": [
+        "USER_READ",
+        "PROJECT_READ"
+      ],
+      "role": "ROLE_EMPLOYEE"
+    },
+    "team": "Enterprise Solutions",
+    "transferHistory": [],
+    "twoFactorEnabled": false,
+    "updatedAt": "2026-07-29T04:44:44.798Z",
+    "username": "salman",
+    "weeklyOff": "Saturday, Sunday",
+    "workLocation": "Headquarters",
+    "workingHours": "8 Hours/Day"
+  }
+]

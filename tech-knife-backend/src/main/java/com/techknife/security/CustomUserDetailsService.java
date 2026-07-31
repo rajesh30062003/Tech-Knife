@@ -23,7 +23,6 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final com.techknife.iam.repository.UserRepository iamUserRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
         if (identifier == null || identifier.trim().isEmpty()) {
             throw new UsernameNotFoundException("Username or email identifier is required");
@@ -62,11 +61,15 @@ public class CustomUserDetailsService implements UserDetailsService {
         throw new UsernameNotFoundException("User not found in MongoDB Atlas with email/username: " + identifier);
     }
 
-    @Transactional(readOnly = true)
     public UserDetails loadUserById(String id) {
-        Optional<com.techknife.backend.entity.User> backendUser = backendUserRepository.findById(id);
-        if (backendUser.isPresent()) {
-            return UserPrincipal.create(backendUser.get());
+        if (id != null && !id.trim().isEmpty()) {
+            String cleanId = id.trim();
+            Optional<com.techknife.backend.entity.User> backendUser = backendUserRepository.findById(cleanId)
+                    .or(() -> backendUserRepository.findByUserId(cleanId))
+                    .or(() -> backendUserRepository.findByEmail(cleanId.toLowerCase()));
+            if (backendUser.isPresent()) {
+                return UserPrincipal.create(backendUser.get());
+            }
         }
 
         Optional<com.techknife.iam.entity.User> iamUser = iamUserRepository.findByUserId(id);

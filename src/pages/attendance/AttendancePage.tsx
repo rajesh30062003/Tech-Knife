@@ -203,8 +203,7 @@ EMP-2026-003,Elena Rostova,Engineering,2026-07-23,LATE,09:45,18:15`);
           totalBreakMinutes: correctionForm.totalBreakMinutes,
           remarks: correctionForm.remarks,
           reason: correctionForm.reason,
-        },
-        user?.email || 'admin@techknife.io'
+        }
       );
       setShowCorrectionModal(false);
       await loadData();
@@ -231,8 +230,7 @@ EMP-2026-003,Elena Rostova,Engineering,2026-07-23,LATE,09:45,18:15`);
           totalBreakMinutes: manualForm.totalBreakMinutes,
           isWfh: manualForm.isWfh,
           remarks: manualForm.remarks,
-        },
-        user?.email || 'admin@techknife.io'
+        }
       );
       setShowManualModal(false);
       await loadData();
@@ -262,7 +260,7 @@ EMP-2026-003,Elena Rostova,Engineering,2026-07-23,LATE,09:45,18:15`);
         };
       });
 
-      await attendanceApi.bulkImportAttendance(parsedRecords, user?.email || 'admin@techknife.io');
+      await attendanceApi.bulkImportAttendance(parsedRecords);
       setShowBulkImportModal(false);
       await loadData();
     } catch (err) {

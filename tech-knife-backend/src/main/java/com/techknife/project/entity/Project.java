@@ -28,6 +28,9 @@ public class Project {
     private String id;
 
     @Indexed(unique = true)
+    private String projectId;
+
+    @Indexed(unique = true)
     private String projectCode;
 
     private String projectName;
@@ -36,7 +39,19 @@ public class Project {
 
     private String description;
 
+    private String objectives;
+
     private String client;
+
+    private String clientId;
+
+    private String clientOrganization;
+
+    private String department;
+
+    private String category;
+
+    private String businessUnit;
 
     @Builder.Default
     private ProjectType projectType = ProjectType.FIXED_BID;
@@ -52,21 +67,75 @@ public class Project {
 
     private LocalDate endDate;
 
+    private LocalDate targetEndDate;
+
+    private LocalDate estimatedCompletion;
+
     @Builder.Default
     private Double estimatedHours = 0.0;
+
+    @Builder.Default
+    private Double estimatedDuration = 0.0;
 
     @Builder.Default
     private Double budget = 0.0;
 
     @Builder.Default
+    private Double estimatedCost = 0.0;
+
+    @Builder.Default
+    private Double progressPercentage = 0.0;
+
+    @Builder.Default
     private List<String> technologyStack = new ArrayList<>();
 
+    @Builder.Default
+    private List<String> programmingLanguages = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> frameworks = new ArrayList<>();
+
+    private String databaseTech;
+
+    private String cloudProvider;
+
     private String repositoryUrl;
+
+    private String repositoryType;
+
+    private String repositoryVisibility;
+
+    private String projectVisibility;
+
+    private String deploymentType;
 
     @Indexed
     private String projectManagerId;
 
     private String projectManagerName;
+
+    @Indexed
+    private String projectLeadId;
+
+    private String projectLeadName;
+
+    private String projectSponsor;
+
+    private String customerRepresentative;
+
+    @Builder.Default
+    private List<String> assignedEmployees = new ArrayList<>();
+
+    @Builder.Default
+    private List<String> assignedInterns = new ArrayList<>();
+
+    @Builder.Default
+    private ProjectLinks links = new ProjectLinks();
+
+    private String remarks;
+
+    @Builder.Default
+    private List<String> tags = new ArrayList<>();
 
     @Builder.Default
     private List<ProjectMember> members = new ArrayList<>();
@@ -95,4 +164,3 @@ public class Project {
         return 0.0;
     }
 }
-

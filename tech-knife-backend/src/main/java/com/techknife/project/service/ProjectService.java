@@ -1,15 +1,22 @@
 package com.techknife.project.service;
 
-import com.techknife.employee.entity.Employee;
+import com.techknife.backend.exception.BadRequestException;
+import com.techknife.backend.service.SequenceGeneratorService;
 import com.techknife.employee.repository.EmployeeRepository;
 import com.techknife.project.dto.*;
 import com.techknife.project.entity.*;
 import com.techknife.project.repository.*;
+import com.techknife.security.UserPrincipal;
 import com.techknife.storage.FileStorageService;
 import com.techknife.storage.FileUploadRequest;
 import com.techknife.storage.FileUploadResponse;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,35 +32,268 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final ProjectStatusHistoryRepository statusHistoryRepository;
+    private final ProjectActivityRepository activityRepository;
     private final MilestoneRepository milestoneRepository;
     private final TaskRepository taskRepository;
     private final EmployeeRepository employeeRepository;
     private final FileStorageService fileStorageService;
+    private final MongoTemplate mongoTemplate;
+    private final SequenceGeneratorService sequenceGeneratorService;
+
+    @PostConstruct
+    public void initAndMigrateProjects() {
+        try {
+            log.info("DATABASE MIGRATION: Checking MongoDB Atlas projects collection for null/missing projectId or legacy status...");
+            var collection = mongoTemplate.getCollection("projects");
+
+            // 1. Repair any legacy document where projectId is null, missing, empty, or "null" string
+            org.bson.Document queryNullId = new org.bson.Document("$or", List.of(
+                    new org.bson.Document("projectId", null),
+                    new org.bson.Document("projectId", new org.bson.Document("$exists", false)),
+                    new org.bson.Document("projectId", ""),
+                    new org.bson.Document("projectId", "null")
+            ));
+
+            List<org.bson.Document> nullIdDocs = new ArrayList<>();
+            collection.find(queryNullId).into(nullIdDocs);
+
+            if (!nullIdDocs.isEmpty()) {
+                log.info("DATABASE MIGRATION: Found {} raw documents with null/missing projectId in MongoDB Atlas. Repairing...", nullIdDocs.size());
+                for (org.bson.Document doc : nullIdDocs) {
+                    Object idObj = doc.get("_id");
+                    if (idObj != null) {
+                        String newProjectId = sequenceGeneratorService.generateProjectId();
+                        collection.updateOne(
+                                new org.bson.Document("_id", idObj),
+                                new org.bson.Document("$set", new org.bson.Document("projectId", newProjectId))
+                        );
+                        log.info("DATABASE MIGRATION: Repaired raw document _id={} with new projectId: {}", idObj, newProjectId);
+                    }
+                }
+            }
+
+            // 2. Repair any legacy document where projectCode is null, missing, or empty
+            org.bson.Document queryNullCode = new org.bson.Document("$or", List.of(
+                    new org.bson.Document("projectCode", null),
+                    new org.bson.Document("projectCode", new org.bson.Document("$exists", false)),
+                    new org.bson.Document("projectCode", ""),
+                    new org.bson.Document("projectCode", "null")
+            ));
+
+            List<org.bson.Document> nullCodeDocs = new ArrayList<>();
+            collection.find(queryNullCode).into(nullCodeDocs);
+
+            if (!nullCodeDocs.isEmpty()) {
+                log.info("DATABASE MIGRATION: Found {} raw documents with null/missing projectCode in MongoDB Atlas. Repairing...", nullCodeDocs.size());
+                int count = 1;
+                for (org.bson.Document doc : nullCodeDocs) {
+                    Object idObj = doc.get("_id");
+                    if (idObj != null) {
+                        String newCode = "PRJ-MIG-" + System.currentTimeMillis() + "-" + count++;
+                        collection.updateOne(
+                                new org.bson.Document("_id", idObj),
+                                new org.bson.Document("$set", new org.bson.Document("projectCode", newCode))
+                        );
+                        log.info("DATABASE MIGRATION: Repaired raw document _id={} with new projectCode: {}", idObj, newCode);
+                    }
+                }
+            }
+
+            // 3. Normalize legacy status strings & sanitize numeric string fields (e.g. "In Progress" -> "IN_PROGRESS", "₹ 25,00,000" -> 2500000.0)
+            List<org.bson.Document> allDocs = new ArrayList<>();
+            collection.find().into(allDocs);
+            for (org.bson.Document doc : allDocs) {
+                Object statusObj = doc.get("status");
+                if (statusObj instanceof String statusStr) {
+                    ProjectStatus mapped = ProjectStatus.fromString(statusStr);
+                    if (!mapped.name().equals(statusStr)) {
+                        collection.updateOne(
+                                new org.bson.Document("_id", doc.get("_id")),
+                                new org.bson.Document("$set", new org.bson.Document("status", mapped.name()))
+                        );
+                        log.info("DATABASE MIGRATION: Normalized status '{}' -> '{}' for project _id={}", statusStr, mapped.name(), doc.get("_id"));
+                    }
+                }
+
+                org.bson.Document updateNumDoc = new org.bson.Document();
+                for (String numField : List.of("budget", "estimatedCost", "estimatedHours", "estimatedDuration", "progressPercentage")) {
+                    Object val = doc.get(numField);
+                    if (val instanceof String strVal) {
+                        try {
+                            String cleanStr = strVal.replaceAll("[^0-9.]", "");
+                            double parsedVal = cleanStr.isBlank() ? 0.0 : Double.parseDouble(cleanStr);
+                            updateNumDoc.append(numField, parsedVal);
+                        } catch (Exception parseEx) {
+                            updateNumDoc.append(numField, 0.0);
+                        }
+                    }
+                }
+                if (!updateNumDoc.isEmpty()) {
+                    collection.updateOne(
+                            new org.bson.Document("_id", doc.get("_id")),
+                            new org.bson.Document("$set", updateNumDoc)
+                    );
+                    log.info("DATABASE MIGRATION: Cleaned numeric string fields for project _id={}", doc.get("_id"));
+                }
+            }
+
+            // 4. Sanitize employees collection malformed legacy BSON fields
+            com.mongodb.client.MongoCollection<org.bson.Document> empCollection = mongoTemplate.getCollection("employees");
+            List<org.bson.Document> allEmps = new ArrayList<>();
+            empCollection.find().into(allEmps);
+            for (org.bson.Document empDoc : allEmps) {
+                org.bson.Document empUpdate = new org.bson.Document();
+                org.bson.Document empUnset = new org.bson.Document();
+
+                for (String listField : List.of("skills", "skillDetails", "education", "experience", "documents")) {
+                    Object val = empDoc.get(listField);
+                    if (val != null && !(val instanceof List)) {
+                        empUpdate.append(listField, new ArrayList<>());
+                    }
+                }
+                for (String addrField : List.of("currentAddress", "permanentAddress")) {
+                    Object val = empDoc.get(addrField);
+                    if (val instanceof String strVal) {
+                        if (strVal.isBlank()) {
+                            empUnset.append(addrField, "");
+                        } else {
+                            empUpdate.append(addrField, new org.bson.Document("street", strVal));
+                        }
+                    }
+                }
+                for (String dateField : List.of("dob", "joiningDate", "probationEndDate", "confirmationDate")) {
+                    Object val = empDoc.get(dateField);
+                    if (val instanceof String strVal && strVal.isBlank()) {
+                        empUnset.append(dateField, "");
+                    }
+                }
+
+                org.bson.Document opDoc = new org.bson.Document();
+                if (!empUpdate.isEmpty()) {
+                    opDoc.append("$set", empUpdate);
+                }
+                if (!empUnset.isEmpty()) {
+                    opDoc.append("$unset", empUnset);
+                }
+                if (!opDoc.isEmpty()) {
+                    empCollection.updateOne(new org.bson.Document("_id", empDoc.get("_id")), opDoc);
+                    log.info("DATABASE MIGRATION: Sanitized employee raw document _id={}", empDoc.get("_id"));
+                }
+            }
+
+            // 5. Automatic Data Repair: Segregate Interns into 'interns' collection and remove from 'employees'
+            com.mongodb.client.MongoCollection<org.bson.Document> internsColl = mongoTemplate.getCollection("interns");
+            List<org.bson.Document> empsToRemoveFromEmployees = new ArrayList<>();
+            for (org.bson.Document empDoc : allEmps) {
+                String empId = empDoc.getString("employeeId");
+                String empType = empDoc.getString("employmentType");
+                boolean isIntern = "INTERN".equalsIgnoreCase(empType) || (empId != null && empId.toUpperCase().startsWith("INT-"));
+
+                if (isIntern) {
+                    String internCode = empId != null ? empId : "INT-001";
+                    org.bson.Document existingIntern = internsColl.find(new org.bson.Document("internCode", internCode)).first();
+                    if (existingIntern == null && empDoc.getString("officialEmail") != null) {
+                        existingIntern = internsColl.find(new org.bson.Document("officialEmail", empDoc.getString("officialEmail"))).first();
+                    }
+                    if (existingIntern == null) {
+                        org.bson.Document internDoc = new org.bson.Document(empDoc);
+                        internDoc.put("internCode", internCode);
+                        internDoc.put("status", "ACTIVE");
+                        internDoc.put("certificateGenerated", false);
+                        internDoc.put("convertedToEmployee", false);
+                        internsColl.insertOne(internDoc);
+                        log.info("DATABASE MIGRATION: Moved intern document internCode={} to 'interns' collection", internCode);
+                    }
+                    empsToRemoveFromEmployees.add(empDoc);
+                }
+            }
+            for (org.bson.Document internToRemove : empsToRemoveFromEmployees) {
+                empCollection.deleteOne(new org.bson.Document("_id", internToRemove.get("_id")));
+                log.info("DATABASE MIGRATION: Removed intern document _id={} from 'employees' collection for strict data segregation", internToRemove.get("_id"));
+            }
+
+            log.info("DATABASE MIGRATION: MongoDB Atlas project & employee collection migration complete.");
+        } catch (Exception e) {
+            log.error("DATABASE MIGRATION ERROR: Failed to execute raw MongoDB Atlas migration: {}", e.getMessage(), e);
+        }
+    }
 
     public ProjectResponseDTO createProject(ProjectRequestDTO request) {
+        return createProject(request, "SYSTEM", "ROLE_SYSTEM");
+    }
+
+    public ProjectResponseDTO createProject(ProjectRequestDTO request, String currentUser, String currentRole) {
+        // Task 6: Validation before saving
+        if (request.getProjectName() == null || request.getProjectName().isBlank()) {
+            throw new BadRequestException("Project name is required");
+        }
+        if (request.getProjectCode() == null || request.getProjectCode().isBlank()) {
+            throw new BadRequestException("Project code is required");
+        }
         if (projectRepository.existsByProjectCode(request.getProjectCode())) {
-            throw new IllegalArgumentException("Project code '" + request.getProjectCode() + "' already exists");
+            throw new BadRequestException("Project code '" + request.getProjectCode() + "' already exists");
+        }
+
+        // Task 5: Atomic Enterprise Project ID Generation (TK-PRJ-XXXXXX)
+        String generatedProjectId = sequenceGeneratorService.generateProjectId();
+        if (generatedProjectId == null || generatedProjectId.isBlank()) {
+            log.error("CRITICAL ERROR: Failed to generate atomic projectId");
+            throw new BadRequestException("Project ID generation failed");
         }
 
         String pmName = resolveEmployeeName(request.getProjectManagerId());
+        String leadName = resolveEmployeeName(request.getProjectLeadId());
+
+        String dept = (request.getDepartment() != null && !request.getDepartment().isBlank()) ? request.getDepartment() : "Engineering";
+        String clientName = (request.getClient() != null && !request.getClient().isBlank()) ? request.getClient() : "Internal";
+        ProjectStatus pStatus = request.getStatus() != null ? request.getStatus() : ProjectStatus.PLANNED;
 
         Project project = Project.builder()
-                .projectCode(request.getProjectCode())
-                .projectName(request.getProjectName())
+                .projectId(generatedProjectId)
+                .projectCode(request.getProjectCode().trim().toUpperCase())
+                .projectName(request.getProjectName().trim())
                 .shortName(request.getShortName())
                 .description(request.getDescription())
-                .client(request.getClient())
+                .objectives(request.getObjectives())
+                .client(clientName)
+                .clientId(request.getClientId())
+                .clientOrganization(request.getClientOrganization())
+                .department(dept)
+                .category(request.getCategory() != null ? request.getCategory() : "Technical")
+                .businessUnit(request.getBusinessUnit() != null ? request.getBusinessUnit() : "Enterprise Services")
                 .projectType(request.getProjectType() != null ? request.getProjectType() : ProjectType.FIXED_BID)
-                .status(request.getStatus() != null ? request.getStatus() : ProjectStatus.PLANNED)
+                .status(pStatus)
                 .priority(request.getPriority() != null ? request.getPriority() : ProjectPriority.MEDIUM)
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
+                .targetEndDate(request.getTargetEndDate())
+                .estimatedCompletion(request.getEstimatedCompletion())
                 .estimatedHours(request.getEstimatedHours() != null ? request.getEstimatedHours() : 0.0)
+                .estimatedDuration(request.getEstimatedDuration() != null ? request.getEstimatedDuration() : 0.0)
                 .budget(request.getBudget() != null ? request.getBudget() : 0.0)
+                .estimatedCost(request.getEstimatedCost() != null ? request.getEstimatedCost() : 0.0)
+                .progressPercentage(request.getProgressPercentage() != null ? request.getProgressPercentage() : 0.0)
                 .technologyStack(request.getTechnologyStack() != null ? request.getTechnologyStack() : new ArrayList<>())
+                .programmingLanguages(request.getProgrammingLanguages() != null ? request.getProgrammingLanguages() : new ArrayList<>())
+                .frameworks(request.getFrameworks() != null ? request.getFrameworks() : new ArrayList<>())
+                .databaseTech(request.getDatabaseTech())
+                .cloudProvider(request.getCloudProvider())
                 .repositoryUrl(request.getRepositoryUrl())
+                .repositoryType(request.getRepositoryType() != null ? request.getRepositoryType() : "GIT")
+                .repositoryVisibility(request.getRepositoryVisibility() != null ? request.getRepositoryVisibility() : "PRIVATE")
+                .projectVisibility(request.getProjectVisibility() != null ? request.getProjectVisibility() : "PRIVATE")
+                .deploymentType(request.getDeploymentType() != null ? request.getDeploymentType() : "CLOUD")
                 .projectManagerId(request.getProjectManagerId())
                 .projectManagerName(pmName)
+                .projectLeadId(request.getProjectLeadId())
+                .projectLeadName(leadName)
+                .projectSponsor(request.getProjectSponsor())
+                .customerRepresentative(request.getCustomerRepresentative())
+                .assignedEmployees(request.getAssignedEmployees() != null ? request.getAssignedEmployees() : new ArrayList<>())
+                .assignedInterns(request.getAssignedInterns() != null ? request.getAssignedInterns() : new ArrayList<>())
+                .links(request.getLinks() != null ? request.getLinks() : new ProjectLinks())
+                .remarks(request.getRemarks())
+                .tags(request.getTags() != null ? request.getTags() : new ArrayList<>())
                 .logoUrl(request.getLogoUrl())
                 .members(new ArrayList<>())
                 .teams(new ArrayList<>())
@@ -70,35 +310,90 @@ public class ProjectService {
                     .build());
         }
 
+        if (request.getProjectLeadId() != null && !request.getProjectLeadId().isBlank()) {
+            project.getMembers().add(ProjectMember.builder()
+                    .employeeId(request.getProjectLeadId())
+                    .employeeName(leadName)
+                    .role(ProjectMemberRole.TECH_LEAD)
+                    .allocationPercentage(100.0)
+                    .joinedDate(LocalDate.now())
+                    .build());
+        }
+
+        // Task 6: Pre-save validation & logging
+        log.info("PRE-SAVE VERIFICATION: Saving project '{}' (Code: {}) with generated projectId: {}", project.getProjectName(), project.getProjectCode(), project.getProjectId());
+
+        if (project.getProjectId() == null || project.getProjectId().isBlank()) {
+            log.error("CRITICAL SAFETY BLOCK: Attempted to save project with null projectId!");
+            throw new BadRequestException("Project ID generation failed");
+        }
+        if (project.getProjectName() == null || project.getProjectName().isBlank()) {
+            throw new BadRequestException("Project name is required");
+        }
+        if (project.getStatus() == null) {
+            throw new BadRequestException("Project status is required");
+        }
+        if (project.getDepartment() == null || project.getDepartment().isBlank()) {
+            throw new BadRequestException("Department is required");
+        }
+
         Project saved = projectRepository.save(project);
 
-        // Record initial status
-        logStatusChange(saved.getId(), null, saved.getStatus(), "Initial Project Creation", "SYSTEM");
+        // Audit Activity
+        logActivity(saved.getId(), "CREATE_PROJECT", currentUser, currentRole, "Project", null, saved.getProjectName());
+        logStatusChange(saved.getId(), null, saved.getStatus(), "Initial Enterprise Creation", currentUser);
 
         return mapToResponseDTO(saved);
     }
 
     public ProjectResponseDTO updateProject(String id, ProjectRequestDTO request) {
+        return updateProject(id, request, "SYSTEM", "ROLE_SYSTEM");
+    }
+
+    public ProjectResponseDTO updateProject(String id, ProjectRequestDTO request, String currentUser, String currentRole) {
         Project project = getProjectEntity(id);
 
         if (!project.getProjectCode().equalsIgnoreCase(request.getProjectCode())
                 && projectRepository.existsByProjectCode(request.getProjectCode())) {
-            throw new IllegalArgumentException("Project code '" + request.getProjectCode() + "' is already taken");
+            throw new BadRequestException("Project code '" + request.getProjectCode() + "' is already taken");
         }
 
         project.setProjectCode(request.getProjectCode());
         project.setProjectName(request.getProjectName());
         project.setShortName(request.getShortName());
         project.setDescription(request.getDescription());
+        if (request.getObjectives() != null) project.setObjectives(request.getObjectives());
         project.setClient(request.getClient());
+        if (request.getClientId() != null) project.setClientId(request.getClientId());
+        if (request.getClientOrganization() != null) project.setClientOrganization(request.getClientOrganization());
+        if (request.getDepartment() != null) project.setDepartment(request.getDepartment());
+        if (request.getCategory() != null) project.setCategory(request.getCategory());
+        if (request.getBusinessUnit() != null) project.setBusinessUnit(request.getBusinessUnit());
         if (request.getProjectType() != null) project.setProjectType(request.getProjectType());
         if (request.getPriority() != null) project.setPriority(request.getPriority());
         project.setStartDate(request.getStartDate());
         project.setEndDate(request.getEndDate());
+        if (request.getTargetEndDate() != null) project.setTargetEndDate(request.getTargetEndDate());
+        if (request.getEstimatedCompletion() != null) project.setEstimatedCompletion(request.getEstimatedCompletion());
         if (request.getEstimatedHours() != null) project.setEstimatedHours(request.getEstimatedHours());
+        if (request.getEstimatedDuration() != null) project.setEstimatedDuration(request.getEstimatedDuration());
         if (request.getBudget() != null) project.setBudget(request.getBudget());
+        if (request.getEstimatedCost() != null) project.setEstimatedCost(request.getEstimatedCost());
+        if (request.getProgressPercentage() != null) project.setProgressPercentage(request.getProgressPercentage());
         if (request.getTechnologyStack() != null) project.setTechnologyStack(request.getTechnologyStack());
+        if (request.getProgrammingLanguages() != null) project.setProgrammingLanguages(request.getProgrammingLanguages());
+        if (request.getFrameworks() != null) project.setFrameworks(request.getFrameworks());
+        if (request.getDatabaseTech() != null) project.setDatabaseTech(request.getDatabaseTech());
+        if (request.getCloudProvider() != null) project.setCloudProvider(request.getCloudProvider());
         project.setRepositoryUrl(request.getRepositoryUrl());
+        if (request.getRepositoryType() != null) project.setRepositoryType(request.getRepositoryType());
+        if (request.getRepositoryVisibility() != null) project.setRepositoryVisibility(request.getRepositoryVisibility());
+        if (request.getProjectVisibility() != null) project.setProjectVisibility(request.getProjectVisibility());
+        if (request.getDeploymentType() != null) project.setDeploymentType(request.getDeploymentType());
+        if (request.getProjectSponsor() != null) project.setProjectSponsor(request.getProjectSponsor());
+        if (request.getCustomerRepresentative() != null) project.setCustomerRepresentative(request.getCustomerRepresentative());
+        if (request.getRemarks() != null) project.setRemarks(request.getRemarks());
+        if (request.getTags() != null) project.setTags(request.getTags());
         project.setLogoUrl(request.getLogoUrl());
 
         if (request.getProjectManagerId() != null && !request.getProjectManagerId().equals(project.getProjectManagerId())) {
@@ -107,11 +402,27 @@ public class ProjectService {
             project.setProjectManagerName(newPmName);
         }
 
+        if (request.getProjectLeadId() != null && !request.getProjectLeadId().equals(project.getProjectLeadId())) {
+            String newLeadName = resolveEmployeeName(request.getProjectLeadId());
+            project.setProjectLeadId(request.getProjectLeadId());
+            project.setProjectLeadName(newLeadName);
+        }
+
+        if (request.getLinks() != null) {
+            project.setLinks(request.getLinks());
+        }
+
         Project updated = projectRepository.save(project);
+        logActivity(updated.getId(), "UPDATE_PROJECT", currentUser, currentRole, "Metadata", null, "Updated Metadata");
+
         return mapToResponseDTO(updated);
     }
 
     public ProjectResponseDTO updateStatus(String projectId, ProjectStatusUpdateDTO updateDTO, String currentUser) {
+        return updateStatus(projectId, updateDTO, currentUser, "ROLE_EMPLOYEE");
+    }
+
+    public ProjectResponseDTO updateStatus(String projectId, ProjectStatusUpdateDTO updateDTO, String currentUser, String currentRole) {
         Project project = getProjectEntity(projectId);
         ProjectStatus oldStatus = project.getStatus();
         ProjectStatus newStatus = updateDTO.getStatus();
@@ -120,9 +431,49 @@ public class ProjectService {
             project.setStatus(newStatus);
             projectRepository.save(project);
             logStatusChange(projectId, oldStatus, newStatus, updateDTO.getReason(), currentUser);
+            logActivity(projectId, "UPDATE_STATUS", currentUser, currentRole, "Status", String.valueOf(oldStatus), String.valueOf(newStatus));
         }
 
         return mapToResponseDTO(project);
+    }
+
+    public ProjectResponseDTO assignMembers(String projectId, ProjectAssignDTO dto, String currentUser, String currentRole) {
+        Project project = getProjectEntity(projectId);
+
+        if (dto.getProjectManagerId() != null) {
+            project.setProjectManagerId(dto.getProjectManagerId());
+            project.setProjectManagerName(resolveEmployeeName(dto.getProjectManagerId()));
+        }
+        if (dto.getProjectLeadId() != null) {
+            project.setProjectLeadId(dto.getProjectLeadId());
+            project.setProjectLeadName(resolveEmployeeName(dto.getProjectLeadId()));
+        }
+        if (dto.getAssignedEmployees() != null) {
+            project.setAssignedEmployees(dto.getAssignedEmployees());
+        }
+        if (dto.getAssignedInterns() != null) {
+            project.setAssignedInterns(dto.getAssignedInterns());
+        }
+
+        Project saved = projectRepository.save(project);
+        logActivity(projectId, "ASSIGN_MEMBERS", currentUser, currentRole, "Members", null, "Updated assignments");
+        return mapToResponseDTO(saved);
+    }
+
+    public ProjectResponseDTO updateLinks(String projectId, ProjectLinksUpdateDTO dto, String currentUser, String currentRole) {
+        Project project = getProjectEntity(projectId);
+        if (dto.getLinks() != null) {
+            project.setLinks(dto.getLinks());
+        }
+        if (dto.getRepositoryVisibility() != null) {
+            project.setRepositoryVisibility(dto.getRepositoryVisibility());
+        }
+        if (dto.getDeploymentType() != null) {
+            project.setDeploymentType(dto.getDeploymentType());
+        }
+        Project saved = projectRepository.save(project);
+        logActivity(projectId, "UPDATE_LINKS", currentUser, currentRole, "Links", null, "Updated links & repositories");
+        return mapToResponseDTO(saved);
     }
 
     public ProjectResponseDTO getProjectById(String id) {
@@ -132,8 +483,56 @@ public class ProjectService {
 
     public ProjectResponseDTO getProjectByCode(String code) {
         Project project = projectRepository.findByProjectCode(code)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with code: " + code));
+                .orElseThrow(() -> new BadRequestException("Project not found with code: " + code));
         return mapToResponseDTO(project);
+    }
+
+    public List<ProjectResponseDTO> getAllProjects(UserPrincipal principal, ProjectStatus status, String category) {
+        List<Project> projects = projectRepository.findAll();
+
+        if (principal != null) {
+            List<String> roles = principal.getRoles() != null ? principal.getRoles() : new ArrayList<>();
+            boolean isExecutive = roles.stream().anyMatch(r ->
+                    r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
+                    r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
+                    r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
+                    r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO")
+            );
+
+            if (!isExecutive) {
+                String userId = principal.getId();
+                boolean isCMO = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO"));
+
+                projects = projects.stream().filter(p -> {
+                    if (isCMO && "Marketing".equalsIgnoreCase(p.getCategory())) {
+                        return true;
+                    }
+                    if (userId.equals(p.getProjectManagerId()) || userId.equals(p.getProjectLeadId())) {
+                        return true;
+                    }
+                    if (p.getAssignedEmployees() != null && p.getAssignedEmployees().contains(userId)) {
+                        return true;
+                    }
+                    if (p.getAssignedInterns() != null && p.getAssignedInterns().contains(userId)) {
+                        return true;
+                    }
+                    if (p.getMembers() != null && p.getMembers().stream().anyMatch(m -> userId.equals(m.getEmployeeId()))) {
+                        return true;
+                    }
+                    return false;
+                }).collect(Collectors.toList());
+            }
+        }
+
+        if (status != null) {
+            projects = projects.stream().filter(p -> p.getStatus() == status).collect(Collectors.toList());
+        }
+
+        if (category != null && !category.isBlank()) {
+            projects = projects.stream().filter(p -> category.equalsIgnoreCase(p.getCategory())).collect(Collectors.toList());
+        }
+
+        return projects.stream().map(this::mapToResponseDTO).collect(Collectors.toList());
     }
 
     public List<ProjectResponseDTO> getAllProjects(ProjectStatus status, String managerId, String employeeId) {
@@ -152,7 +551,12 @@ public class ProjectService {
     }
 
     public void deleteProject(String id) {
+        deleteProject(id, "SYSTEM", "ROLE_SYSTEM");
+    }
+
+    public void deleteProject(String id, String currentUser, String currentRole) {
         Project project = getProjectEntity(id);
+        logActivity(id, "DELETE_PROJECT", currentUser, currentRole, "Project", project.getProjectName(), "Deleted");
         projectRepository.delete(project);
     }
 
@@ -162,7 +566,7 @@ public class ProjectService {
         boolean exists = project.getMembers().stream()
                 .anyMatch(m -> m.getEmployeeId().equals(memberDTO.getEmployeeId()));
         if (exists) {
-            throw new IllegalArgumentException("Employee is already a member of this project");
+            throw new BadRequestException("Employee is already a member of this project");
         }
 
         String name = resolveEmployeeName(memberDTO.getEmployeeId());
@@ -218,12 +622,12 @@ public class ProjectService {
                 .folder("projects/" + project.getProjectCode() + "/documents")
                 .build();
 
-        FileUploadResponse uploadResp = fileStorageService.uploadDocument(file, "projects/" + project.getProjectCode() + "/documents");
+        FileUploadResponse uploadRes = fileStorageService.uploadFile(uploadReq);
 
         ProjectDocument doc = ProjectDocument.builder()
                 .id(UUID.randomUUID().toString())
                 .fileName(file.getOriginalFilename())
-                .fileUrl(uploadResp.getSecureUrl())
+                .fileUrl(uploadRes != null ? uploadRes.getSecureUrl() : "")
                 .fileType(file.getContentType())
                 .fileSize(file.getSize())
                 .uploadedBy(uploadedBy)
@@ -235,65 +639,117 @@ public class ProjectService {
         return mapToResponseDTO(saved);
     }
 
-    public List<ProjectStatusHistory> getStatusHistory(String projectId) {
-        return statusHistoryRepository.findByProjectIdOrderByChangedAtDesc(projectId);
+    public List<ProjectStatusHistory> getStatusHistory(String id) {
+        return statusHistoryRepository.findByProjectIdOrderByChangedAtDesc(id);
     }
 
-    public Project getProjectEntity(String id) {
+    public List<ProjectActivity> getActivities(String id) {
+        return activityRepository.findByProjectIdOrderByTimestampDesc(id);
+    }
+
+    private Project getProjectEntity(String id) {
         return projectRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + id));
+                .or(() -> projectRepository.findByProjectCode(id))
+                .orElseThrow(() -> new BadRequestException("Project not found with id or code: " + id));
     }
 
     private String resolveEmployeeName(String employeeId) {
-        if (employeeId == null || employeeId.isBlank()) return null;
-        return employeeRepository.findByEmployeeId(employeeId)
-                .map(e -> e.getFirstName() + " " + e.getLastName())
-                .orElse(employeeId);
+        if (employeeId == null || employeeId.isBlank()) return "Unassigned";
+        try {
+            return employeeRepository.findByEmployeeId(employeeId)
+                    .map(e -> e.getFirstName() + " " + e.getLastName())
+                    .orElse("Unassigned (" + employeeId + ")");
+        } catch (Exception ex) {
+            log.warn("Could not resolve employee name for id '{}': {}", employeeId, ex.getMessage());
+            return "Unassigned (" + employeeId + ")";
+        }
     }
 
-    private void logStatusChange(String projectId, ProjectStatus oldStatus, ProjectStatus newStatus, String reason, String currentUser) {
-        String name = resolveEmployeeName(currentUser);
+    private void logStatusChange(String projectId, ProjectStatus oldStatus, ProjectStatus newStatus, String reason, String changedBy) {
         ProjectStatusHistory history = ProjectStatusHistory.builder()
                 .projectId(projectId)
                 .oldStatus(oldStatus)
                 .newStatus(newStatus)
-                .changedBy(currentUser)
-                .changedByName(name != null ? name : currentUser)
                 .reason(reason)
+                .changedBy(changedBy)
                 .changedAt(Instant.now())
                 .build();
         statusHistoryRepository.save(history);
     }
 
+    private void logActivity(String projectId, String action, String performedBy, String userRole, String fieldModified, String oldValue, String newValue) {
+        ProjectActivity activity = ProjectActivity.builder()
+                .projectId(projectId)
+                .action(action)
+                .performedBy(performedBy != null ? performedBy : "SYSTEM")
+                .userRole(userRole != null ? userRole : "ROLE_EMPLOYEE")
+                .fieldModified(fieldModified)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .timestamp(Instant.now())
+                .build();
+        activityRepository.save(activity);
+    }
+
     private ProjectResponseDTO mapToResponseDTO(Project project) {
-        List<Task> tasks = taskRepository.findByProjectId(project.getId());
-        int totalTasks = tasks.size();
-        int completedTasks = (int) tasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE).count();
-        double progress = totalTasks > 0 ? ((double) completedTasks / totalTasks) * 100.0 : 0.0;
+        List<Task> projectTasks = taskRepository.findByProjectId(project.getId());
+        int totalTasks = projectTasks.size();
+        int completedTasks = (int) projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.COMPLETED).count();
+
+        double progress = totalTasks > 0 ? ((double) completedTasks / totalTasks) * 100.0 : (project.getProgressPercentage() != null ? project.getProgressPercentage() : 0.0);
 
         return ProjectResponseDTO.builder()
                 .id(project.getId())
+                .projectId(project.getProjectId())
                 .projectCode(project.getProjectCode())
                 .projectName(project.getProjectName())
                 .shortName(project.getShortName())
                 .description(project.getDescription())
+                .objectives(project.getObjectives())
                 .client(project.getClient())
+                .clientId(project.getClientId())
+                .clientOrganization(project.getClientOrganization())
+                .department(project.getDepartment())
+                .category(project.getCategory())
+                .businessUnit(project.getBusinessUnit())
                 .projectType(project.getProjectType())
                 .status(project.getStatus())
                 .priority(project.getPriority())
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
+                .targetEndDate(project.getTargetEndDate())
+                .estimatedCompletion(project.getEstimatedCompletion())
                 .estimatedHours(project.getEstimatedHours())
+                .estimatedDuration(project.getEstimatedDuration())
                 .budget(project.getBudget())
+                .estimatedCost(project.getEstimatedCost())
+                .progressPercentage(progress)
                 .technologyStack(project.getTechnologyStack())
+                .programmingLanguages(project.getProgrammingLanguages())
+                .frameworks(project.getFrameworks())
+                .databaseTech(project.getDatabaseTech())
+                .cloudProvider(project.getCloudProvider())
                 .repositoryUrl(project.getRepositoryUrl())
+                .repositoryType(project.getRepositoryType())
+                .repositoryVisibility(project.getRepositoryVisibility())
+                .projectVisibility(project.getProjectVisibility())
+                .deploymentType(project.getDeploymentType())
                 .projectManagerId(project.getProjectManagerId())
                 .projectManagerName(project.getProjectManagerName())
+                .projectLeadId(project.getProjectLeadId())
+                .projectLeadName(project.getProjectLeadName())
+                .projectSponsor(project.getProjectSponsor())
+                .customerRepresentative(project.getCustomerRepresentative())
+                .assignedEmployees(project.getAssignedEmployees())
+                .assignedInterns(project.getAssignedInterns())
+                .links(project.getLinks() != null ? project.getLinks() : new ProjectLinks())
+                .remarks(project.getRemarks())
+                .tags(project.getTags())
                 .members(project.getMembers())
                 .teams(project.getTeams())
                 .documents(project.getDocuments())
                 .logoUrl(project.getLogoUrl())
-                .overallProgressPercentage(Math.round(progress * 10.0) / 10.0)
+                .overallProgressPercentage(progress)
                 .totalTasks(totalTasks)
                 .completedTasks(completedTasks)
                 .createdAt(project.getCreatedAt())

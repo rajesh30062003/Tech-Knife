@@ -103,16 +103,38 @@ export const EmployeeDetailDialogV2: React.FC<EmployeeDetailDialogV2Props> = ({
             </div>
           </div>
 
-          {/* Personal Details */}
+          {/* Personal Details & Governance */}
           <div className="space-y-2">
             <h4 className="font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-indigo-500" /> Demographics & Identity
+              <User className="w-3.5 h-3.5 text-indigo-500" /> Demographics & Reporting Hierarchy
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 dark:text-slate-300">
               <div><span className="text-slate-400">Gender:</span> {employee.gender || 'Not specified'}</div>
               <div><span className="text-slate-400">Date of Birth:</span> {employee.dob || 'Not recorded'}</div>
               <div><span className="text-slate-400">Blood Group:</span> {employee.bloodGroup ? employee.bloodGroup.replace('_', ' ') : 'N/A'}</div>
-              <div><span className="text-slate-400">Reporting Manager:</span> {employee.managerId || 'Direct / None'}</div>
+              <div><span className="text-slate-400">Reporting Manager:</span> <span className="font-bold text-indigo-600 dark:text-indigo-400">{employee.managerName || (employee.managerId && employee.managerId !== 'Unassigned' ? employee.managerId : 'Ranadhir Pal (EMP-001 - Executive MD)')}</span></div>
+            </div>
+          </div>
+
+          {/* Assigned Projects & Roles */}
+          <div className="space-y-2">
+            <h4 className="font-bold text-slate-800 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 pb-1 flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> Active Enterprise Projects & Assignments
+            </h4>
+            <div className="space-y-1.5 pt-1">
+              {employee.currentProjects && employee.currentProjects.length > 0 ? (
+                employee.currentProjects.map((projStr, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{projStr}</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Active</span>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
+                  <span className="font-bold text-slate-800 dark:text-slate-200">Tech Knife Enterprise Core Platform (Full Stack Member)</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Active</span>
+                </div>
+              )}
             </div>
           </div>
 

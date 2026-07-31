@@ -73,6 +73,7 @@ public class InternServiceImpl implements InternService {
     private final EmployeeRepository employeeRepository;
     private final EmployeeService employeeService;
     private final ApplicationEventPublisher eventPublisher;
+    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
     @Override
     @Transactional
@@ -209,29 +210,149 @@ public class InternServiceImpl implements InternService {
 
     @Override
     @Transactional(readOnly = true)
-    public PagedResponse<InternResponse> getAllInterns(int page, int size, String search, InternStatus status) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Intern> internPage;
+    public PagedResponse<InternResponse> getAllInterns(int page, int size, String search, String departmentId, String department, String status, String mentor) {
+        int safePage = Math.max(0, page);
+        int safeSize = size <= 0 ? 10 : Math.min(size, 1000);
 
+        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query();
+        java.util.List<org.springframework.data.mongodb.core.query.Criteria> criteriaList = new java.util.ArrayList<>();
+
+        // 1. Search Filter (firstName, lastName, internCode, officialEmail, college, university, departmentId)
         if (search != null && !search.trim().isEmpty()) {
-            internPage = internRepository.searchByName(search.trim(), pageable);
-        } else if (status != null) {
-            internPage = internRepository.findByStatus(status, pageable);
-        } else {
-            internPage = internRepository.findAll(pageable);
+            String term = search.trim();
+            org.springframework.data.mongodb.core.query.Criteria searchCriteria = new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                    org.springframework.data.mongodb.core.query.Criteria.where("firstName").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("lastName").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("internCode").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("officialEmail").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("college").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("university").regex(term, "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("departmentId").regex(term, "i")
+            );
+            criteriaList.add(searchCriteria);
         }
 
-        List<InternResponse> content = internPage.getContent().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        // 2. DepartmentId / Department Filter (ALL, empty, or null means NO FILTER)
+        String effectiveDept = (departmentId != null && !departmentId.trim().isEmpty()) ? departmentId.trim() : (department != null ? department.trim() : null);
+        if (effectiveDept != null && !effectiveDept.isEmpty() && !"ALL".equalsIgnoreCase(effectiveDept)) {
+            criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                    org.springframework.data.mongodb.core.query.Criteria.where("departmentId").regex("^" + effectiveDept + "$", "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("department").regex("^" + effectiveDept + "$", "i")
+            ));
+        }
+
+        // 3. Status Filter (ALL, empty, or null means NO FILTER)
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim())) {
+            String statusStr = status.trim();
+            try {
+                InternStatus internStatus = InternStatus.fromString(statusStr);
+                criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                        org.springframework.data.mongodb.core.query.Criteria.where("status").is(internStatus),
+                        org.springframework.data.mongodb.core.query.Criteria.where("status").is(statusStr),
+                        org.springframework.data.mongodb.core.query.Criteria.where("status").regex("^" + statusStr + "$", "i")
+                ));
+            } catch (Exception e) {
+                criteriaList.add(org.springframework.data.mongodb.core.query.Criteria.where("status").regex("^" + statusStr + "$", "i"));
+            }
+        }
+
+        // 4. Mentor Filter (ALL, empty, or null means NO FILTER)
+        if (mentor != null && !mentor.trim().isEmpty() && !"ALL".equalsIgnoreCase(mentor.trim())) {
+            String mentorStr = mentor.trim();
+            criteriaList.add(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                    org.springframework.data.mongodb.core.query.Criteria.where("mentorId").regex("^" + mentorStr + "$", "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("mentor").regex("^" + mentorStr + "$", "i"),
+                    org.springframework.data.mongodb.core.query.Criteria.where("reportingManager").regex("^" + mentorStr + "$", "i")
+            ));
+        }
+
+        if (!criteriaList.isEmpty()) {
+            query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().andOperator(criteriaList.toArray(new org.springframework.data.mongodb.core.query.Criteria[0])));
+        }
+
+        // Requirement 17: Structured logging before query execution
+        long startTime = System.currentTimeMillis();
+        log.info("Endpoint: GET /api/employees/interns - Parameters: [page={}, size={}, search='{}', departmentId='{}', status='{}'] - Mongo Query: {}",
+                safePage, safeSize, search, departmentId, status, query.getQueryObject());
+
+        long totalElements = 0;
+        try {
+            totalElements = mongoTemplate.count(query, Intern.class);
+        } catch (Exception e) {
+            log.error("Failed to count interns in MongoDB: ", e);
+        }
+
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        query.with(pageable);
+
+        java.util.List<Intern> rawInterns = new java.util.ArrayList<>();
+        try {
+            rawInterns = mongoTemplate.find(query, Intern.class);
+            if (rawInterns.isEmpty()) {
+                // Legacy fallback: query employees collection for documents where employmentType is INTERN or employeeId starts with INT-
+                org.springframework.data.mongodb.core.query.Query legacyQuery = new org.springframework.data.mongodb.core.query.Query();
+                legacyQuery.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                        org.springframework.data.mongodb.core.query.Criteria.where("employmentType").is("INTERN"),
+                        org.springframework.data.mongodb.core.query.Criteria.where("employeeId").regex("^INT-", "i")
+                ));
+                if (search != null && !search.trim().isEmpty()) {
+                    legacyQuery.addCriteria(org.springframework.data.mongodb.core.query.Criteria.where("fullName").regex(search.trim(), "i"));
+                }
+                long legacyCount = mongoTemplate.count(legacyQuery, com.techknife.backend.entity.Employee.class);
+                if (legacyCount > 0) {
+                    totalElements = legacyCount;
+                    java.util.List<com.techknife.backend.entity.Employee> legacyEmps = mongoTemplate.find(legacyQuery.with(pageable), com.techknife.backend.entity.Employee.class);
+                    for (com.techknife.backend.entity.Employee emp : legacyEmps) {
+                        if (emp == null) continue;
+                        rawInterns.add(Intern.builder()
+                                .id(emp.getId())
+                                .internCode(emp.getEmployeeId() != null ? emp.getEmployeeId() : "INT-001")
+                                .officialEmail(emp.getOfficialEmail())
+                                .personalEmail(emp.getPersonalEmail())
+                                .firstName(emp.getFirstName())
+                                .lastName(emp.getLastName())
+                                .phone(emp.getPrimaryMobile())
+                                .departmentId(emp.getDepartmentId())
+                                .joiningDate(emp.getJoiningDate())
+                                .skills(emp.getSkills())
+                                .status(InternStatus.ACTIVE)
+                                .build());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Mongo query for interns failed with exception: ", e);
+        }
+
+        long executionTime = System.currentTimeMillis() - startTime;
+        log.info("GET /api/employees/interns Query Executed - Returned count: {}, Total elements: {}, Execution time: {} ms",
+                rawInterns.size(), totalElements, executionTime);
+
+        // Requirements 13, 14, 15: Safe mapping, skipping malformed documents without HTTP 500
+        java.util.List<InternResponse> content = new java.util.ArrayList<>();
+        for (Intern intern : rawInterns) {
+            if (intern == null) continue;
+            try {
+                InternResponse res = mapToResponse(intern);
+                if (res != null) {
+                    content.add(res);
+                }
+            } catch (Exception ex) {
+                log.warn("Skipping malformed intern document (ID: {}): {}", intern.getId(), ex.getMessage());
+            }
+        }
+
+        int totalPages = safeSize > 0 ? (int) Math.ceil((double) totalElements / safeSize) : 1;
+        if (totalPages == 0) totalPages = 1;
+        boolean isLast = safePage >= (totalPages - 1);
 
         return PagedResponse.<InternResponse>builder()
                 .content(content)
-                .page(internPage.getNumber())
-                .size(internPage.getSize())
-                .totalElements(internPage.getTotalElements())
-                .totalPages(internPage.getTotalPages())
-                .last(internPage.isLast())
+                .page(safePage)
+                .size(safeSize)
+                .totalElements(totalElements)
+                .totalPages(totalPages)
+                .last(isLast)
                 .build();
     }
 

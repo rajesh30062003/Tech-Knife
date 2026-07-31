@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
     private final EmailService emailService;
-
+    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
     @Value("${app.jwt.expiration-ms:86400000}")
     private long jwtExpirationMs;
@@ -76,14 +76,31 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = tokenProvider.generateToken(authentication);
 
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-        User user = userRepository.findById(userPrincipal.getId())
-                .orElseThrow(() -> new BadRequestException("User profile not found"));
+        User user = findUserByIdOrUserId(userPrincipal.getId());
+
+        // Perform targeted atomic MongoDB update for lastLoginAt (NEVER execute save/insert during login)
+        if (user.getId() != null) {
+            mongoTemplate.updateFirst(
+                    org.springframework.data.mongodb.core.query.Query.query(
+                            org.springframework.data.mongodb.core.query.Criteria.where("_id").is(user.getId())
+                    ),
+                    org.springframework.data.mongodb.core.query.Update.update("lastLoginAt", Instant.now()),
+                    User.class
+            );
+        } else if (user.getEmail() != null) {
+            mongoTemplate.updateFirst(
+                    org.springframework.data.mongodb.core.query.Query.query(
+                            org.springframework.data.mongodb.core.query.Criteria.where("email").is(user.getEmail())
+                    ),
+                    org.springframework.data.mongodb.core.query.Update.update("lastLoginAt", Instant.now()),
+                    User.class
+            );
+        }
 
         user.setLastLoginAt(Instant.now());
-        userRepository.save(user);
 
         // Generate and persist refresh token with rotation
-        String refreshTokenString = createRefreshToken(user.getId());
+        String refreshTokenString = createRefreshToken(user.getId() != null ? user.getId() : user.getEmail());
 
         return userMapper.toAuthResponse(user, accessToken, refreshTokenString, jwtExpirationMs);
     }
@@ -152,8 +169,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("Refresh token has expired or been revoked. Please log in again.");
         }
 
-        User user = userRepository.findById(refreshToken.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", refreshToken.getUserId()));
+        User user = findUserByIdOrUserId(refreshToken.getUserId());
 
         // Refresh Token Rotation: Revoke previous refresh token
         refreshTokenRepository.delete(refreshToken);
@@ -295,8 +311,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Auditable(module = "AUTH", action = "CHANGE_PASSWORD", logParameters = false)
     public void changePassword(String userId, ChangePasswordRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        User user = findUserByIdOrUserId(userId);
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new BadRequestException("Current password provided is incorrect");
@@ -308,8 +323,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public UserResponse getCurrentUser(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        User user = findUserByIdOrUserId(userId);
 
         Set<Permission> permissions = new HashSet<>();
         if (user.getRoles() != null) {
@@ -341,8 +355,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Auditable(module = "AUTH", action = "UPDATE_PROFILE_PICTURE", logParameters = false)
     public UserResponse updateProfilePicture(String userId, ProfilePictureRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        User user = findUserByIdOrUserId(userId);
 
         user.setAvatarUrl(request.getAvatarUrl());
         User updated = userRepository.save(user);
@@ -361,6 +374,17 @@ public class AuthServiceImpl implements AuthService {
 
         RefreshToken saved = refreshTokenRepository.save(refreshToken);
         return saved.getToken();
+    }
+
+    private User findUserByIdOrUserId(String identifier) {
+        if (identifier == null || identifier.trim().isEmpty()) {
+            throw new ResourceNotFoundException("User", "id", "null");
+        }
+        String cleanId = identifier.trim();
+        return userRepository.findById(cleanId)
+                .or(() -> userRepository.findByUserId(cleanId))
+                .or(() -> userRepository.findByEmail(cleanId.toLowerCase()))
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id/userId/email", cleanId));
     }
 
     private Set<Permission> getPermissionsForRole(Role role) {

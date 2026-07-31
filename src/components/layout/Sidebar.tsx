@@ -13,6 +13,7 @@ import { EXECUTIVE_ROLES, MANAGEMENT_ROLES } from '../../utils/rbac';
 
 interface SidebarProps {
   isOpen: boolean;
+  onClose?: () => void;
 }
 
 const ALL_AUTHENTICATED: Role[] = [
@@ -74,41 +75,41 @@ const NAV_ITEMS: NavItem[] = [
   { title: 'Account Profile', path: '/profile', icon: 'UserCheck', roles: ALL_AUTHENTICATED, category: 'Support' },
 ];
 
-export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuth();
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
-      case 'LayoutDashboard': return <LayoutDashboard className="w-4 h-4" />;
-      case 'Shield': return <Shield className="w-4 h-4" />;
-      case 'Users': return <Users className="w-4 h-4" />;
-      case 'Briefcase': return <Briefcase className="w-4 h-4" />;
-      case 'GraduationCap': return <GraduationCap className="w-4 h-4" />;
-      case 'Building2': return <Building2 className="w-4 h-4" />;
-      case 'FolderKanban': return <FolderKanban className="w-4 h-4" />;
-      case 'DollarSign': return <DollarSign className="w-4 h-4" />;
-      case 'Clock': return <Clock className="w-4 h-4" />;
-      case 'CalendarDays': return <CalendarDays className="w-4 h-4" />;
-      case 'Target': return <Target className="w-4 h-4" />;
-      case 'UserPlus': return <UserPlus className="w-4 h-4" />;
-      case 'Calendar': return <Calendar className="w-4 h-4" />;
-      case 'BarChart3': return <BarChart3 className="w-4 h-4" />;
-      case 'HelpCircle': return <HelpCircle className="w-4 h-4" />;
-      case 'Ticket': return <Ticket className="w-4 h-4" />;
-      case 'Bell': return <Bell className="w-4 h-4" />;
-      case 'Settings': return <Settings className="w-4 h-4" />;
-      case 'UserCheck': return <UserCheck className="w-4 h-4" />;
-      case 'Globe': return <Globe className="w-4 h-4" />;
-      case 'Award': return <Award className="w-4 h-4" />;
-      case 'GitFork': return <GitFork className="w-4 h-4" />;
-      case 'Layers': return <Layers className="w-4 h-4" />;
-      case 'UploadCloud': return <UploadCloud className="w-4 h-4" />;
-      case 'ShieldCheck': return <ShieldCheck className="w-4 h-4" />;
-      case 'Activity': return <Activity className="w-4 h-4" />;
-      case 'Key': return <Key className="w-4 h-4" />;
-      case 'Package': return <Package className="w-4 h-4" />;
-      case 'Laptop': return <Laptop className="w-4 h-4" />;
-      default: return <LayoutDashboard className="w-4 h-4" />;
+      case 'LayoutDashboard': return <LayoutDashboard className="w-4 h-4 shrink-0" />;
+      case 'Shield': return <Shield className="w-4 h-4 shrink-0" />;
+      case 'Users': return <Users className="w-4 h-4 shrink-0" />;
+      case 'Briefcase': return <Briefcase className="w-4 h-4 shrink-0" />;
+      case 'GraduationCap': return <GraduationCap className="w-4 h-4 shrink-0" />;
+      case 'Building2': return <Building2 className="w-4 h-4 shrink-0" />;
+      case 'FolderKanban': return <FolderKanban className="w-4 h-4 shrink-0" />;
+      case 'DollarSign': return <DollarSign className="w-4 h-4 shrink-0" />;
+      case 'Clock': return <Clock className="w-4 h-4 shrink-0" />;
+      case 'CalendarDays': return <CalendarDays className="w-4 h-4 shrink-0" />;
+      case 'Target': return <Target className="w-4 h-4 shrink-0" />;
+      case 'UserPlus': return <UserPlus className="w-4 h-4 shrink-0" />;
+      case 'Calendar': return <Calendar className="w-4 h-4 shrink-0" />;
+      case 'BarChart3': return <BarChart3 className="w-4 h-4 shrink-0" />;
+      case 'HelpCircle': return <HelpCircle className="w-4 h-4 shrink-0" />;
+      case 'Ticket': return <Ticket className="w-4 h-4 shrink-0" />;
+      case 'Bell': return <Bell className="w-4 h-4 shrink-0" />;
+      case 'Settings': return <Settings className="w-4 h-4 shrink-0" />;
+      case 'UserCheck': return <UserCheck className="w-4 h-4 shrink-0" />;
+      case 'Globe': return <Globe className="w-4 h-4 shrink-0" />;
+      case 'Award': return <Award className="w-4 h-4 shrink-0" />;
+      case 'GitFork': return <GitFork className="w-4 h-4 shrink-0" />;
+      case 'Layers': return <Layers className="w-4 h-4 shrink-0" />;
+      case 'UploadCloud': return <UploadCloud className="w-4 h-4 shrink-0" />;
+      case 'ShieldCheck': return <ShieldCheck className="w-4 h-4 shrink-0" />;
+      case 'Activity': return <Activity className="w-4 h-4 shrink-0" />;
+      case 'Key': return <Key className="w-4 h-4 shrink-0" />;
+      case 'Package': return <Package className="w-4 h-4 shrink-0" />;
+      case 'Laptop': return <Laptop className="w-4 h-4 shrink-0" />;
+      default: return <LayoutDashboard className="w-4 h-4 shrink-0" />;
     }
   };
 
@@ -138,10 +139,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   return (
     <aside
-      className={`fixed lg:static inset-y-0 left-0 z-40 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-all duration-300 ease-in-out flex flex-col ${
-        isOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full lg:w-0 lg:-translate-x-full'
-      }`}
+      className={`
+        /* Base Enterprise Fixed Layout */
+        bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 
+        flex flex-col overflow-hidden shrink-0 transition-all duration-300 ease-in-out select-none
+        
+        /* Mobile Overlay Drawer (<1024px) */
+        fixed top-16 bottom-0 left-0 z-40 lg:z-auto lg:relative lg:top-0 lg:bottom-auto lg:h-full
+        ${isOpen 
+          ? 'w-64 translate-x-0 shadow-2xl lg:shadow-none' 
+          : 'w-64 -translate-x-full lg:w-20 lg:translate-x-0'
+        }
+      `}
     >
+      {/* Independent Scrolling Navigation Menu Area */}
       <div className="flex-1 overflow-y-auto py-4 px-3 space-y-5 custom-scrollbar">
         {categories.map(category => {
           const itemsInCategory = filteredItems.filter(item => (item.category || 'General') === category);
@@ -149,27 +160,47 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
           return (
             <div key={category} className="space-y-1">
-              <div className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+              {/* Category Header Label (Hidden in icon collapsed mode) */}
+              <div className={`px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5 transition-opacity ${
+                !isOpen ? 'lg:hidden' : 'block'
+              }`}>
                 {category}
               </div>
+
+              {/* Divider in Collapsed Icon Mode */}
+              {!isOpen && (
+                <div className="hidden lg:block my-2 border-t border-slate-100 dark:border-slate-800" />
+              )}
+
               {itemsInCategory.map(item => (
                 <NavLink
                   key={item.path}
                   to={item.path}
+                  title={item.title}
+                  onClick={() => {
+                    if (window.innerWidth < 1024 && onClose) {
+                      onClose();
+                    }
+                  }}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-xl transition-all group ${
+                    `flex items-center justify-between px-3 py-2.5 text-xs font-bold rounded-xl transition-all group ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                    }`
+                        ? 'bg-slate-900 dark:bg-slate-800 text-cyan-400 border-l-4 border-cyan-500 shadow-md shadow-slate-900/10'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-slate-100'
+                    } ${!isOpen ? 'lg:justify-center lg:px-2' : ''}`
                   }
                 >
                   <div className="flex items-center gap-2.5 truncate">
                     {getIcon(item.icon)}
-                    <span className="truncate">{item.title}</span>
+                    <span className={`truncate ${!isOpen ? 'lg:hidden' : 'inline'}`}>
+                      {item.title}
+                    </span>
                   </div>
+
                   {item.badge && (
-                    <span className="ml-1 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-blue-500/10 text-blue-600 dark:bg-blue-400/20 dark:text-blue-300 group-[.bg-blue-600]:bg-white/20 group-[.bg-blue-600]:text-white shrink-0">
+                    <span className={`ml-1 px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-cyan-500/10 text-cyan-600 dark:bg-cyan-400/20 dark:text-cyan-300 shrink-0 ${
+                      !isOpen ? 'lg:hidden' : 'inline'
+                    }`}>
                       {item.badge}
                     </span>
                   )}
@@ -180,19 +211,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         })}
       </div>
 
-      {/* Active Role Indicator Footer */}
-      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50">
+      {/* Active Role Footer (Independent Fixed Footer at bottom of Sidebar) */}
+      <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 shrink-0">
+        <div className={`flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 ${
+          !isOpen ? 'lg:justify-center' : ''
+        }`}>
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Role</span>
-              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
+            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></div>
+            <div className={`flex flex-col min-w-0 ${!isOpen ? 'lg:hidden' : 'flex'}`}>
+              <span className="text-[9px] uppercase font-extrabold text-slate-400 tracking-wider">Active Role</span>
+              <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 truncate">
                 {user ? formatRoleDisplay(user.role) : 'GUEST'}
               </span>
             </div>
           </div>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <ChevronRight className={`w-3.5 h-3.5 text-slate-400 shrink-0 ${!isOpen ? 'lg:hidden' : 'block'}`} />
         </div>
       </div>
     </aside>

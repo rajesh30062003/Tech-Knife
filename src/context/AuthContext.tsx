@@ -36,204 +36,17 @@ interface AuthContextType {
   clearError: () => void;
 }
 
-const MOCK_PROFILES: Record<Role, UserProfile> = {
-  ROLE_SUPER_ADMIN: {
-    id: 'usr-001',
-    email: 'admin@techknife.com',
-    firstName: 'Alexander',
-    lastName: 'Vance',
-    role: 'ROLE_SUPER_ADMIN',
-    roles: ['ROLE_SUPER_ADMIN'],
-    department: 'Executive Governance',
-    designation: 'Chief Information Security Officer',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 019-2834',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_ADMIN: {
-    id: 'usr-002',
-    email: 's.connor@techknife.com',
-    firstName: 'Sarah',
-    lastName: 'Connor',
-    role: 'ROLE_ADMIN',
-    roles: ['ROLE_ADMIN'],
-    department: 'System Operations',
-    designation: 'Global System Administrator',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 012-9988',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_CEO: {
-    id: 'usr-003',
-    email: 'ceo@techknife.com',
-    firstName: 'Victoria',
-    lastName: 'Sterling',
-    role: 'ROLE_CEO',
-    roles: ['ROLE_CEO'],
-    department: 'Executive Suite',
-    designation: 'Chief Executive Officer',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 010-1000',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_CTO: {
-    id: 'usr-004',
-    email: 'cto@techknife.com',
-    firstName: 'Marcus',
-    lastName: 'Vance',
-    role: 'ROLE_CTO',
-    roles: ['ROLE_CTO'],
-    department: 'Technology & Architecture',
-    designation: 'Chief Technology Officer',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 010-2000',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_CMO: {
-    id: 'usr-005',
-    email: 'cmo@techknife.com',
-    firstName: 'Eleanor',
-    lastName: 'Rigby',
-    role: 'ROLE_CMO',
-    roles: ['ROLE_CMO'],
-    department: 'Global Growth & Marketing',
-    designation: 'Chief Marketing Officer',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 010-3000',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_MD: {
-    id: 'usr-006',
-    email: 'md@techknife.com',
-    firstName: 'Arthur',
-    lastName: 'Pendelton',
-    role: 'ROLE_MD',
-    roles: ['ROLE_MD'],
-    department: 'Managing Directorate',
-    designation: 'Managing Director',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 010-4000',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_DIRECTOR: {
-    id: 'usr-007',
-    email: 'director@techknife.com',
-    firstName: 'Rachel',
-    lastName: 'Green',
-    role: 'ROLE_DIRECTOR',
-    roles: ['ROLE_DIRECTOR'],
-    department: 'Enterprise Solutions',
-    designation: 'Director of Engineering',
-    avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 010-5000',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_MANAGER: {
-    id: 'usr-008',
-    email: 'm.brody@techknife.com',
-    firstName: 'Marcus',
-    lastName: 'Brody',
-    role: 'ROLE_MANAGER',
-    roles: ['ROLE_MANAGER'],
-    department: 'Engineering',
-    designation: 'Engineering Manager',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 014-4321',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-  ROLE_EMPLOYEE: {
-    id: 'usr-009',
-    email: 'e.rostova@techknife.com',
-    firstName: 'Elena',
-    lastName: 'Rostova',
-    role: 'ROLE_EMPLOYEE',
-    roles: ['ROLE_EMPLOYEE'],
-    department: 'Frontend Engineering',
-    designation: 'Senior Full Stack Engineer',
-    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 018-7712',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-    emergencyContact: 'Nikolai Rostova (+1 555-900-3344)',
-    address: '742 Evergreen Terrace, San Jose, CA 95112',
-    joinDate: '2022-04-12',
-    salary: 135000,
-    managerId: 'usr-008',
-    managerName: 'Marcus Brody',
-    managerDesignation: 'Engineering Manager',
-    bio: 'Senior full-stack software engineer specializing in high-performance React application architecture, micro-frontends, and cloud services.',
-    skills: ['TypeScript', 'React 18', 'Tailwind CSS', 'Node.js', 'REST APIs', 'GraphQL', 'Docker'],
-  },
-  ROLE_INTERN: {
-    id: 'usr-010',
-    email: 'l.chen@techknife.com',
-    firstName: 'Lucas',
-    lastName: 'Chen',
-    role: 'ROLE_INTERN',
-    roles: ['ROLE_INTERN'],
-    department: 'Cloud Solutions',
-    designation: 'DevOps Intern',
-    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 016-3390',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: false,
-  },
-  ROLE_CUSTOMER: {
-    id: 'usr-011',
-    email: 'david@apexenterprises.io',
-    firstName: 'David',
-    lastName: 'Miller',
-    role: 'ROLE_CUSTOMER',
-    roles: ['ROLE_CUSTOMER'],
-    department: 'Apex Enterprises',
-    designation: 'Client Technology Sponsor',
-    avatarUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=250',
-    phoneNumber: '+1 (555) 011-5544',
-    enabled: true,
-    accountNonLocked: true,
-    emailVerified: true,
-  },
-};
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const savedDemoUser = localStorage.getItem('techknife_demo_user');
-    if (savedDemoUser) {
-      try {
-        return JSON.parse(savedDemoUser);
-      } catch (e) {
-        // ignore
-      }
-    }
-    return MOCK_PROFILES.ROLE_SUPER_ADMIN;
-  });
-
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCurrentUser = useCallback(async () => {
     const token = localStorage.getItem('techknife_access_token');
     if (!token) {
+      setUser(null);
       setIsLoading(false);
       return;
     }
@@ -243,30 +56,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await authApi.getCurrentUser();
       if (response.success && response.data) {
         const u = response.data;
-        const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : 'ROLE_EMPLOYEE';
+        const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : (u.role || 'ROLE_EMPLOYEE');
         const profile: UserProfile = {
-          id: u.id,
+        id: u.id,
           email: u.email,
           firstName: u.firstName,
           lastName: u.lastName,
-          designation: u.designation,
-          department: u.department,
-          phoneNumber: u.phoneNumber,
-          avatarUrl: u.avatarUrl,
-          enabled: u.enabled,
-          accountNonLocked: u.accountNonLocked,
-          emailVerified: u.emailVerified,
+          designation: u.designation || 'Team Member',
+          department: u.department || 'General',
+          phoneNumber: u.phoneNumber || '',
+          avatarUrl: u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.firstName + ' ' + u.lastName)}`,
+          enabled: u.enabled ?? true,
+          accountNonLocked: u.accountNonLocked ?? true,
+          emailVerified: u.emailVerified ?? true,
           roles: u.roles || [primaryRole],
           role: primaryRole,
-          permissions: u.permissions,
+          permissions: u.permissions || [],
           lastLoginAt: u.lastLoginAt,
           createdAt: u.createdAt,
           updatedAt: u.updatedAt,
         };
         setUser(profile);
+      } else {
+        setUser(null);
       }
     } catch (err: unknown) {
-      console.warn('Backend connection failed, maintaining demo session:', err);
+      console.error('Failed to fetch user session from MongoDB Atlas:', err);
+      setUser(null);
+      localStorage.removeItem('techknife_access_token');
+      localStorage.removeItem('techknife_refresh_token');
     } finally {
       setIsLoading(false);
     }
@@ -285,15 +103,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const authData = response.data;
         localStorage.setItem('techknife_access_token', authData.accessToken);
         localStorage.setItem('techknife_refresh_token', authData.refreshToken);
-        localStorage.removeItem('techknife_demo_user');
-
         await fetchCurrentUser();
         return authData;
       } else {
         throw new Error(response.message || 'Authentication failed');
       }
     } catch (err: any) {
-      const msg = err.response?.data?.message || err.message || 'Failed to authenticate';
+      const serverDetails = err.response?.data?.error?.details;
+      const serverMsg = err.response?.data?.message;
+      let msg = 'Failed to authenticate with MongoDB Atlas';
+      if (serverDetails && typeof serverDetails === 'string') {
+        msg = serverDetails;
+      } else if (serverMsg && typeof serverMsg === 'string' && serverMsg !== 'Application Error' && serverMsg !== 'Internal Server Error') {
+        msg = serverMsg;
+      } else if (err.response?.status === 401) {
+        msg = 'Invalid email or password';
+      } else if (err.response?.status === 403) {
+        msg = 'Account disabled or locked';
+      } else if (err.response?.status === 500) {
+        msg = 'Unexpected server error (500). Please try again later.';
+      } else if (err.message) {
+        msg = err.message;
+      }
       setError(msg);
       setIsLoading(false);
       throw new Error(msg);
@@ -304,13 +135,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     setIsLoading(true);
     try {
-      const response = await authApi.register(data);
+      const response = await authApi.register({ ...data, role: 'ROLE_CUSTOMER' });
       if (response.success && response.data) {
         const authData = response.data;
         localStorage.setItem('techknife_access_token', authData.accessToken);
         localStorage.setItem('techknife_refresh_token', authData.refreshToken);
-        localStorage.removeItem('techknife_demo_user');
-
         await fetchCurrentUser();
         return authData;
       } else {
@@ -331,11 +160,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await authApi.logout(refreshToken);
       }
     } catch (e) {
-      // ignore logout network errors
+      // ignore
     } finally {
       localStorage.removeItem('techknife_access_token');
       localStorage.removeItem('techknife_refresh_token');
-      localStorage.removeItem('techknife_demo_user');
       setUser(null);
     }
   };
@@ -404,7 +232,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const response = await authApi.updateProfilePicture(data);
       const u = response.data;
-      const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : 'ROLE_EMPLOYEE';
+      const primaryRole = u.roles && u.roles.length > 0 ? u.roles[0] : (u.role || 'ROLE_EMPLOYEE');
       const updatedProfile: UserProfile = {
         id: u.id,
         email: u.email,
@@ -439,7 +267,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     if (!user) throw new Error('No active authenticated user session');
 
-    // Filter out restricted fields so employees cannot modify salary, email, department, designation, joinDate, manager
     const { salary, email, department, designation, joinDate, managerId, managerName, managerDesignation, ...allowedUpdates } = updates;
 
     const updatedProfile: UserProfile = {
@@ -449,14 +276,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     setUser(updatedProfile);
-    localStorage.setItem('techknife_demo_user', JSON.stringify(updatedProfile));
     return updatedProfile;
   };
 
-  const switchRole = (role: Role) => {
-    const profile = MOCK_PROFILES[role] || MOCK_PROFILES.ROLE_SUPER_ADMIN;
-    setUser(profile);
-    localStorage.setItem('techknife_demo_user', JSON.stringify(profile));
+  const switchRole = (_role: Role) => {
+    // Role switching is strictly governed by MongoDB Atlas user roles.
+    fetchCurrentUser();
   };
 
   const hasRole = (allowedRoles: Role[]) => {
@@ -472,8 +297,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user.permissions && user.permissions.length > 0) {
       return user.permissions.includes(permission);
     }
-    // Executive roles have full access
-    const executiveRoles: Role[] = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_CEO', 'ROLE_CTO', 'ROLE_CMO', 'ROLE_MD', 'ROLE_DIRECTOR'];
+    const executiveRoles: Role[] = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_CEO', 'ROLE_CTO', 'ROLE_CMO', 'ROLE_MD', 'ROLE_DIRECTOR', 'ROLE_GROWTH_HEAD', 'ROLE_SENIOR_ENGINEERING_MANAGER'];
     return user.roles.some((r) => executiveRoles.includes(r));
   };
 

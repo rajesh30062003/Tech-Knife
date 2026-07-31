@@ -169,6 +169,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         List<EmployeeResponse> content = employeePage.getContent().stream()
+                .filter(emp -> emp != null && (emp.getEmploymentType() == null || !emp.getEmploymentType().name().equalsIgnoreCase("INTERN")) && (emp.getEmployeeId() == null || !emp.getEmployeeId().toUpperCase().startsWith("INT-")))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
 

@@ -76,6 +76,8 @@ public class EmployeeResponse {
     private String githubUsername;
     private String profileImage;
     private EmployeeStatus status;
+    private String managerName;
+    private List<Object> currentProjects;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

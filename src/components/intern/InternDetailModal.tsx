@@ -194,6 +194,31 @@ export const InternDetailModal: React.FC<InternDetailModalProps> = ({
               </div>
             </div>
 
+            {/* Assigned Projects */}
+            <div>
+              <span className="text-[10px] font-bold uppercase text-slate-400 block mb-2">Active Enterprise Projects</span>
+              <div className="flex flex-wrap gap-1.5">
+                {intern.assignedProjects && intern.assignedProjects.length > 0 ? (
+                  intern.assignedProjects.map((p: any, idx: number) => {
+                    const pName = typeof p === 'object' && p !== null ? (p.name || p.projectName || p.id) : String(p);
+                    if (!pName || pName === 'Not Assigned' || pName === 'Unassigned') return null;
+                    return (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 rounded-xl bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[11px] border border-indigo-200 dark:border-indigo-800"
+                      >
+                        {pName}
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className="px-3 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold text-[11px] border border-slate-200 dark:border-slate-700">
+                    Not Assigned
+                  </span>
+                )}
+              </div>
+            </div>
+
             {/* Skills */}
             <div>
               <span className="text-[10px] font-bold uppercase text-slate-400 block mb-2">Technical Skill Matrix</span>

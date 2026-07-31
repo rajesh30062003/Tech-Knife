@@ -120,7 +120,13 @@ export const employeeV2Api = {
   },
 
   async getAllEmployees(params?: any): Promise<PagedResponse<EmployeeResponse>> {
-    const res = await apiClient.get('/employees', { params });
+    const cleanParams = { ...params };
+    if (cleanParams.departmentId === 'ALL' || cleanParams.departmentId === 'all') delete cleanParams.departmentId;
+    if (cleanParams.status === 'ALL' || cleanParams.status === 'all') delete cleanParams.status;
+    if (cleanParams.managerId === 'ALL' || cleanParams.managerId === 'all') delete cleanParams.managerId;
+    if (!cleanParams.search) delete cleanParams.search;
+
+    const res = await apiClient.get('/employees', { params: cleanParams });
     const list = extractList(res);
     const pagedObj = res.data?.data || res.data || {};
 

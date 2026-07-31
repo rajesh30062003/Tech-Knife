@@ -192,7 +192,7 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
 
                 {/* Reporting Manager */}
                 <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 font-medium">
-                  {emp.managerName || (emp.managerId && emp.managerId !== 'Unassigned' ? emp.managerId : 'Ranadhir Pal (EMP-001 - Executive MD)')}
+                  {emp.managerName && emp.managerName !== 'Unassigned' ? emp.managerName : 'Not Assigned'}
                 </td>
 
                 {/* Employment Type */}
@@ -202,22 +202,29 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
 
                 {/* Current Projects */}
                 <td className="py-3.5 px-4 text-slate-600 dark:text-slate-400 text-[11px]">
-                  {emp.currentProjects && emp.currentProjects.length > 0 ? (
-                    <div className="flex flex-wrap gap-1">
-                      {emp.currentProjects.slice(0, 2).map((p, idx) => (
-                        <span key={idx} className="px-2.5 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/50">
+                  {emp.currentProjects && emp.currentProjects.length > 0 && emp.currentProjects[0] !== 'Unassigned' && emp.currentProjects[0] !== 'Not Assigned' ? (
+                    <div className="flex flex-wrap gap-1 items-center">
+                      {emp.currentProjects.slice(0, 3).map((p, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => onViewDetails(emp)}
+                          className="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/50 hover:bg-indigo-100 transition-colors cursor-pointer"
+                        >
                           {p}
-                        </span>
+                        </button>
                       ))}
-                      {emp.currentProjects.length > 2 && (
-                        <span className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">
-                          +{emp.currentProjects.length - 2} More
-                        </span>
+                      {emp.currentProjects.length > 3 && (
+                        <button
+                          onClick={() => onViewDetails(emp)}
+                          className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 transition-colors"
+                        >
+                          +{emp.currentProjects.length - 3} More
+                        </button>
                       )}
                     </div>
                   ) : (
-                    <span className="px-2.5 py-1 rounded-lg bg-cyan-50 dark:bg-cyan-950/60 text-cyan-700 dark:text-cyan-300 font-semibold border border-cyan-200/50">
-                      Tech Knife ERP (Core Member)
+                    <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium border border-slate-200 dark:border-slate-700">
+                      Not Assigned
                     </span>
                   )}
                 </td>

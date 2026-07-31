@@ -42,6 +42,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -151,13 +156,18 @@ public class EmployeeServiceImpl implements EmployeeService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Employee> employeePage;
 
-        if (search != null && !search.trim().isEmpty()) {
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasDept = departmentId != null && !departmentId.trim().isEmpty() && !"ALL".equalsIgnoreCase(departmentId.trim());
+        boolean hasManager = managerId != null && !managerId.trim().isEmpty() && !"ALL".equalsIgnoreCase(managerId.trim());
+        boolean hasStatus = status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status.trim());
+
+        if (hasSearch) {
             employeePage = employeeRepository.searchByName(search.trim(), pageable);
-        } else if (departmentId != null && !departmentId.trim().isEmpty()) {
+        } else if (hasDept) {
             employeePage = employeeRepository.findByDepartmentId(departmentId.trim(), pageable);
-        } else if (managerId != null && !managerId.trim().isEmpty()) {
+        } else if (hasManager) {
             employeePage = employeeRepository.findByManagerId(managerId.trim(), pageable);
-        } else if (status != null && !status.trim().isEmpty()) {
+        } else if (hasStatus) {
             try {
                 EmployeeStatus employeeStatus = EmployeeStatus.valueOf(status.trim().toUpperCase());
                 employeePage = employeeRepository.findByStatus(employeeStatus, pageable);
@@ -847,11 +857,17 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .build();
     }
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
+
     private EmployeeResponse mapToResponse(Employee entity) {
         if (entity == null) return null;
 
         String fullName = ((entity.getFirstName() != null ? entity.getFirstName() : "") + " " +
                            (entity.getLastName() != null ? entity.getLastName() : "")).trim();
+
+        List<Object> currentProjects = resolveCurrentProjects(entity);
+        String managerName = resolveReportingManager(entity);
 
         return EmployeeResponse.builder()
                 .id(entity.getId())
@@ -876,6 +892,8 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .departmentId(entity.getDepartmentId())
                 .designationId(entity.getDesignationId())
                 .managerId(entity.getManagerId())
+                .managerName(managerName)
+                .currentProjects(currentProjects)
                 .teamId(entity.getTeamId())
                 .joiningDate(entity.getJoiningDate())
                 .probationEndDate(entity.getProbationEndDate())
@@ -912,6 +930,9 @@ public class EmployeeServiceImpl implements EmployeeService {
         String fullName = ((entity.getFirstName() != null ? entity.getFirstName() : "") + " " +
                            (entity.getLastName() != null ? entity.getLastName() : "")).trim();
 
+        List<Object> currentProjects = resolveCurrentProjects(entity);
+        String managerName = resolveReportingManager(entity);
+
         return EmployeeSummaryResponse.builder()
                 .id(entity.getId())
                 .employeeId(entity.getEmployeeId())
@@ -924,7 +945,140 @@ public class EmployeeServiceImpl implements EmployeeService {
                 .status(entity.getStatus())
                 .profileImage(entity.getProfileImage())
                 .joiningDate(entity.getJoiningDate())
+                .managerName(managerName)
+                .currentProjects(currentProjects)
                 .build();
+    }
+
+    private List<Object> resolveCurrentProjects(Employee entity) {
+        if (entity == null || mongoTemplate == null) {
+            return List.of();
+        }
+
+        String empId = entity.getEmployeeId();
+        String docId = entity.getId();
+
+        Map<String, Map<String, String>> projectMap = new LinkedHashMap<>();
+
+        // 1. Query project_assignments collection
+        try {
+            org.springframework.data.mongodb.core.query.Query paQuery = new org.springframework.data.mongodb.core.query.Query();
+            paQuery.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                org.springframework.data.mongodb.core.query.Criteria.where("employeeId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("employeeId").is(docId)
+            ));
+            List<com.techknife.project.entity.ProjectAssignment> assignments = mongoTemplate.find(paQuery, com.techknife.project.entity.ProjectAssignment.class);
+            for (com.techknife.project.entity.ProjectAssignment pa : assignments) {
+                if (pa.getProjectName() != null && !pa.getProjectName().isBlank()) {
+                    String pId = pa.getProjectId() != null ? pa.getProjectId() : pa.getProjectName();
+                    Map<String, String> pRef = new LinkedHashMap<>();
+                    pRef.put("id", pId);
+                    pRef.put("name", pa.getProjectName());
+                    projectMap.put(pId, pRef);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // 2. Query projects collection directly
+        try {
+            org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query();
+            query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                org.springframework.data.mongodb.core.query.Criteria.where("projectManagerId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectManagerId").is(docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectLeadId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectLeadId").is(docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("assignedEmployees").in(empId, docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("assignedInterns").in(empId, docId)
+            ));
+            List<com.techknife.project.entity.Project> projects = mongoTemplate.find(query, com.techknife.project.entity.Project.class);
+            for (com.techknife.project.entity.Project p : projects) {
+                String name = p.getProjectName() != null ? p.getProjectName() : p.getProjectCode();
+                String pId = p.getProjectId() != null ? p.getProjectId() : (p.getId() != null ? p.getId() : name);
+                if (name != null && !name.isBlank()) {
+                    Map<String, String> pRef = new LinkedHashMap<>();
+                    pRef.put("id", pId);
+                    pRef.put("name", name);
+                    projectMap.put(pId, pRef);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (projectMap.isEmpty()) {
+            return List.of();
+        }
+
+        return new ArrayList<>(projectMap.values());
+    }
+
+    private String resolveReportingManager(Employee entity) {
+        if (entity == null || mongoTemplate == null) return "Not Assigned";
+
+        String empId = entity.getEmployeeId();
+        String docId = entity.getId();
+
+        Set<String> managers = new LinkedHashSet<>();
+
+        // Collect all project IDs assigned to this employee/intern
+        Set<String> projectIds = new HashSet<>();
+        try {
+            org.springframework.data.mongodb.core.query.Query paQuery = new org.springframework.data.mongodb.core.query.Query();
+            paQuery.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                org.springframework.data.mongodb.core.query.Criteria.where("employeeId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("employeeId").is(docId)
+            ));
+            List<com.techknife.project.entity.ProjectAssignment> assignments = mongoTemplate.find(paQuery, com.techknife.project.entity.ProjectAssignment.class);
+            for (com.techknife.project.entity.ProjectAssignment pa : assignments) {
+                if (pa.getProjectId() != null) {
+                    projectIds.add(pa.getProjectId());
+                }
+            }
+        } catch (Exception ignored) {}
+
+        try {
+            org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query();
+            query.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                org.springframework.data.mongodb.core.query.Criteria.where("projectManagerId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectManagerId").is(docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectLeadId").is(empId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectLeadId").is(docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("assignedEmployees").in(empId, docId),
+                org.springframework.data.mongodb.core.query.Criteria.where("assignedInterns").in(empId, docId)
+            ));
+            List<com.techknife.project.entity.Project> projects = mongoTemplate.find(query, com.techknife.project.entity.Project.class);
+            for (com.techknife.project.entity.Project p : projects) {
+                if (p.getId() != null) projectIds.add(p.getId());
+                if (p.getProjectId() != null) projectIds.add(p.getProjectId());
+            }
+
+            if (!projectIds.isEmpty()) {
+                org.springframework.data.mongodb.core.query.Query pDetailsQuery = new org.springframework.data.mongodb.core.query.Query();
+                pDetailsQuery.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                    org.springframework.data.mongodb.core.query.Criteria.where("id").in(projectIds),
+                    org.springframework.data.mongodb.core.query.Criteria.where("projectId").in(projectIds)
+                ));
+                List<com.techknife.project.entity.Project> assignedProjects = mongoTemplate.find(pDetailsQuery, com.techknife.project.entity.Project.class);
+                for (com.techknife.project.entity.Project p : assignedProjects) {
+                    String pmName = p.getProjectManagerName();
+                    if (pmName != null && !pmName.isBlank() && !"Unassigned".equalsIgnoreCase(pmName) && !"Not Assigned".equalsIgnoreCase(pmName)) {
+                        managers.add(pmName);
+                    } else if (p.getProjectLeadName() != null && !p.getProjectLeadName().isBlank() && !"Unassigned".equalsIgnoreCase(p.getProjectLeadName()) && !"Not Assigned".equalsIgnoreCase(p.getProjectLeadName())) {
+                        managers.add(p.getProjectLeadName());
+                    } else {
+                        managers.add("Not Assigned");
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (!managers.isEmpty()) {
+            Set<String> validManagers = new LinkedHashSet<>(managers);
+            validManagers.removeIf(m -> "Not Assigned".equalsIgnoreCase(m) || "Unassigned".equalsIgnoreCase(m));
+            if (!validManagers.isEmpty()) {
+                return String.join(", ", validManagers);
+            }
+        }
+
+        return "Not Assigned";
     }
 
     private EmployeeDTO mapToDto(Employee entity) {

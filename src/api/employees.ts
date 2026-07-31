@@ -67,7 +67,13 @@ export const employeesApi = {
     page?: number;
     limit?: number;
   }): Promise<{ employees: EmployeeData[]; total: number; totalPages: number }> {
-    const response = await apiClient.get('/employees', { params });
+    const cleanParams: any = { ...params };
+    if (cleanParams.department === 'ALL' || cleanParams.department === 'all') delete cleanParams.department;
+    if (cleanParams.status === 'ALL' || cleanParams.status === 'all') delete cleanParams.status;
+    if (cleanParams.role === 'ALL' || cleanParams.role === 'all') delete cleanParams.role;
+    if (!cleanParams.search) delete cleanParams.search;
+
+    const response = await apiClient.get('/employees', { params: cleanParams });
     const list = extractList(response);
     const totalElements = response.data?.data?.totalElements ?? response.data?.totalElements ?? list.length;
     const totalPages = response.data?.data?.totalPages ?? response.data?.totalPages ?? 1;

@@ -66,14 +66,15 @@ export const internsApi = {
       cgpa: i.cgpa || 3.9,
       joiningDate: i.joiningDate || i.startDate || '2025-06-01',
       endDate: i.endDate || i.internshipEndDate || '2026-12-31',
-      mentor: i.reportingManager || i.mentor || 'Subrata Pal (CTO)',
+      mentor: i.reportingManager || i.mentor || 'Not Assigned',
       department: i.department || i.departmentId || 'Technology',
-      skills: Array.isArray(i.skills) ? i.skills : ['React', 'TypeScript', 'MongoDB'],
+      skills: Array.isArray(i.skills) ? i.skills : [],
       performanceScore: i.performanceScore || 95,
       attendance: i.attendance || 100,
       status: i.status || 'Active',
       certificateGenerated: i.certificateGenerated || false,
-      stipend: i.stipend || '₹ 25,000/mo',
+      stipend: i.stipend ? `₹ ${i.stipend}` : '₹ 0/mo',
+      assignedProjects: Array.isArray(i.assignedProjects) ? i.assignedProjects : [],
     }));
 
     return {

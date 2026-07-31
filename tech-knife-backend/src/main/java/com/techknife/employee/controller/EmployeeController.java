@@ -52,6 +52,8 @@ import java.util.List;
 @Tag(name = "Employee Management V2", description = "Enterprise Staff Directory, Onboarding, Search, Hierarchy, and Status Operations")
 public class EmployeeController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeController.class);
+
     private final EmployeeService employeeService;
 
     public EmployeeController(@Qualifier("employeeFeatureServiceImpl") EmployeeService employeeService) {
@@ -59,16 +61,20 @@ public class EmployeeController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('EMPLOYEE_CREATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_CREATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Onboard new employee", description = "Creates a new employee record.")
     public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        log.info("[SECURITY AUDIT] Controller reached = YES | URI=POST /api/v2/employees | User: {} | Roles/Authorities: {} | Status: ALLOWED for ROLE_CEO / ROLE_MD / ROLE_ADMIN / ROLE_HR_MANAGER",
+                auth != null ? auth.getName() : "Anonymous",
+                auth != null ? auth.getAuthorities() : "[]");
         EmployeeResponse response = employeeService.createEmployee(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Employee onboarded successfully"));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Update employee record", description = "Updates fields for an existing employee record.")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
             @Parameter(description = "Employee Document ID") @PathVariable("id") String id,
@@ -228,7 +234,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('EMPLOYEE_DELETE') or hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_DELETE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'CEO', 'MD', 'HR_MANAGER', 'HR')")
     @Operation(summary = "Delete employee record", description = "Deletes an employee document.")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(
             @Parameter(description = "Employee Document ID") @PathVariable("id") String id) {

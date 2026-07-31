@@ -34,20 +34,26 @@ import com.techknife.intern.service.InternService;
 @Tag(name = "Employee Management", description = "Enterprise Staff Directory, Onboarding, Profile Updates, and Organizational Hierarchy")
 public class EmployeeController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EmployeeController.class);
+
     private final EmployeeService employeeService;
     private final InternService internService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_CREATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Onboard a new employee")
     public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        log.info("[SECURITY AUDIT] Controller reached = YES | URI=POST /api/employees | User: {} | Roles/Authorities: {} | Status: ALLOWED for ROLE_CEO / ROLE_MD / ROLE_ADMIN / ROLE_HR_MANAGER",
+                auth != null ? auth.getName() : "Anonymous",
+                auth != null ? auth.getAuthorities() : "[]");
         EmployeeResponse response = employeeService.createEmployee(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Employee created successfully"));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Update employee record")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
             @PathVariable("id") String id,
@@ -62,6 +68,15 @@ public class EmployeeController {
     public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(@PathVariable("id") String id) {
         EmployeeResponse response = employeeService.getEmployeeById(id);
         return ResponseEntity.ok(ApiResponse.success(response, "Employee profile retrieved successfully"));
+    }
+
+    @GetMapping("/{id}/projects")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @Operation(summary = "Get assigned projects for employee")
+    public ResponseEntity<ApiResponse<java.util.List<Object>>> getEmployeeProjects(@PathVariable("id") String id) {
+        EmployeeResponse response = employeeService.getEmployeeById(id);
+        java.util.List<Object> projects = response != null && response.getCurrentProjects() != null ? response.getCurrentProjects() : java.util.List.of();
+        return ResponseEntity.ok(ApiResponse.success(projects, "Employee projects retrieved successfully"));
     }
 
     @GetMapping("/code/{employeeId}")
@@ -97,7 +112,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_DELETE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'CEO', 'MD', 'HR_MANAGER', 'HR')")
     @Operation(summary = "Delete an employee record")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable("id") String id) {
         employeeService.deleteEmployee(id);

@@ -322,7 +322,26 @@ export const InternsPage: React.FC = () => {
 
                   <div className="flex justify-between text-[11px]">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Mentor:</span>
-                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">{intern.mentor}</span>
+                    <span className="font-semibold text-cyan-600 dark:text-cyan-400">{intern.mentor || 'Not Assigned'}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Current Projects:</span>
+                    {intern.assignedProjects && intern.assignedProjects.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 justify-end max-w-[170px]">
+                        {intern.assignedProjects.map((p: any, idx: number) => {
+                          const pName = typeof p === 'object' && p !== null ? (p.name || p.projectName || p.id) : String(p);
+                          if (!pName || pName === 'Not Assigned' || pName === 'Unassigned') return null;
+                          return (
+                            <span key={idx} className="px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] border border-indigo-200/50">
+                              {pName}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span className="font-semibold text-slate-400">Not Assigned</span>
+                    )}
                   </div>
 
                   <div className="flex justify-between text-[11px]">

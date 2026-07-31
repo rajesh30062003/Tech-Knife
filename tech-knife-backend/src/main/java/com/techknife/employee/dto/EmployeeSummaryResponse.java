@@ -29,4 +29,6 @@ public class EmployeeSummaryResponse {
     private EmployeeStatus status;
     private String profileImage;
     private LocalDate joiningDate;
+    private String managerName;
+    private java.util.List<Object> currentProjects;
 }

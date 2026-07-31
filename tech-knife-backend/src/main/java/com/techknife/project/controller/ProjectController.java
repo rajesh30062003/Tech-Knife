@@ -64,7 +64,7 @@ public class ProjectController {
         return ResponseEntity.ok(ApiResponse.success(response, "Project updated successfully"));
     }
 
-    @PatchMapping("/{id}/status")
+    @RequestMapping(value = "/{id}/status", method = {org.springframework.web.bind.annotation.RequestMethod.PUT, org.springframework.web.bind.annotation.RequestMethod.PATCH})
     @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN','SUPER_ADMIN','ROLE_CEO','CEO','ROLE_MD','MD','ROLE_CTO','CTO','ROLE_CMO','CMO','ROLE_MANAGER','MANAGER','ROLE_PROJECT_LEAD','PROJECT_LEAD','PROJECT_STATUS_UPDATE')")
     @Auditable(action = "UPDATE_PROJECT_STATUS", module = "PROJECT")
     @Operation(summary = "Update Project Status with audit reason")
@@ -72,11 +72,37 @@ public class ProjectController {
             @PathVariable String id,
             @Valid @RequestBody ProjectStatusUpdateDTO updateDTO,
             Authentication authentication) {
-        logAuthorizationDebug("PATCH /api/v1/projects/" + id + "/status", authentication);
+        logAuthorizationDebug("PUT/PATCH /api/v1/projects/" + id + "/status", authentication);
         String currentUser = authentication != null ? authentication.getName() : "SYSTEM";
         String currentRole = getPrimaryRole(authentication);
         ProjectResponseDTO response = projectService.updateStatus(id, updateDTO, currentUser, currentRole);
         return ResponseEntity.ok(ApiResponse.success(response, "Project status updated successfully"));
+    }
+
+    @RequestMapping(value = "/{id}/progress", method = {org.springframework.web.bind.annotation.RequestMethod.PUT, org.springframework.web.bind.annotation.RequestMethod.PATCH})
+    @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN','SUPER_ADMIN','ROLE_CEO','CEO','ROLE_MD','MD','ROLE_CTO','CTO','ROLE_CMO','CMO','ROLE_MANAGER','MANAGER','ROLE_PROJECT_LEAD','PROJECT_LEAD','PROJECT_UPDATE')")
+    @Auditable(action = "UPDATE_PROJECT_PROGRESS", module = "PROJECT")
+    @Operation(summary = "Update Project Progress Percentage")
+    public ResponseEntity<ApiResponse<ProjectResponseDTO>> updateProgress(
+            @PathVariable String id,
+            @RequestParam("progress") Double progress,
+            Authentication authentication) {
+        logAuthorizationDebug("PUT/PATCH /api/v1/projects/" + id + "/progress", authentication);
+        String currentUser = authentication != null ? authentication.getName() : "SYSTEM";
+        String currentRole = getPrimaryRole(authentication);
+        ProjectStatusUpdateDTO dto = ProjectStatusUpdateDTO.builder()
+                .progressPercentage(progress)
+                .reason("Progress updated")
+                .build();
+        ProjectResponseDTO response = projectService.updateStatus(id, dto, currentUser, currentRole);
+        return ResponseEntity.ok(ApiResponse.success(response, "Project progress updated successfully"));
+    }
+
+    @GetMapping("/{id}/history")
+    @Operation(summary = "Get Project Audit History")
+    public ResponseEntity<ApiResponse<List<com.techknife.project.entity.ProjectStatusHistory>>> getProjectHistory(@PathVariable String id) {
+        List<com.techknife.project.entity.ProjectStatusHistory> history = projectService.getStatusHistory(id);
+        return ResponseEntity.ok(ApiResponse.success(history, "Project history retrieved successfully"));
     }
 
     @PutMapping({"/{id}/assign", "/{id}/members"})

@@ -338,6 +338,7 @@ public class ProjectService {
         }
 
         Project saved = projectRepository.save(project);
+        syncProjectAssignments(saved);
 
         // Audit Activity
         logActivity(saved.getId(), "CREATE_PROJECT", currentUser, currentRole, "Project", null, saved.getProjectName());
@@ -413,6 +414,7 @@ public class ProjectService {
         }
 
         Project updated = projectRepository.save(project);
+        syncProjectAssignments(updated);
         logActivity(updated.getId(), "UPDATE_PROJECT", currentUser, currentRole, "Metadata", null, "Updated Metadata");
 
         return mapToResponseDTO(updated);
@@ -425,16 +427,22 @@ public class ProjectService {
     public ProjectResponseDTO updateStatus(String projectId, ProjectStatusUpdateDTO updateDTO, String currentUser, String currentRole) {
         Project project = getProjectEntity(projectId);
         ProjectStatus oldStatus = project.getStatus();
-        ProjectStatus newStatus = updateDTO.getStatus();
+        ProjectStatus newStatus = updateDTO.getStatus() != null ? updateDTO.getStatus() : oldStatus;
 
-        if (oldStatus != newStatus) {
+        if (updateDTO.getProgressPercentage() != null) {
+            Double oldProgress = project.getProgressPercentage();
+            project.setProgressPercentage(updateDTO.getProgressPercentage());
+            logActivity(projectId, "UPDATE_PROGRESS", currentUser, currentRole, "ProgressPercentage", String.valueOf(oldProgress), String.valueOf(updateDTO.getProgressPercentage()));
+        }
+
+        if (newStatus != null && oldStatus != newStatus) {
             project.setStatus(newStatus);
-            projectRepository.save(project);
             logStatusChange(projectId, oldStatus, newStatus, updateDTO.getReason(), currentUser);
             logActivity(projectId, "UPDATE_STATUS", currentUser, currentRole, "Status", String.valueOf(oldStatus), String.valueOf(newStatus));
         }
 
-        return mapToResponseDTO(project);
+        Project saved = projectRepository.save(project);
+        return mapToResponseDTO(saved);
     }
 
     public ProjectResponseDTO assignMembers(String projectId, ProjectAssignDTO dto, String currentUser, String currentRole) {
@@ -456,8 +464,96 @@ public class ProjectService {
         }
 
         Project saved = projectRepository.save(project);
+        syncProjectAssignments(saved);
         logActivity(projectId, "ASSIGN_MEMBERS", currentUser, currentRole, "Members", null, "Updated assignments");
         return mapToResponseDTO(saved);
+    }
+
+    public void syncProjectAssignments(Project project) {
+        if (project == null) return;
+        try {
+            String pId = project.getProjectId() != null ? project.getProjectId() : project.getId();
+            String pName = project.getProjectName() != null ? project.getProjectName() : project.getProjectCode();
+
+            org.springframework.data.mongodb.core.query.Query removeQuery = new org.springframework.data.mongodb.core.query.Query();
+            removeQuery.addCriteria(new org.springframework.data.mongodb.core.query.Criteria().orOperator(
+                org.springframework.data.mongodb.core.query.Criteria.where("projectId").is(pId),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectId").is(project.getId()),
+                org.springframework.data.mongodb.core.query.Criteria.where("projectId").is(project.getProjectId())
+            ));
+            mongoTemplate.remove(removeQuery, com.techknife.project.entity.ProjectAssignment.class);
+
+            List<com.techknife.project.entity.ProjectAssignment> newAssignments = new ArrayList<>();
+            Set<String> processedEmpIds = new HashSet<>();
+
+            if (project.getProjectManagerId() != null && !project.getProjectManagerId().isBlank()) {
+                processedEmpIds.add(project.getProjectManagerId());
+                newAssignments.add(com.techknife.project.entity.ProjectAssignment.builder()
+                        .employeeId(project.getProjectManagerId())
+                        .projectId(pId)
+                        .projectName(pName)
+                        .role("PROJECT_MANAGER")
+                        .allocationPercentage(100.0)
+                        .assignedDate(LocalDate.now())
+                        .status("ACTIVE")
+                        .build());
+            }
+
+            if (project.getProjectLeadId() != null && !project.getProjectLeadId().isBlank() && !processedEmpIds.contains(project.getProjectLeadId())) {
+                processedEmpIds.add(project.getProjectLeadId());
+                newAssignments.add(com.techknife.project.entity.ProjectAssignment.builder()
+                        .employeeId(project.getProjectLeadId())
+                        .projectId(pId)
+                        .projectName(pName)
+                        .role("PROJECT_LEAD")
+                        .allocationPercentage(100.0)
+                        .assignedDate(LocalDate.now())
+                        .status("ACTIVE")
+                        .build());
+            }
+
+            if (project.getAssignedEmployees() != null) {
+                for (String empId : project.getAssignedEmployees()) {
+                    if (empId != null && !empId.isBlank() && !processedEmpIds.contains(empId)) {
+                        processedEmpIds.add(empId);
+                        newAssignments.add(com.techknife.project.entity.ProjectAssignment.builder()
+                                .employeeId(empId)
+                                .projectId(pId)
+                                .projectName(pName)
+                                .role("EMPLOYEE")
+                                .allocationPercentage(100.0)
+                                .assignedDate(LocalDate.now())
+                                .status("ACTIVE")
+                                .build());
+                    }
+                }
+            }
+
+            if (project.getAssignedInterns() != null) {
+                for (String internId : project.getAssignedInterns()) {
+                    if (internId != null && !internId.isBlank() && !processedEmpIds.contains(internId)) {
+                        processedEmpIds.add(internId);
+                        newAssignments.add(com.techknife.project.entity.ProjectAssignment.builder()
+                                .employeeId(internId)
+                                .projectId(pId)
+                                .projectName(pName)
+                                .role("INTERN")
+                                .allocationPercentage(100.0)
+                                .assignedDate(LocalDate.now())
+                                .status("ACTIVE")
+                                .build());
+                    }
+                }
+            }
+
+            if (!newAssignments.isEmpty()) {
+                mongoTemplate.insertAll(newAssignments);
+                log.info("PROJECT ASSIGNMENT SYNC: Persisted {} assignment records to MongoDB 'project_assignments' for project '{}' ({})",
+                        newAssignments.size(), pName, pId);
+            }
+        } catch (Exception e) {
+            log.error("PROJECT ASSIGNMENT SYNC ERROR: Failed to sync assignments for project: {}", e.getMessage(), e);
+        }
     }
 
     public ProjectResponseDTO updateLinks(String projectId, ProjectLinksUpdateDTO dto, String currentUser, String currentRole) {

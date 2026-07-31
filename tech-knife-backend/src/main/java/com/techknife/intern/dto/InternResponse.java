@@ -56,6 +56,9 @@ public class InternResponse {
     private Boolean convertedToEmployee;
     private String convertedEmployeeId;
     private String remarks;
+    @Builder.Default
+    private List<Object> assignedProjects = java.util.List.of();
+    private String reportingManager;
 
     private Instant createdAt;
     private Instant updatedAt;

@@ -73,13 +73,17 @@ public class UserPrincipal implements UserDetails {
             grantedAuthorities.add(new SimpleGrantedAuthority(roleName.replace("ROLE_", "")));
         }
 
-        // 2. Auto-confer Executive Project Permissions for Executive Roles
+        // 2. Auto-confer Executive Project & Employee Permissions for Executive/HR Roles
         boolean isExecutive = cleanRoles.stream().anyMatch(r ->
                 r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
+                r.equalsIgnoreCase("ROLE_ADMIN") || r.equalsIgnoreCase("ADMIN") ||
                 r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
                 r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
                 r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO") ||
-                r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO")
+                r.equalsIgnoreCase("ROLE_COO") || r.equalsIgnoreCase("COO") ||
+                r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO") ||
+                r.equalsIgnoreCase("ROLE_HR") || r.equalsIgnoreCase("HR") ||
+                r.equalsIgnoreCase("ROLE_HR_MANAGER") || r.equalsIgnoreCase("HR_MANAGER")
         );
 
         if (isExecutive) {
@@ -91,6 +95,12 @@ public class UserPrincipal implements UserDetails {
             cleanPermissions.add("PROJECT_STATUS_UPDATE");
             cleanPermissions.add("PROJECT_LINK_UPDATE");
             cleanPermissions.add("PROJECT_VIEW_ALL");
+
+            cleanPermissions.add("EMPLOYEE_CREATE");
+            cleanPermissions.add("EMPLOYEE_READ");
+            cleanPermissions.add("EMPLOYEE_UPDATE");
+            cleanPermissions.add("EMPLOYEE_DELETE");
+            cleanPermissions.add("EMPLOYEE_VIEW");
         }
 
         // 3. Add Permission Authorities

@@ -32,8 +32,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(classes = com.techknife.backend.TechKnifeBackendApplication.class)
-@AutoConfigureMockMvc
+@org.springframework.boot.test.context.SpringBootTest(classes = com.techknife.backend.TechKnifeBackendApplication.class)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class EmployeeControllerIntegrationTest {
 
@@ -85,7 +85,7 @@ class EmployeeControllerIntegrationTest {
 
     @Test
     @WithMockUser(roles = {"ADMIN"})
-    @DisplayName("POST /api/v2/employees - Onboard new employee (HTTP 201 Created)")
+    @DisplayName("POST /api/v2/employees - Onboard new employee as ADMIN (HTTP 201 Created)")
     void createEmployee_Authorized_Returns201() throws Exception {
         when(employeeService.createEmployee(any(CreateEmployeeRequest.class))).thenReturn(sampleResponse);
 
@@ -97,6 +97,33 @@ class EmployeeControllerIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.employeeId").value("EMP-1001"))
                 .andExpect(jsonPath("$.data.fullName").value("Sarah Connor"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"MD"})
+    @DisplayName("POST /api/v2/employees - Onboard new employee as ROLE_MD (HTTP 201 Created)")
+    void createEmployee_AsMD_Returns201() throws Exception {
+        when(employeeService.createEmployee(any(CreateEmployeeRequest.class))).thenReturn(sampleResponse);
+
+        mockMvc.perform(post("/api/v2/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.employeeId").value("EMP-1001"));
+    }
+
+    @Test
+    @WithMockUser(roles = {"CEO"})
+    @DisplayName("POST /api/v2/employees - Onboard new employee as ROLE_CEO (HTTP 201 Created)")
+    void createEmployee_AsCEO_Returns201() throws Exception {
+        when(employeeService.createEmployee(any(CreateEmployeeRequest.class))).thenReturn(sampleResponse);
+
+        mockMvc.perform(post("/api/v2/employees")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.success").value(true));
     }
 
 

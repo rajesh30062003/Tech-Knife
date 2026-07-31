@@ -112,7 +112,7 @@ export const EmployeeDetailDialogV2: React.FC<EmployeeDetailDialogV2Props> = ({
               <div><span className="text-slate-400">Gender:</span> {employee.gender || 'Not specified'}</div>
               <div><span className="text-slate-400">Date of Birth:</span> {employee.dob || 'Not recorded'}</div>
               <div><span className="text-slate-400">Blood Group:</span> {employee.bloodGroup ? employee.bloodGroup.replace('_', ' ') : 'N/A'}</div>
-              <div><span className="text-slate-400">Reporting Manager:</span> <span className="font-bold text-indigo-600 dark:text-indigo-400">{employee.managerName || (employee.managerId && employee.managerId !== 'Unassigned' ? employee.managerId : 'Ranadhir Pal (EMP-001 - Executive MD)')}</span></div>
+              <div><span className="text-slate-400">Reporting Manager:</span> <span className="font-bold text-indigo-600 dark:text-indigo-400">{employee.managerName && employee.managerName !== 'Unassigned' ? employee.managerName : 'Not Assigned'}</span></div>
             </div>
           </div>
 
@@ -123,16 +123,21 @@ export const EmployeeDetailDialogV2: React.FC<EmployeeDetailDialogV2Props> = ({
             </h4>
             <div className="space-y-1.5 pt-1">
               {employee.currentProjects && employee.currentProjects.length > 0 ? (
-                employee.currentProjects.map((projStr, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{projStr}</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Active</span>
-                  </div>
-                ))
+                employee.currentProjects.map((p: any, idx: number) => {
+                  const pName = typeof p === 'object' && p !== null ? (p.name || p.projectName || p.id) : String(p);
+                  const pId = typeof p === 'object' && p !== null ? (p.id || p.projectId || pName) : pName;
+                  if (!pName || pName === 'Not Assigned' || pName === 'Unassigned') return null;
+                  return (
+                    <div key={pId || idx} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
+                      <span className="font-bold text-slate-800 dark:text-slate-200">{pName}</span>
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Active</span>
+                    </div>
+                  );
+                })
               ) : (
                 <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-800">
-                  <span className="font-bold text-slate-800 dark:text-slate-200">Tech Knife Enterprise Core Platform (Full Stack Member)</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px]">Active</span>
+                  <span className="font-bold text-slate-500 dark:text-slate-400">Not Assigned</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 font-semibold text-[10px]">None</span>
                 </div>
               )}
             </div>

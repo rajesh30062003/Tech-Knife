@@ -16,5 +16,7 @@ public class ProjectStatusUpdateDTO {
     @NotNull(message = "New project status is required")
     private ProjectStatus status;
 
+    private Double progressPercentage;
+
     private String reason;
 }

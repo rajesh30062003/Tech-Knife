@@ -37,7 +37,7 @@ public class EmployeeController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_CREATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Onboard a new employee")
     public ResponseEntity<ApiResponse<EmployeeResponse>> createEmployee(@Valid @RequestBody CreateEmployeeRequest request) {
         EmployeeResponse response = employeeService.createEmployee(request);
@@ -46,7 +46,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'MANAGER')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR', 'MANAGER')")
     @Operation(summary = "Update employee record")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateEmployee(
             @PathVariable("id") String id,
@@ -56,7 +56,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'HR_MANAGER', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'COO', 'CMO', 'VP', 'DIRECTOR', 'PROJECT_MANAGER', 'DEV')")
     @Operation(summary = "Get employee profile by MongoDB ID")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeById(@PathVariable("id") String id) {
         EmployeeResponse response = employeeService.getEmployeeById(id);
@@ -64,7 +64,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/code/{employeeId}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'HR_MANAGER', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'COO', 'CMO', 'VP', 'DIRECTOR', 'PROJECT_MANAGER', 'DEV')")
     @Operation(summary = "Get employee profile by Employee Code ID")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeByEmployeeId(@PathVariable("employeeId") String employeeId) {
         EmployeeResponse response = employeeService.getEmployeeByEmployeeId(employeeId);
@@ -72,7 +72,7 @@ public class EmployeeController {
     }
 
     @GetMapping("/email/{officialEmail}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'HR_MANAGER', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'COO', 'CMO', 'VP', 'DIRECTOR', 'PROJECT_MANAGER', 'DEV')")
     @Operation(summary = "Get employee profile by Official Email")
     public ResponseEntity<ApiResponse<EmployeeResponse>> getEmployeeByEmail(@PathVariable("officialEmail") String officialEmail) {
         EmployeeResponse response = employeeService.getEmployeeByOfficialEmail(officialEmail);
@@ -80,7 +80,7 @@ public class EmployeeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'HR', 'HR_MANAGER', 'EMPLOYEE', 'CEO', 'CTO', 'MD', 'COO', 'CMO', 'VP', 'DIRECTOR', 'PROJECT_MANAGER', 'DEV')")
     @Operation(summary = "List employees with search, department, manager, status filtering, and pagination")
     public ResponseEntity<ApiResponse<PagedResponse<EmployeeResponse>>> getAllEmployees(
             @RequestParam(value = "page", defaultValue = "0") int page,
@@ -94,7 +94,7 @@ public class EmployeeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_DELETE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'CEO', 'MD', 'HR_MANAGER', 'HR', 'CTO', 'COO', 'VP', 'DIRECTOR')")
     @Operation(summary = "Delete an employee record")
     public ResponseEntity<ApiResponse<Void>> deleteEmployee(@PathVariable("id") String id) {
         employeeService.deleteEmployee(id);
@@ -102,7 +102,7 @@ public class EmployeeController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR')")
+    @PreAuthorize("hasAuthority('EMPLOYEE_UPDATE') or hasAnyRole('SUPER_ADMIN', 'ADMIN', 'HR', 'HR_MANAGER', 'MD', 'CEO', 'CTO', 'COO', 'VP', 'DIRECTOR')")
     @Operation(summary = "Update employee employment status")
     public ResponseEntity<ApiResponse<EmployeeResponse>> updateStatus(
             @PathVariable("id") String id,

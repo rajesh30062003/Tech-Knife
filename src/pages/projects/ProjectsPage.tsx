@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { 
   FolderKanban, Plus, GitBranch, Calendar, Search, Filter, 
   ExternalLink, Github, Globe, Shield, Users, Layers, DollarSign, 
@@ -13,6 +14,7 @@ import { EmployeeSelect } from '../../components/common/EmployeeSelect';
 import { InternSelect } from '../../components/common/InternSelect';
 
 export const ProjectsPage: React.FC = () => {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [projects, setProjects] = useState<EnterpriseProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -185,6 +187,7 @@ export const ProjectsPage: React.FC = () => {
 
       if (res?.success) {
         setIsAssignModalOpen(false);
+        queryClient.invalidateQueries();
         loadProjects();
       }
     } catch (err: any) {
@@ -463,7 +466,31 @@ export const ProjectsPage: React.FC = () => {
                     <span className="px-2.5 py-0.5 rounded-md bg-slate-900 text-cyan-400 text-[10px] font-mono font-bold tracking-wide">
                       {projectCode}
                     </span>
-                    <StatusBadge status={prj.status ?? 'PLANNED'} />
+                    {canAssign ? (
+                      <select
+                        value={prj.status ?? 'PLANNED'}
+                        onChange={async (e) => {
+                          const newStatus = e.target.value;
+                          try {
+                            await projectsApi.updateStatus(prj.id, newStatus, 'Status updated via project dashboard');
+                            await loadProjects();
+                          } catch (err) {
+                            console.error('Failed to update status:', err);
+                          }
+                        }}
+                        className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <option value="PLANNED">PLANNED</option>
+                        <option value="IN_PROGRESS">IN PROGRESS</option>
+                        <option value="TESTING">TESTING</option>
+                        <option value="REVIEW">REVIEW</option>
+                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="ON_HOLD">ON HOLD</option>
+                        <option value="CANCELLED">CANCELLED</option>
+                      </select>
+                    ) : (
+                      <StatusBadge status={prj.status ?? 'PLANNED'} />
+                    )}
                   </div>
 
                   <div>

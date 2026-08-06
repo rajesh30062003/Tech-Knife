@@ -1,4 +1,4 @@
-package com.techknife.backend.entity;
+package com.techknife.backend.validator;
 
 import com.techknife.backend.constant.AttendanceStatus;
 import com.techknife.backend.exception.BadRequestException;

@@ -8,7 +8,7 @@
     "employeeCount": 0,
     "headName": "Ranadhir Pal",
     "name": "Management",
-    "updatedAt": "2026-07-29T04:44:42.365Z"
+    "updatedAt": "2026-08-05T13:22:19.834Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab8",
@@ -17,9 +17,9 @@
     "createdAt": "2026-07-29T02:55:42.103Z",
     "description": "Core Technology & Architecture",
     "employeeCount": 0,
-    "headName": "Subrata Pal",
+    "headName": "Ganesh Pal",
     "name": "Technology",
-    "updatedAt": "2026-07-29T04:44:42.453Z"
+    "updatedAt": "2026-08-05T13:22:19.904Z"
   },
   {
     "_id": "6a696baf6e2a9df477c68ab9",
@@ -30,7 +30,7 @@
     "employeeCount": 0,
     "headName": "Anindita Chakraborty",
     "name": "Marketing",
-    "updatedAt": "2026-07-29T04:44:42.565Z"
+    "updatedAt": "2026-08-05T13:22:20.438Z"
   },
   {
     "_id": "6a696baf6e2a9df477c68aba",
@@ -41,7 +41,7 @@
     "employeeCount": 0,
     "headName": "Rahul Garai",
     "name": "Engineering",
-    "updatedAt": "2026-07-29T04:44:42.648Z"
+    "updatedAt": "2026-08-05T13:22:20.509Z"
   },
   {
     "_id": "6a696baf6e2a9df477c68abb",
@@ -52,7 +52,7 @@
     "employeeCount": 0,
     "headName": "Sarah Connor",
     "name": "Human Resources",
-    "updatedAt": "2026-07-29T04:44:42.723Z"
+    "updatedAt": "2026-08-05T13:22:20.579Z"
   },
   {
     "_id": "6a696baf6e2a9df477c68abc",
@@ -63,6 +63,6 @@
     "employeeCount": 0,
     "headName": "Arthur Pendelton",
     "name": "Finance",
-    "updatedAt": "2026-07-29T04:44:42.785Z"
+    "updatedAt": "2026-08-05T13:22:20.642Z"
   }
 ]

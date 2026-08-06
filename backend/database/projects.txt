@@ -3,16 +3,262 @@
     "_id": "6a696bb26e2a9df477c68ad7",
     "projectId": "PRJ-001",
     "__v": 0,
-    "budget": "₹ 25,00,000",
+    "budget": 2500000,
     "client": "ABC Enterprises",
     "code": "TK-ECP",
     "createdAt": "2026-07-29T02:55:45.485Z",
     "deadline": "2026-12-31",
-    "lead": "Subrata Pal",
+    "lead": "Ganesh Pal",
     "name": "Enterprise Cloud Portal",
     "progress": 85,
-    "status": "In Progress",
+    "status": "IN_PROGRESS",
     "teamCount": 8,
-    "updatedAt": "2026-07-29T04:44:45.135Z"
+    "updatedAt": "2026-08-05T13:22:22.649Z",
+    "assignedEmployees": [],
+    "assignedInterns": [
+      "INT-001"
+    ],
+    "projectCode": "PRJ-MIG-1785824926925-1",
+    "members": [],
+    "progressPercentage": 0,
+    "projectLeadId": "EMP-006",
+    "projectLeadName": "Ranadhir Pal (EMP-006)",
+    "projectManagerId": "EMP-005",
+    "projectManagerName": "Rahul Garai (EMP-005)"
+  },
+  {
+    "_id": "6a703184d4b451dc4771b58e",
+    "projectId": "TK-PRJ-000001",
+    "projectCode": "TK-PRJ-9841",
+    "projectName": "aa",
+    "shortName": "",
+    "description": "aa",
+    "objectives": "",
+    "client": "aa",
+    "clientOrganization": "",
+    "department": "Engineering",
+    "category": "Technical",
+    "businessUnit": "Enterprise Solutions",
+    "projectType": "FIXED_BID",
+    "status": "QA",
+    "priority": "MEDIUM",
+    "startDate": "2026-08-02T18:30:00.000Z",
+    "targetEndDate": "2026-10-31T18:30:00.000Z",
+    "estimatedHours": 0,
+    "estimatedDuration": 90,
+    "budget": 85000,
+    "estimatedCost": 85000,
+    "progressPercentage": 0,
+    "technologyStack": [
+      "React 18",
+      "Spring Boot 3",
+      "MongoDB Atlas",
+      "Docker"
+    ],
+    "programmingLanguages": [
+      "Java 21",
+      "TypeScript"
+    ],
+    "frameworks": [
+      "Spring Boot",
+      "React",
+      "Tailwind CSS"
+    ],
+    "databaseTech": "MongoDB Atlas",
+    "cloudProvider": "AWS Cloud Services",
+    "repositoryType": "GIT",
+    "repositoryVisibility": "PRIVATE",
+    "projectVisibility": "PRIVATE",
+    "deploymentType": "CLOUD",
+    "projectManagerId": "EMP-005",
+    "projectManagerName": "Rahul Garai (EMP-005)",
+    "projectLeadId": "EMP-006",
+    "projectLeadName": "Ranadhir Pal (EMP-006)",
+    "assignedEmployees": [
+      "EMP-007",
+      "EMP-008"
+    ],
+    "assignedInterns": [
+      "INT-001"
+    ],
+    "links": {
+      "githubUrl": "",
+      "frontendRepoUrl": "",
+      "backendRepoUrl": "",
+      "stagingUrl": "",
+      "productionUrl": "",
+      "swaggerUrl": ""
+    },
+    "customLinks": [],
+    "remarks": "",
+    "tags": [
+      "Production",
+      "Enterprise"
+    ],
+    "members": [
+      {
+        "employeeId": "EMP-005",
+        "employeeName": "Rahul Garai (EMP-005)",
+        "role": "PROJECT_MANAGER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-03T18:30:00.000Z"
+      },
+      {
+        "employeeId": "EMP-006",
+        "employeeName": "Ranadhir Pal (EMP-006)",
+        "role": "TECH_LEAD",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-03T18:30:00.000Z"
+      },
+      {
+        "employeeId": "EMP-007",
+        "employeeName": "Sourav Roy (EMP-007)",
+        "role": "MEMBER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-03T18:30:00.000Z"
+      },
+      {
+        "employeeId": "EMP-008",
+        "employeeName": "Ganesh Pal (EMP-008)",
+        "role": "MEMBER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-03T18:30:00.000Z"
+      }
+    ],
+    "teams": [],
+    "documents": [],
+    "createdAt": "2026-08-03T06:13:24.109Z",
+    "updatedAt": "2026-08-04T09:35:01.657Z",
+    "createdBy": "6a70001cad02338dec53be31",
+    "updatedBy": "6a703ace63293db054d88922",
+    "_class": "com.techknife.project.entity.Project"
+  },
+  {
+    "_id": "6a703e2c8eac932c54f823dd",
+    "projectId": "TK-PRJ-000002",
+    "projectCode": "PRJ-AI-9245",
+    "projectName": "Enterprise AI Automation Engine",
+    "description": "Next-gen enterprise workflow automation system",
+    "client": "TechKnife Global",
+    "department": "Engineering",
+    "category": "Technical",
+    "businessUnit": "Enterprise Services",
+    "projectType": "FIXED_BID",
+    "status": "TESTING",
+    "priority": "HIGH",
+    "startDate": "2026-07-31T18:30:00.000Z",
+    "endDate": "2026-12-30T18:30:00.000Z",
+    "estimatedHours": 0,
+    "estimatedDuration": 0,
+    "budget": 50000,
+    "estimatedCost": 0,
+    "progressPercentage": 0,
+    "technologyStack": [],
+    "programmingLanguages": [],
+    "frameworks": [],
+    "repositoryType": "GIT",
+    "repositoryVisibility": "PRIVATE",
+    "projectVisibility": "PRIVATE",
+    "deploymentType": "CLOUD",
+    "projectManagerId": "EMP-006",
+    "projectManagerName": "Ranadhir Pal (EMP-006)",
+    "projectLeadId": "EMP-005",
+    "projectLeadName": "Rahul Garai (EMP-005)",
+    "assignedEmployees": [
+      "EMP-008"
+    ],
+    "assignedInterns": [
+      "INT-002"
+    ],
+    "links": {},
+    "customLinks": [],
+    "tags": [],
+    "members": [
+      {
+        "employeeId": "EMP-006",
+        "employeeName": "Ranadhir Pal (EMP-006)",
+        "role": "PROJECT_MANAGER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-04T18:30:00.000Z"
+      },
+      {
+        "employeeId": "EMP-005",
+        "employeeName": "Rahul Garai (EMP-005)",
+        "role": "TECH_LEAD",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-04T18:30:00.000Z"
+      },
+      {
+        "employeeId": "EMP-008",
+        "employeeName": "Ganesh Pal (EMP-008)",
+        "role": "MEMBER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-04T18:30:00.000Z"
+      }
+    ],
+    "teams": [],
+    "documents": [],
+    "createdAt": "2026-08-03T07:07:24.513Z",
+    "updatedAt": "2026-08-05T02:49:06.809Z",
+    "createdBy": "6a703ace63293db054d88922",
+    "updatedBy": "6a700efd03662f590406b8e4",
+    "_class": "com.techknife.project.entity.Project"
+  },
+  {
+    "_id": "6a70448f91cdab02183cb731",
+    "projectId": "TK-PRJ-000003",
+    "projectCode": "PRJ-TEST-2134",
+    "projectName": "Real-Time Assignment Workflow Project",
+    "description": "Project for testing instant visibility upon assignment/removal",
+    "client": "TechKnife QA Labs",
+    "department": "Engineering",
+    "category": "Technical",
+    "businessUnit": "Enterprise Services",
+    "projectType": "FIXED_BID",
+    "status": "IN_PROGRESS",
+    "priority": "HIGH",
+    "startDate": "2026-07-31T18:30:00.000Z",
+    "endDate": "2026-12-30T18:30:00.000Z",
+    "estimatedHours": 0,
+    "estimatedDuration": 0,
+    "budget": 95000,
+    "estimatedCost": 0,
+    "progressPercentage": 0,
+    "technologyStack": [],
+    "programmingLanguages": [],
+    "frameworks": [],
+    "repositoryType": "GIT",
+    "repositoryVisibility": "PRIVATE",
+    "projectVisibility": "PRIVATE",
+    "deploymentType": "CLOUD",
+    "projectManagerId": "EMP-005",
+    "projectManagerName": "EXEC-1023499213",
+    "projectLeadId": "EMP-005",
+    "projectLeadName": "EXEC-1023499213",
+    "assignedEmployees": [
+      "EMP-005"
+    ],
+    "assignedInterns": [
+      "INT-004"
+    ],
+    "links": {},
+    "customLinks": [],
+    "tags": [],
+    "members": [
+      {
+        "employeeId": "6a703ace63293db054d88922",
+        "employeeName": "Unassigned (6a703ace63293db054d88922)",
+        "role": "PROJECT_MANAGER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-02T18:30:00.000Z"
+      }
+    ],
+    "teams": [],
+    "documents": [],
+    "createdAt": "2026-08-03T07:34:39.635Z",
+    "updatedAt": "2026-08-04T05:27:08.498Z",
+    "createdBy": "6a703ace63293db054d88922",
+    "updatedBy": "6a700efb03662f590406b8e0",
+    "_class": "com.techknife.project.entity.Project"
   }
 ]

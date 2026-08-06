@@ -12,6 +12,7 @@ import { projectsApi, EnterpriseProject, ProjectActivity, ProjectLinksData } fro
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EmployeeSelect } from '../../components/common/EmployeeSelect';
 import { InternSelect } from '../../components/common/InternSelect';
+import { EnterpriseProjectWorkspace } from '../../components/projects/EnterpriseProjectWorkspace';
 
 export const ProjectsPage: React.FC = () => {
   const queryClient = useQueryClient();
@@ -25,12 +26,19 @@ export const ProjectsPage: React.FC = () => {
 
   // Modal / Drawer States
   const [selectedProject, setSelectedProject] = useState<EnterpriseProject | null>(null);
+  const [workspaceProject, setWorkspaceProject] = useState<EnterpriseProject | null>(null);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const openProjectWorkspace = (project: EnterpriseProject) => {
+    setWorkspaceProject(project);
+    setIsWorkspaceOpen(true);
+  };
 
   // Form Section State in Create Modal
   const [activeTab, setActiveTab] = useState<'basic' | 'tech' | 'schedule' | 'team' | 'urls'>('basic');
@@ -494,7 +502,10 @@ export const ProjectsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <h3 className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">
+                    <h3
+                      onClick={() => openProjectWorkspace(prj)}
+                      className="font-extrabold text-base text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors cursor-pointer hover:underline"
+                    >
                       {projectName}
                     </h3>
                     <p className="text-xs text-slate-500 line-clamp-2 mt-1">
@@ -1114,6 +1125,14 @@ export const ProjectsPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Full-Screen Enterprise Project Workspace */}
+      <EnterpriseProjectWorkspace
+        project={workspaceProject}
+        isOpen={isWorkspaceOpen}
+        onClose={() => setIsWorkspaceOpen(false)}
+        onProjectUpdated={() => loadProjects()}
+      />
 
     </div>
   );

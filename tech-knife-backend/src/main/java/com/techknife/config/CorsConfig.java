@@ -10,9 +10,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * CORS Configuration providing cross-origin access control rules based on CLIENT_URL environment variables.
  */
+@Slf4j
 @Configuration
 public class CorsConfig {
 
@@ -36,7 +40,14 @@ public class CorsConfig {
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource() {
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                log.info("==== [CorsTrace] Evaluating CORS for Origin='{}', Method='{}', URI='{}' ====",
+                        request.getHeader("Origin"), request.getMethod(), request.getRequestURI());
+                return super.getCorsConfiguration(request);
+            }
+        };
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

@@ -26,6 +26,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
  * Base Spring Security Configuration for Tech Knife Enterprise Platform.
  * Configures stateless session management, JWT authentication filtering, endpoint authorization, CSRF protection, and CORS filtering.
  */
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -36,6 +41,17 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(request -> {
+            boolean matches = request.getRequestURI().startsWith("/ws-chat");
+            if (matches) {
+                log.info("==== WebSecurityCustomizer Ignoring Request: URI='{}', Method='{}' ====", request.getRequestURI(), request.getMethod());
+            }
+            return matches;
+        });
+    }
 
 
     /**
@@ -59,6 +75,7 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.info("==== SecurityFilterChain CREATED ====");
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -75,6 +92,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/api/auth/**",
                                 "/auth/**",
+                                "/ws-chat/**",
+                                "/ws-chat",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
@@ -87,6 +106,7 @@ public class SecurityConfig {
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
+        log.info("==== Building SecurityFilterChain ====");
         return http.build();
     }
 }

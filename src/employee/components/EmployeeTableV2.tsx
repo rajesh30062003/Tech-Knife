@@ -207,7 +207,7 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
                       {emp.currentProjects.slice(0, 3).map((p, idx) => (
                         <button
                           key={idx}
-                          onClick={() => onViewDetails(emp)}
+                          onClick={() => onView(emp)}
                           className="px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/50 hover:bg-indigo-100 transition-colors cursor-pointer"
                         >
                           {p}
@@ -215,7 +215,7 @@ export const EmployeeTableV2: React.FC<EmployeeTableV2Props> = ({
                       ))}
                       {emp.currentProjects.length > 3 && (
                         <button
-                          onClick={() => onViewDetails(emp)}
+                          onClick={() => onView(emp)}
                           className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold hover:bg-slate-200 transition-colors"
                         >
                           +{emp.currentProjects.length - 3} More

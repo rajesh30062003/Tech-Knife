@@ -32,12 +32,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
+        String servletPath = request.getServletPath();
+        log.info("==> [SecurityTrace] JwtAuthenticationFilter.shouldNotFilter evaluation: URI='{}', ServletPath='{}'", path, servletPath);
         return path.startsWith("/api/v1/auth/login") ||
                path.startsWith("/api/v1/auth/register") ||
                path.startsWith("/api/v1/auth/refresh") ||
                path.startsWith("/api/v1/auth/refresh-token") ||
                path.startsWith("/api/auth/login") ||
                path.startsWith("/auth/login") ||
+               path.startsWith("/ws-chat") ||
                path.startsWith("/swagger-ui") ||
                path.startsWith("/v3/api-docs");
     }
@@ -46,6 +49,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
+        log.info("==== [JwtTrace] JwtAuthenticationFilter.doFilterInternal: URI='{}', ServletPath='{}', AuthorizationHeader='{}' ====",
+                request.getRequestURI(), request.getServletPath(), authHeader != null ? "[PRESENT]" : "[NULL]");
         try {
             String jwt = getJwtFromRequest(request);
 

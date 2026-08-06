@@ -99,27 +99,27 @@ export interface ProjectActivity {
 
 export const projectsApi = {
   getAll: async (params?: { status?: string; category?: string }): Promise<ApiResponse<EnterpriseProject[]>> => {
-    const res = await apiClient.get<ApiResponse<EnterpriseProject[]>>('/v1/projects', { params });
+    const res = await apiClient.get<ApiResponse<EnterpriseProject[]>>('/projects', { params });
     return res.data;
   },
 
   getById: async (id: string): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.get<ApiResponse<EnterpriseProject>>(`/v1/projects/${id}`);
+    const res = await apiClient.get<ApiResponse<EnterpriseProject>>(`/projects/${id}`);
     return res.data;
   },
 
   create: async (data: Partial<EnterpriseProject>): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.post<ApiResponse<EnterpriseProject>>('/v1/projects', data);
+    const res = await apiClient.post<ApiResponse<EnterpriseProject>>('/projects', data);
     return res.data;
   },
 
   update: async (id: string, data: Partial<EnterpriseProject>): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/v1/projects/${id}`, data);
+    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/projects/${id}`, data);
     return res.data;
   },
 
   updateStatus: async (id: string, status: string, reason?: string): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.patch<ApiResponse<EnterpriseProject>>(`/v1/projects/${id}/status`, { status, reason: reason || 'Status update' });
+    const res = await apiClient.patch<ApiResponse<EnterpriseProject>>(`/projects/${id}/status`, { status, reason: reason || 'Status update' });
     return res.data;
   },
 
@@ -143,7 +143,7 @@ export const projectsApi = {
       assignedInterns: intIds,
     };
 
-    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/v1/projects/${id}/members`, payload);
+    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/projects/${id}/members`, payload);
     return res.data;
   },
 
@@ -152,17 +152,17 @@ export const projectsApi = {
     repositoryVisibility?: string;
     deploymentType?: string;
   }): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/v1/projects/${id}/links`, linksData);
+    const res = await apiClient.put<ApiResponse<EnterpriseProject>>(`/projects/${id}/links`, linksData);
     return res.data;
   },
 
   delete: async (id: string): Promise<ApiResponse<void>> => {
-    const res = await apiClient.delete<ApiResponse<void>>(`/v1/projects/${id}`);
+    const res = await apiClient.delete<ApiResponse<void>>(`/projects/${id}`);
     return res.data;
   },
 
   getActivities: async (id: string): Promise<ApiResponse<ProjectActivity[]>> => {
-    const res = await apiClient.get<ApiResponse<ProjectActivity[]>>(`/v1/projects/${id}/activities`);
+    const res = await apiClient.get<ApiResponse<ProjectActivity[]>>(`/projects/${id}/activities`);
     return res.data;
   }
 };

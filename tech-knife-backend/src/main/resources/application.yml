@@ -145,7 +145,11 @@ logging:
   level:
     root: INFO
     com.techknife: INFO
-    org.springframework.security: INFO
+    org.springframework.security: TRACE
+    org.springframework.security.web.FilterChainProxy: TRACE
+    org.springframework.security.web.access: TRACE
+    org.springframework.security.web.authentication: TRACE
+    org.springframework.web.socket: TRACE
     org.springframework.data.mongodb: INFO
     org.springframework.data.mongodb.core.MongoTemplate: INFO
     org.mongodb.driver: INFO

@@ -129,7 +129,7 @@ export const organizationApi = {
 
   async getOrgTree(departmentFilter?: string): Promise<OrgNode[]> {
     try {
-      const res = await apiClient.get('/v1/organization-chart');
+      const res = await apiClient.get('/organization-chart');
       if (res.data?.success && Array.isArray(res.data.data)) {
         let treeList: OrgNode[] = res.data.data;
         if (departmentFilter && departmentFilter !== 'ALL') {

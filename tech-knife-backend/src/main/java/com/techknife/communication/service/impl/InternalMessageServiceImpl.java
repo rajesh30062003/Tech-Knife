@@ -5,6 +5,7 @@ import com.techknife.communication.dto.*;
 import com.techknife.communication.entity.*;
 import com.techknife.communication.repository.*;
 import com.techknife.communication.service.InternalMessageService;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class InternalMessageServiceImpl implements InternalMessageService {
 
     private final InternalMessageRepository messageRepository;
     private final MessageThreadRepository threadRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public InternalMessageDTO sendMessage(SendMessageRequest request, String senderId, String senderName) {
@@ -70,7 +72,16 @@ public class InternalMessageServiceImpl implements InternalMessageService {
                 .sentAt(Instant.now())
                 .build();
 
-        return mapToMessageDTO(messageRepository.save(message));
+        InternalMessageDTO dto = mapToMessageDTO(messageRepository.save(message));
+        try {
+            messagingTemplate.convertAndSend("/topic/thread." + savedThread.getId(), dto);
+            if (request.getSubject() != null && !request.getSubject().isBlank()) {
+                messagingTemplate.convertAndSend("/topic/project." + request.getSubject(), dto);
+            }
+            messagingTemplate.convertAndSend("/topic/project." + savedThread.getId(), dto);
+            messagingTemplate.convertAndSend("/topic/global", dto);
+        } catch (Exception ignored) {}
+        return dto;
     }
 
     @Override

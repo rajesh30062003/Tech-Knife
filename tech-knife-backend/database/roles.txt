@@ -7,7 +7,7 @@
     "description": "Complete system control",
     "name": "Super Admin",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:40.202Z"
+    "updatedAt": "2026-08-05T13:22:17.909Z"
   },
   {
     "_id": "6a696bad6e2a9df477c68aab",
@@ -17,7 +17,7 @@
     "description": "System administration",
     "name": "Admin",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:40.886Z"
+    "updatedAt": "2026-08-05T13:22:18.563Z"
   },
   {
     "_id": "6a696bad6e2a9df477c68aac",
@@ -27,7 +27,7 @@
     "description": "Executive Leadership",
     "name": "Chief Executive Officer",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.291Z"
+    "updatedAt": "2026-08-05T13:22:18.918Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68aad",
@@ -37,7 +37,7 @@
     "description": "Managing Directorate",
     "name": "Managing Director",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.462Z"
+    "updatedAt": "2026-08-05T13:22:19.109Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68aae",
@@ -47,7 +47,7 @@
     "description": "Technology Leadership",
     "name": "Chief Technology Officer",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.524Z"
+    "updatedAt": "2026-08-05T13:22:19.219Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68aaf",
@@ -57,7 +57,7 @@
     "description": "Marketing & Growth Leadership",
     "name": "Growth Head",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.609Z"
+    "updatedAt": "2026-08-05T13:22:19.286Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab0",
@@ -67,7 +67,7 @@
     "description": "Engineering Management",
     "name": "Senior Engineering Manager",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.684Z"
+    "updatedAt": "2026-08-05T13:22:19.342Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab1",
@@ -77,7 +77,7 @@
     "description": "Marketing Directorate",
     "name": "Chief Marketing Officer",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.838Z"
+    "updatedAt": "2026-08-05T13:22:19.409Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab2",
@@ -87,7 +87,7 @@
     "description": "Department Director",
     "name": "Director",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:41.924Z"
+    "updatedAt": "2026-08-05T13:22:19.469Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab3",
@@ -97,7 +97,7 @@
     "description": "Team Manager",
     "name": "Manager",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:42.005Z"
+    "updatedAt": "2026-08-05T13:22:19.549Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab4",
@@ -107,7 +107,7 @@
     "description": "Staff Employee",
     "name": "Employee",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:42.084Z"
+    "updatedAt": "2026-08-05T13:22:19.624Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab5",
@@ -117,7 +117,7 @@
     "description": "Trainee Intern",
     "name": "Intern",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:42.195Z"
+    "updatedAt": "2026-08-05T13:22:19.685Z"
   },
   {
     "_id": "6a696bae6e2a9df477c68ab6",
@@ -127,6 +127,6 @@
     "description": "Client / Customer User",
     "name": "Customer",
     "permissions": [],
-    "updatedAt": "2026-07-29T04:44:42.283Z"
+    "updatedAt": "2026-08-05T13:22:19.774Z"
   }
 ]

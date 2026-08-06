@@ -30,7 +30,11 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException, ServletException {
+        log.info("==> [SecurityTrace] AuthenticationEntryPoint invoked for URI='{}', ServletPath='{}', Exception='{}'",
+                request.getRequestURI(), request.getServletPath(), authException.getMessage());
         log.error("Authentication failure for request '{}': {}", request.getRequestURI(), authException.getMessage());
+
+        new RuntimeException("401 Investigation").printStackTrace();
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -195,7 +195,8 @@ export const canAssignManagerLead = (user: UserProfile | null): boolean =>
 export const canManageProject = (user: UserProfile | null, projectManagerId?: string): boolean => {
   if (!user) return false;
   if (checkUserHasRole(user, EXECUTIVE_ROLES)) return true;
-  return Boolean(user.employeeId && projectManagerId && user.employeeId === projectManagerId);
+  const empId = user.id || (user as any).employeeId;
+  return Boolean(empId && projectManagerId && empId === projectManagerId);
 };
 
 export const canUpdateProjectStatus = (user: UserProfile | null): boolean =>

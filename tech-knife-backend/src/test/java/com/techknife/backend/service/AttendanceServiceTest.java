@@ -4,7 +4,7 @@ import com.techknife.backend.constant.AttendanceStatus;
 import com.techknife.backend.constant.PunchType;
 import com.techknife.backend.dto.*;
 import com.techknife.backend.entity.Attendance;
-import com.techknife.backend.entity.AttendanceValidator;
+import com.techknife.backend.validator.AttendanceValidator;
 import com.techknife.backend.mapper.AttendanceMapper;
 import com.techknife.backend.repository.AttendanceRepository;
 import com.techknife.backend.serviceImpl.AttendanceServiceImpl;

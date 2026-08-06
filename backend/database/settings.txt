@@ -5,7 +5,7 @@
     "__v": 0,
     "createdAt": "2026-07-29T02:55:45.768Z",
     "description": "Global system runtime preferences",
-    "updatedAt": "2026-07-29T04:44:45.521Z",
+    "updatedAt": "2026-08-05T13:22:22.944Z",
     "value": {
       "appName": "Tech Knife Enterprise Management System",
       "version": "2.0.0-PROD",

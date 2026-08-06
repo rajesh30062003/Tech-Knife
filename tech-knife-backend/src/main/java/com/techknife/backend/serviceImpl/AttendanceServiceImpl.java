@@ -5,7 +5,7 @@ import com.techknife.backend.constant.PunchType;
 import com.techknife.backend.dto.*;
 import com.techknife.backend.entity.Attendance;
 import com.techknife.backend.entity.PunchLog;
-import com.techknife.backend.entity.AttendanceValidator;
+import com.techknife.backend.validator.AttendanceValidator;
 import com.techknife.backend.exception.BadRequestException;
 import com.techknife.backend.exception.ResourceNotFoundException;
 import com.techknife.backend.mapper.AttendanceMapper;

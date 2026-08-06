@@ -7,12 +7,14 @@ import com.techknife.communication.repository.*;
 import com.techknife.communication.service.InternalMessageService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InternalMessageServiceImpl implements InternalMessageService {
@@ -23,10 +25,31 @@ public class InternalMessageServiceImpl implements InternalMessageService {
 
     @Override
     public InternalMessageDTO sendMessage(SendMessageRequest request, String senderId, String senderName) {
+        log.info("CHAT REQUEST subject={}, threadId={}, projectCode={}, content={}",
+                request.getSubject(),
+                request.getThreadId(),
+                request.getSubject(),
+                request.getContent());
+
         MessageThread thread;
         if (request.getThreadId() != null && !request.getThreadId().isBlank()) {
             thread = threadRepository.findById(request.getThreadId())
                     .orElseThrow(() -> new ResourceNotFoundException("MessageThread", "id", request.getThreadId()));
+        } else if (request.getSubject() != null && !request.getSubject().isBlank()) {
+            thread = threadRepository.findFirstBySubjectOrderByLastMessageAtDesc(request.getSubject())
+                    .orElseGet(() -> {
+                        List<String> participants = new ArrayList<>();
+                        participants.add(senderId);
+                        if (request.getRecipientIds() != null) {
+                            participants.addAll(request.getRecipientIds());
+                        }
+                        return MessageThread.builder()
+                                .subject(request.getSubject())
+                                .participantIds(participants.stream().distinct().collect(Collectors.toList()))
+                                .isGroup(participants.size() > 2)
+                                .createdAt(Instant.now())
+                                .build();
+                    });
         } else {
             List<String> participants = new ArrayList<>();
             participants.add(senderId);
@@ -35,7 +58,7 @@ public class InternalMessageServiceImpl implements InternalMessageService {
             }
 
             thread = MessageThread.builder()
-                    .subject(request.getSubject() != null ? request.getSubject() : "Direct Message")
+                    .subject("Direct Message")
                     .participantIds(participants.stream().distinct().collect(Collectors.toList()))
                     .isGroup(participants.size() > 2)
                     .createdAt(Instant.now())
@@ -46,6 +69,9 @@ public class InternalMessageServiceImpl implements InternalMessageService {
         thread.setLastMessageAt(Instant.now());
         thread.setUpdatedAt(Instant.now());
         MessageThread savedThread = threadRepository.save(thread);
+        log.info("THREAD id={}, subject={}",
+                savedThread.getId(),
+                savedThread.getSubject());
 
         List<MessageAttachment> attachments = null;
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
@@ -74,13 +100,34 @@ public class InternalMessageServiceImpl implements InternalMessageService {
 
         InternalMessageDTO dto = mapToMessageDTO(messageRepository.save(message));
         try {
-            messagingTemplate.convertAndSend("/topic/thread." + savedThread.getId(), dto);
+            String dest1 = "/topic/thread." + savedThread.getId();
+            log.info("STOMP BROADCAST destination={}", dest1);
+            log.info("Payload={}", dto);
+            messagingTemplate.convertAndSend(dest1, dto);
+            log.info("Broadcast completed.");
+
             if (request.getSubject() != null && !request.getSubject().isBlank()) {
-                messagingTemplate.convertAndSend("/topic/project." + request.getSubject(), dto);
+                String dest2 = "/topic/project." + request.getSubject();
+                log.info("STOMP BROADCAST destination={}", dest2);
+                log.info("Payload={}", dto);
+                messagingTemplate.convertAndSend(dest2, dto);
+                log.info("Broadcast completed.");
             }
-            messagingTemplate.convertAndSend("/topic/project." + savedThread.getId(), dto);
-            messagingTemplate.convertAndSend("/topic/global", dto);
-        } catch (Exception ignored) {}
+
+            String dest3 = "/topic/project." + savedThread.getId();
+            log.info("STOMP BROADCAST destination={}", dest3);
+            log.info("Payload={}", dto);
+            messagingTemplate.convertAndSend(dest3, dto);
+            log.info("Broadcast completed.");
+
+            String dest4 = "/topic/global";
+            log.info("STOMP BROADCAST destination={}", dest4);
+            log.info("Payload={}", dto);
+            messagingTemplate.convertAndSend(dest4, dto);
+            log.info("Broadcast completed.");
+        } catch (Exception e) {
+            log.error("Broadcast error", e);
+        }
         return dto;
     }
 
@@ -102,6 +149,18 @@ public class InternalMessageServiceImpl implements InternalMessageService {
     @Override
     public List<InternalMessageDTO> getThreadMessages(String threadId, String userId) {
         return messageRepository.findByThreadIdOrderBySentAtAsc(threadId)
+                .stream()
+                .map(this::mapToMessageDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InternalMessageDTO> getProjectMessages(String projectCode) {
+        Optional<MessageThread> threadOpt = threadRepository.findFirstBySubjectOrderByLastMessageAtDesc(projectCode);
+        if (threadOpt.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return messageRepository.findByThreadIdOrderBySentAtAsc(threadOpt.get().getId())
                 .stream()
                 .map(this::mapToMessageDTO)
                 .collect(Collectors.toList());

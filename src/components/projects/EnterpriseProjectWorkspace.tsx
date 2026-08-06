@@ -10,6 +10,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { projectsApi, EnterpriseProject, ProjectActivity, ProjectLinksData } from '../../api/projects';
 import { projectWorkspaceApi, ProjectTask, ProjectRisk, DriveFileRecord } from '../../api/projectWorkspaceApi';
+import { apiClient } from '../../api/client';
 import { StatusBadge } from '../common/StatusBadge';
 import { EmployeeSelect } from '../common/EmployeeSelect';
 import { InternSelect } from '../common/InternSelect';
@@ -90,50 +91,67 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   const canManage = isAdmin || isManager || isLead;
 
   // Conversations State
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
-    {
-      id: 'cm-101',
-      senderId: 'mgr-1',
-      senderName: 'Vikramaditya Sharma',
-      senderRole: 'Project Manager',
-      content: 'Welcome team! Google Drive OAuth 2.0 offline refresh flow is verified. We are on track for UAT milestone sign-off.',
-      sentAt: '09:30 AM',
-      isRead: true,
-      isPinned: true,
-      reactions: [{ emoji: '🚀', count: 4, userIds: ['u1', 'u2'] }],
-    },
-    {
-      id: 'cm-102',
-      senderId: 'lead-1',
-      senderName: 'Ranadhir Pal',
-      senderRole: 'Technical Lead',
-      content: 'Awesome. Spring Boot 3.5 microservices and MongoDB Atlas persistence are synced. @Subrata Pal please review TSK-303.',
-      sentAt: '10:15 AM',
-      isRead: true,
-      reactions: [{ emoji: '👍', count: 3, userIds: ['u3'] }],
-    },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Load Historical Persisted Messages from Backend
+  useEffect(() => {
+    if (!project) return;
+    const projectCode = project.projectCode || project.projectId || project.id;
+    
+    const loadProjectHistory = async () => {
+      try {
+        const res = await apiClient.get(`/messages/project/${projectCode}`);
+        if (res?.data?.success && Array.isArray(res.data.data)) {
+          const historicalMsgs: ChatMessage[] = res.data.data.map((m: any) => ({
+            id: m.id,
+            senderId: m.senderId || 'u-remote',
+            senderName: m.senderName || 'Team Member',
+            senderRole: 'Contributor',
+            content: m.content,
+            sentAt: m.sentAt ? new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            isRead: true,
+          }));
+          setChatMessages(historicalMsgs);
+        }
+      } catch (err) {
+        console.error('Failed to load project chat history:', err);
+      }
+    };
+
+    loadProjectHistory();
+  }, [project]);
 
   // Real-Time STOMP SockJS Listener
   useEffect(() => {
     if (!project) return;
     const projectCode = project.projectCode || project.projectId || project.id;
 
+    console.log("STEP 1 - Creating STOMP client");
     const stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws-chat'),
       reconnectDelay: 5000,
+      debug: (str) => console.log("[STOMP]", str),
       onConnect: () => {
-        stompClient.subscribe(`/topic/project.${projectCode}`, (message) => {
+        console.log("STEP 3 - STOMP Connected");
+        console.log("STEP 4 - Subscribing to", `/topic/project.${projectCode}`);
+        const subscription = stompClient.subscribe(`/topic/project.${projectCode}`, (message) => {
           try {
+            console.log("MESSAGE CALLBACK FIRED");
+            console.log("RAW MESSAGE", message);
+            console.log("MESSAGE BODY", message.body);
+            console.log("BEFORE JSON PARSE");
             const data = JSON.parse(message.body);
+            console.log("PARSED DTO", data);
             if (data.content && data.id) {
+              console.log("UPDATING CHAT STATE");
               setChatMessages(prev => {
                 if (prev.some(m => m.id === data.id)) return prev;
-                return [...prev, {
+                const filtered = prev.filter(m => !(m.id.startsWith('temp-') && m.content === data.content));
+                return [...filtered, {
                   id: data.id,
                   senderId: data.senderId || 'u-remote',
                   senderName: data.senderName || 'Team Member',
@@ -143,14 +161,31 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
                   isRead: true,
                 }];
               });
+              console.log("CHAT STATE UPDATED");
             } else if (data.eventType === 'DOCUMENT_UPLOADED') {
               // Note: fetchWorkspaceDetails() would be implemented in parent or via context
             }
-          } catch (e) {}
+          } catch (e) {
+            console.error("MESSAGE PROCESSING ERROR", e);
+          }
         });
+        console.log("SUBSCRIPTION ACTIVE", subscription.id);
+      },
+      onWebSocketError: (error) => {
+        console.error("WS ERROR", error);
+      },
+      onStompError: (frame) => {
+        console.error("STOMP ERROR", frame);
+      },
+      onWebSocketClose: (event) => {
+        console.error("WS CLOSED", event);
+      },
+      onDisconnect: () => {
+        console.log("STEP 6 - Disconnected");
       },
     });
 
+    console.log("STEP 2 - Activating client");
     stompClient.activate();
 
     return () => {
@@ -190,25 +225,48 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   const progress = project.overallProgressPercentage ?? project.progressPercentage ?? 68;
 
   // Handlers
-  const handleSendChatMessage = (e: React.FormEvent) => {
+  const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!chatInput.trim()) return;
+    const content = chatInput.trim();
+    if (!content || !project) return;
 
     const currentUserId = user?.id || 'u-curr';
     const currentUserName = user ? `${user.firstName} ${user.lastName}` : 'You';
+    const projectCode = project.projectCode || project.projectId || project.id;
+    const tempId = `temp-${Date.now()}`;
 
-    const newMsg: ChatMessage = {
-      id: `cm-${Date.now()}`,
+    // 1. Optimistic UI update
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
       senderId: currentUserId,
       senderName: currentUserName,
       senderRole: isManager ? 'Project Manager' : isLead ? 'Technical Lead' : 'Engineering Team',
-      content: chatInput.trim(),
+      content,
       sentAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: true,
     };
 
-    setChatMessages(prev => [...prev, newMsg]);
+    setChatMessages(prev => [...prev, optimisticMsg]);
     setChatInput('');
+
+    try {
+      // 2. Send POST /messages/send using authenticated apiClient
+      await apiClient.post('/messages/send', {
+        subject: projectCode,
+        content,
+        attachments: [],
+      }, {
+        params: {
+          senderId: currentUserId,
+          senderName: currentUserName,
+        }
+      });
+      // Do NOT append manually. STOMP MESSAGE event updates chatMessages with real InternalMessageDTO id.
+    } catch (err) {
+      // Rollback optimistic message if POST fails
+      setChatMessages(prev => prev.filter(m => m.id !== tempId));
+      console.error('Failed to send chat message:', err);
+    }
   };
 
   const handleSaveTeam = async () => {

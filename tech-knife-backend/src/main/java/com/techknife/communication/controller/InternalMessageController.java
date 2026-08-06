@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/messages")
 @RequiredArgsConstructor
@@ -28,20 +30,24 @@ public class InternalMessageController {
     private final InternalMessageService messageService;
 
     @PostMapping("/send")
-    @PreAuthorize("hasAuthority('MESSAGE_SEND') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = AuditAction.CREATE, module = AuditModule.COMMUNICATION, entityType = "InternalMessage", description = "Sent Internal Message")
     @Operation(summary = "Send Internal Message")
     public ResponseEntity<ApiResponse<InternalMessageDTO>> sendMessage(
             @Valid @RequestBody SendMessageRequest request,
             @RequestParam String senderId,
             @RequestParam(required = false, defaultValue = "User") String senderName) {
+        log.info("CONTROLLER ENTERED: senderId={}, senderName={}, subject={}",
+                senderId,
+                senderName,
+                request.getSubject());
         InternalMessageDTO result = messageService.sendMessage(request, senderId, senderName);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(result, "Message sent successfully"));
     }
 
     @GetMapping("/threads/{threadId}")
-    @PreAuthorize("hasAuthority('MESSAGE_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get Thread by ID")
     public ResponseEntity<ApiResponse<MessageThreadDTO>> getThreadById(@PathVariable String threadId) {
         MessageThreadDTO result = messageService.getThreadById(threadId);
@@ -49,7 +55,7 @@ public class InternalMessageController {
     }
 
     @GetMapping("/threads/user/{userId}")
-    @PreAuthorize("hasAuthority('MESSAGE_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get User Message Threads")
     public ResponseEntity<ApiResponse<List<MessageThreadDTO>>> getUserThreads(@PathVariable String userId) {
         List<MessageThreadDTO> result = messageService.getUserThreads(userId);
@@ -57,13 +63,21 @@ public class InternalMessageController {
     }
 
     @GetMapping("/threads/{threadId}/messages")
-    @PreAuthorize("hasAuthority('MESSAGE_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get Thread Messages")
     public ResponseEntity<ApiResponse<List<InternalMessageDTO>>> getThreadMessages(
             @PathVariable String threadId,
             @RequestParam(required = false) String userId) {
         List<InternalMessageDTO> result = messageService.getThreadMessages(threadId, userId);
         return ResponseEntity.ok(ApiResponse.success(result, "Fetched thread messages successfully"));
+    }
+
+    @GetMapping("/project/{projectCode}")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Get Project Messages")
+    public ResponseEntity<ApiResponse<List<InternalMessageDTO>>> getProjectMessages(@PathVariable String projectCode) {
+        List<InternalMessageDTO> result = messageService.getProjectMessages(projectCode);
+        return ResponseEntity.ok(ApiResponse.success(result, "Fetched project messages successfully"));
     }
 
     @PutMapping("/{messageId}/read")

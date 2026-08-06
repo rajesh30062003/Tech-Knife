@@ -103,6 +103,25 @@ public class UserPrincipal implements UserDetails {
             cleanPermissions.add("EMPLOYEE_VIEW");
         }
 
+        // Auto-confer Internal Messaging Authority for All Active Organization Roles
+        boolean isInternalUser = cleanRoles.stream().anyMatch(r ->
+                r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
+                r.equalsIgnoreCase("ROLE_ADMIN") || r.equalsIgnoreCase("ADMIN") ||
+                r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
+                r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
+                r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO") ||
+                r.equalsIgnoreCase("ROLE_COO") || r.equalsIgnoreCase("COO") ||
+                r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO") ||
+                r.equalsIgnoreCase("ROLE_HR") || r.equalsIgnoreCase("HR") ||
+                r.equalsIgnoreCase("ROLE_HR_MANAGER") || r.equalsIgnoreCase("HR_MANAGER") ||
+                r.equalsIgnoreCase("ROLE_PROJECT_MANAGER") || r.equalsIgnoreCase("PROJECT_MANAGER") ||
+                r.equalsIgnoreCase("ROLE_EMPLOYEE") || r.equalsIgnoreCase("EMPLOYEE")
+        );
+
+        if (isInternalUser) {
+            cleanPermissions.add("MESSAGE_SEND");
+        }
+
         // 3. Add Permission Authorities
         for (String perm : cleanPermissions) {
             grantedAuthorities.add(new SimpleGrantedAuthority(perm));

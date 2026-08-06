@@ -16,5 +16,7 @@ public interface InternalMessageService {
 
     List<InternalMessageDTO> getThreadMessages(String threadId, String userId);
 
+    List<InternalMessageDTO> getProjectMessages(String projectCode);
+
     InternalMessageDTO markMessageAsRead(String messageId, String userId);
 }

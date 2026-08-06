@@ -149,7 +149,9 @@ logging:
     org.springframework.security.web.FilterChainProxy: TRACE
     org.springframework.security.web.access: TRACE
     org.springframework.security.web.authentication: TRACE
-    org.springframework.web.socket: TRACE
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+    org.springframework.messaging.simp: DEBUG
     org.springframework.data.mongodb: INFO
     org.springframework.data.mongodb.core.MongoTemplate: INFO
     org.mongodb.driver: INFO

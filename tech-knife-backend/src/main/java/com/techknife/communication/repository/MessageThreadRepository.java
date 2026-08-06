@@ -5,8 +5,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MessageThreadRepository extends MongoRepository<MessageThread, String> {
     List<MessageThread> findByParticipantIdsContainingOrderByLastMessageAtDesc(String userId);
+    Optional<MessageThread> findFirstBySubjectOrderByLastMessageAtDesc(String subject);
 }

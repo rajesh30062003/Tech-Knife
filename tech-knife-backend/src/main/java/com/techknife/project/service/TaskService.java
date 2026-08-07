@@ -28,7 +28,16 @@ public class TaskService {
 
     public TaskResponseDTO createTask(TaskRequestDTO request) {
         Project project = projectRepository.findById(request.getProjectId())
-                .orElseThrow(() -> new NoSuchElementException("Project not found with ID: " + request.getProjectId()));
+                .orElseGet(() -> projectRepository.findByProjectCode(request.getProjectId())
+                        .orElseGet(() -> {
+                            log.info("==== Auto-creating Project Container for Code: {} ====", request.getProjectId());
+                            Project p = Project.builder()
+                                    .projectCode(request.getProjectId())
+                                    .projectName(request.getProjectId())
+                                    .shortName(request.getProjectId())
+                                    .build();
+                            return projectRepository.save(p);
+                        }));
 
         String taskNum = generateTaskNumber(project);
 

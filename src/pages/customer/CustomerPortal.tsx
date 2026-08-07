@@ -1,15 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, FileText, Ticket, DollarSign, Download, Plus, 
-  Search, CheckCircle2, AlertCircle, Clock, ShieldCheck, ExternalLink 
+  Search, CheckCircle2, AlertCircle, Clock, ShieldCheck, ExternalLink, FolderKanban
 } from 'lucide-react';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
 import { canRaiseTicket, canTrackProject, canViewInvoice, canDownloadDocuments } from '../../utils/rbac';
+import { projectsApi, EnterpriseProject } from '../../api/projects';
+import { EnterpriseProjectWorkspace } from '../../components/projects/EnterpriseProjectWorkspace';
 
 export const CustomerPortal: React.FC = () => {
   const { user } = useAuth();
   const [showTicketModal, setShowTicketModal] = useState(false);
+  const [customerProjects, setCustomerProjects] = useState<EnterpriseProject[]>([]);
+  const [selectedWorkspaceProject, setSelectedWorkspaceProject] = useState<EnterpriseProject | null>(null);
+  const [isWorkspaceOpen, setIsWorkspaceOpen] = useState(false);
+  
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const res = await projectsApi.getAll();
+        if (res?.data && Array.isArray(res.data)) {
+          setCustomerProjects(res.data);
+        }
+      } catch (err) {
+        console.warn('Customer projects fallback');
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  const handleOpenWorkspace = (p: EnterpriseProject) => {
+    setSelectedWorkspaceProject(p);
+    setIsWorkspaceOpen(true);
+  };
   
   const [tickets, setTickets] = useState([
     { id: 'TCK-801', ticketNumber: 'TK-TICK-101', subject: 'Inquire about Phase 2 Migration Cutover', category: 'Infrastructure', priority: 'High', status: 'In Progress', createdAt: '2 hours ago' },
@@ -87,6 +111,50 @@ export const CustomerPortal: React.FC = () => {
           </button>
         )}
       </div>
+
+      {/* Customer Assigned Projects Section */}
+      {customerProjects.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4">
+          <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">Assigned Enterprise Projects</h3>
+              <p className="text-xs text-slate-500">Open project details, deliverables, tasks, and Google Drive artifacts</p>
+            </div>
+            <FolderKanban className="w-4 h-4 text-cyan-500" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {customerProjects.map((proj) => (
+              <div key={proj.id} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400">{proj.projectCode || proj.id}</span>
+                    <StatusBadge status={proj.status || 'ACTIVE'} />
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">{proj.projectName || 'Enterprise Project'}</h4>
+                  <p className="text-xs text-slate-500 truncate max-w-xs">{proj.description || 'Enterprise Cloud Delivery Program'}</p>
+                </div>
+                <button
+                  onClick={() => handleOpenWorkspace(proj)}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow-md transition-all shrink-0 flex items-center gap-1"
+                >
+                  <span>Open Workspace</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Enterprise Project Workspace Drawer Modal */}
+      {selectedWorkspaceProject && (
+        <EnterpriseProjectWorkspace
+          project={selectedWorkspaceProject}
+          isOpen={isWorkspaceOpen}
+          onClose={() => setIsWorkspaceOpen(false)}
+        />
+      )}
 
       {/* Contracts & Tickets Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

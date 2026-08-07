@@ -20,6 +20,7 @@ import { AuditTrailViewer } from '../core/AuditTrailViewer';
 import { EnterpriseAiWorkspace } from './ai/EnterpriseAiWorkspace';
 import { EnterpriseDevOpsWorkspace } from '../devops/EnterpriseDevOpsWorkspace';
 import { EnterpriseWikiWorkspace } from '../wiki/EnterpriseWikiWorkspace';
+import { EnterpriseSecuritySuite } from '../security/EnterpriseSecuritySuite';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -57,6 +58,24 @@ interface EnterpriseProjectWorkspaceProps {
   initialTab?: EnterpriseWorkspaceTab;
 }
 
+interface ChatAttachmentItem {
+  id?: string;
+  driveFileId?: string;
+  fileName?: string;
+  mimeType?: string;
+  fileSize?: number;
+  previewUrl?: string;
+  downloadUrl?: string;
+  thumbnailUrl?: string;
+  uploadedBy?: string;
+  uploadedAt?: string;
+  // Legacy fields fallback
+  name?: string;
+  type?: string;
+  url?: string;
+  fileUrl?: string;
+}
+
 interface ChatMessage {
   id: string;
   senderId: string;
@@ -67,9 +86,179 @@ interface ChatMessage {
   sentAt: string;
   isRead?: boolean;
   isPinned?: boolean;
-  attachments?: { name: string; type: string; url: string }[];
+  attachments?: ChatAttachmentItem[];
   reactions?: { emoji: string; count: number; userIds: string[] }[];
 }
+
+const formatBytes = (bytes?: number) => {
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+const AttachmentCard: React.FC<{
+  attachment: ChatAttachmentItem;
+  onPreviewPdf: (url: string, title: string) => void;
+  onPreviewImage: (url: string) => void;
+}> = ({ attachment, onPreviewPdf, onPreviewImage }) => {
+  const fileName = attachment.fileName || attachment.name || 'Attachment';
+  const mimeType = (attachment.mimeType || attachment.type || '').toLowerCase();
+  const fileId = attachment.driveFileId || attachment.id;
+  const rawPreviewUrl = attachment.previewUrl || attachment.fileUrl || attachment.url || (fileId ? `/api/v1/drive/preview/${fileId}` : '#');
+  const rawDownloadUrl = attachment.downloadUrl || attachment.fileUrl || attachment.url || (fileId ? `/api/v1/drive/download/${fileId}` : rawPreviewUrl);
+  const fileSize = attachment.fileSize;
+
+  const handleBinaryDownload = async () => {
+    console.log('[ATTACHMENT DOWNLOAD TRIGGERED]', { fileName, fileId, rawDownloadUrl });
+    try {
+      const res = await fetch(rawDownloadUrl);
+      console.log('[ATTACHMENT DOWNLOAD RESPONSE]', { status: res.status, contentType: res.headers.get('content-type'), contentLength: res.headers.get('content-length') });
+      const blob = await res.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('[ATTACHMENT DOWNLOAD ERROR]', err);
+      const a = document.createElement('a');
+      a.href = rawDownloadUrl;
+      a.download = fileName;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  };
+
+  const handlePreviewClick = () => {
+    console.log('[ATTACHMENT PREVIEW TRIGGERED]', { fileName, fileId, rawPreviewUrl });
+    onPreviewPdf(rawPreviewUrl, fileName);
+  };
+
+  const isPdf = mimeType.includes('pdf') || fileName.toLowerCase().endsWith('.pdf');
+  const isImage = mimeType.startsWith('image/') || /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(fileName);
+  const isVideo = mimeType.startsWith('video/') || /\.(mp4|webm|mov|mkv)$/i.test(fileName);
+  const isAudio = mimeType.startsWith('audio/') || /\.(mp3|wav|ogg|m4a)$/i.test(fileName);
+
+  if (isPdf) {
+    return (
+      <div className="p-3 rounded-2xl bg-slate-900/20 dark:bg-slate-950/60 border border-slate-700/30 flex items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-rose-500/20 text-rose-400 font-black flex items-center justify-center text-[10px] shrink-0 border border-rose-500/30">
+            PDF
+          </div>
+          <div className="min-w-0">
+            <h5 className="font-bold text-slate-900 dark:text-slate-100 truncate text-[11px] font-mono">{fileName}</h5>
+            <span className="text-[10px] text-slate-400">{formatBytes(fileSize)} • Document</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={handlePreviewClick}
+            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-extrabold rounded-lg text-[10px] inline-flex items-center gap-1 border border-cyan-500/30 transition-colors"
+          >
+            <Eye className="w-3 h-3" /> Preview
+          </button>
+          <button
+            type="button"
+            onClick={handleBinaryDownload}
+            className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px] transition-colors"
+            title="Download PDF"
+          >
+            <Download className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isImage) {
+    return (
+      <div className="space-y-1.5 p-2 rounded-2xl bg-slate-900/20 dark:bg-slate-950/60 border border-slate-700/30">
+        <img
+          src={rawPreviewUrl}
+          alt={fileName}
+          onClick={() => onPreviewImage(rawPreviewUrl)}
+          className="max-h-48 rounded-xl object-cover w-full cursor-pointer hover:opacity-95 transition-opacity"
+        />
+        <div className="flex items-center justify-between px-1 text-[10px] text-slate-400">
+          <span className="truncate font-mono font-medium">{fileName} ({formatBytes(fileSize)})</span>
+          <button type="button" onClick={handleBinaryDownload} className="p-1 hover:text-cyan-300">
+            <Download className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isVideo) {
+    return (
+      <div className="space-y-1.5 p-2 rounded-2xl bg-slate-900/20 dark:bg-slate-950/60 border border-slate-700/30">
+        <video src={rawPreviewUrl} controls className="max-h-56 rounded-xl w-full bg-black" />
+        <div className="flex items-center justify-between px-1 text-[10px] text-slate-400">
+          <span className="truncate font-mono font-medium">{fileName} ({formatBytes(fileSize)})</span>
+          <button type="button" onClick={handleBinaryDownload} className="p-1 hover:text-cyan-300">
+            <Download className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isAudio) {
+    return (
+      <div className="p-3 rounded-2xl bg-slate-900/20 dark:bg-slate-950/60 border border-slate-700/30 space-y-1">
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-bold text-slate-900 dark:text-slate-100 truncate text-[11px] font-mono">{fileName}</span>
+          <button type="button" onClick={handleBinaryDownload} className="p-1 hover:text-cyan-300">
+            <Download className="w-3 h-3" />
+          </button>
+        </div>
+        <audio src={rawPreviewUrl} controls className="w-full h-8" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-3 rounded-2xl bg-slate-900/20 dark:bg-slate-950/60 border border-slate-700/30 flex items-center justify-between gap-3 text-xs">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 font-black flex items-center justify-center text-[10px] shrink-0 border border-cyan-500/30 uppercase">
+          {fileName.split('.').pop() || 'FILE'}
+        </div>
+        <div className="min-w-0">
+          <h5 className="font-bold text-slate-900 dark:text-slate-100 truncate text-[11px] font-mono">{fileName}</h5>
+          <span className="text-[10px] text-slate-400">{formatBytes(fileSize)}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        {rawPreviewUrl && rawPreviewUrl !== '#' && (
+          <button
+            type="button"
+            onClick={() => onPreviewPdf(rawPreviewUrl, fileName)}
+            className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-extrabold rounded-lg text-[10px] inline-flex items-center gap-1"
+          >
+            <Eye className="w-3 h-3" /> View
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={handleBinaryDownload}
+          className="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-[10px]"
+          title="Download File"
+        >
+          <Download className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+};
 
 export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProps> = ({
   project,
@@ -95,6 +284,15 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   const [chatInput, setChatInput] = useState('');
   const [memberSearch, setMemberSearch] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<ChatAttachmentItem | null>(null);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+
+  // Modal Preview States
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [pdfPreviewTitle, setPdfPreviewTitle] = useState<string>('');
+  const [imageLightboxUrl, setImageLightboxUrl] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
   // Load Historical Persisted Messages from Backend
@@ -114,6 +312,7 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
             content: m.content,
             sentAt: m.sentAt ? new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             isRead: true,
+            attachments: m.attachments || [],
           }));
           setChatMessages(historicalMsgs);
         }
@@ -130,24 +329,15 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
     if (!project) return;
     const projectCode = project.projectCode || project.projectId || project.id;
 
-    console.log("STEP 1 - Creating STOMP client");
     const stompClient = new Client({
       webSocketFactory: () => new SockJS('/ws-chat'),
       reconnectDelay: 5000,
       debug: (str) => console.log("[STOMP]", str),
       onConnect: () => {
-        console.log("STEP 3 - STOMP Connected");
-        console.log("STEP 4 - Subscribing to", `/topic/project.${projectCode}`);
-        const subscription = stompClient.subscribe(`/topic/project.${projectCode}`, (message) => {
+        stompClient.subscribe(`/topic/project.${projectCode}`, (message) => {
           try {
-            console.log("MESSAGE CALLBACK FIRED");
-            console.log("RAW MESSAGE", message);
-            console.log("MESSAGE BODY", message.body);
-            console.log("BEFORE JSON PARSE");
             const data = JSON.parse(message.body);
-            console.log("PARSED DTO", data);
             if (data.content && data.id) {
-              console.log("UPDATING CHAT STATE");
               setChatMessages(prev => {
                 if (prev.some(m => m.id === data.id)) return prev;
                 const filtered = prev.filter(m => !(m.id.startsWith('temp-') && m.content === data.content));
@@ -159,33 +349,17 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
                   content: data.content,
                   sentAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                   isRead: true,
+                  attachments: data.attachments || [],
                 }];
               });
-              console.log("CHAT STATE UPDATED");
-            } else if (data.eventType === 'DOCUMENT_UPLOADED') {
-              // Note: fetchWorkspaceDetails() would be implemented in parent or via context
             }
           } catch (e) {
             console.error("MESSAGE PROCESSING ERROR", e);
           }
         });
-        console.log("SUBSCRIPTION ACTIVE", subscription.id);
-      },
-      onWebSocketError: (error) => {
-        console.error("WS ERROR", error);
-      },
-      onStompError: (frame) => {
-        console.error("STOMP ERROR", frame);
-      },
-      onWebSocketClose: (event) => {
-        console.error("WS CLOSED", event);
-      },
-      onDisconnect: () => {
-        console.log("STEP 6 - Disconnected");
       },
     });
 
-    console.log("STEP 2 - Activating client");
     stompClient.activate();
 
     return () => {
@@ -196,6 +370,52 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
+
+  // Attachment File Upload Handler
+  const handleFileAttachmentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !project) return;
+
+    setIsUploadingAttachment(true);
+    try {
+      const pCode = project.projectCode || project.projectId || project.id;
+      const userName = user ? `${user.firstName} ${user.lastName}` : 'Corporate User';
+      const res = await projectWorkspaceApi.uploadDriveDocument(file, pCode, 'Chat Attachment', userName);
+      if (res.data) {
+        const rec = res.data;
+        const localObjUrl = URL.createObjectURL(file);
+        setPendingAttachment({
+          id: rec.id || rec.fileId || `att-${Date.now()}`,
+          driveFileId: rec.fileId || rec.id,
+          fileName: rec.name || file.name,
+          mimeType: rec.mimeType || file.type || 'application/octet-stream',
+          fileSize: rec.fileSize || file.size,
+          previewUrl: rec.webViewLink || rec.secureUrl || localObjUrl,
+          downloadUrl: rec.webContentLink || `/api/v1/drive/download/${rec.fileId || rec.id}`,
+          thumbnailUrl: (file.type.startsWith('image/') || file.type.startsWith('video/')) ? (rec.secureUrl || rec.webViewLink || localObjUrl) : '',
+          uploadedBy: userName,
+          uploadedAt: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.warn('Drive upload fallback for chat attachment');
+      const localObjUrl = URL.createObjectURL(file);
+      const userName = user ? `${user.firstName} ${user.lastName}` : 'Corporate User';
+      setPendingAttachment({
+        id: `att-local-${Date.now()}`,
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        fileSize: file.size,
+        previewUrl: localObjUrl,
+        downloadUrl: localObjUrl,
+        thumbnailUrl: (file.type.startsWith('image/') || file.type.startsWith('video/')) ? localObjUrl : '',
+        uploadedBy: userName,
+        uploadedAt: new Date().toISOString(),
+      });
+    } finally {
+      setIsUploadingAttachment(false);
+    }
+  };
 
   // Editable Form States
   const [managerId, setManagerId] = useState<string>('');
@@ -228,12 +448,14 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     const content = chatInput.trim();
-    if (!content || !project) return;
+    if ((!content && !pendingAttachment) || !project) return;
 
     const currentUserId = user?.id || 'u-curr';
     const currentUserName = user ? `${user.firstName} ${user.lastName}` : 'You';
     const projectCode = project.projectCode || project.projectId || project.id;
     const tempId = `temp-${Date.now()}`;
+
+    const attachmentPayload = pendingAttachment ? [pendingAttachment] : [];
 
     // 1. Optimistic UI update
     const optimisticMsg: ChatMessage = {
@@ -241,29 +463,29 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
       senderId: currentUserId,
       senderName: currentUserName,
       senderRole: isManager ? 'Project Manager' : isLead ? 'Technical Lead' : 'Engineering Team',
-      content,
+      content: content || (pendingAttachment ? `[Attachment: ${pendingAttachment.fileName}]` : ''),
       sentAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isRead: true,
+      attachments: attachmentPayload,
     };
 
     setChatMessages(prev => [...prev, optimisticMsg]);
     setChatInput('');
+    setPendingAttachment(null);
 
     try {
       // 2. Send POST /messages/send using authenticated apiClient
       await apiClient.post('/messages/send', {
         subject: projectCode,
-        content,
-        attachments: [],
+        content: optimisticMsg.content,
+        attachments: attachmentPayload,
       }, {
         params: {
           senderId: currentUserId,
           senderName: currentUserName,
         }
       });
-      // Do NOT append manually. STOMP MESSAGE event updates chatMessages with real InternalMessageDTO id.
     } catch (err) {
-      // Rollback optimistic message if POST fails
       setChatMessages(prev => prev.filter(m => m.id !== tempId));
       console.error('Failed to send chat message:', err);
     }
@@ -443,160 +665,126 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
               </div>
             )}
 
-            {/* MANDATORY WHATSAPP-STYLE 3-COLUMN PROJECT MEMBER CONVERSATIONS */}
+            {/* ENTERPRISE SLACK / TEAMS STYLE 1-COLUMN PROJECT WORKSPACE CHAT */}
             {activeTab === 'conversations' && (
-              <div className="h-[80vh] grid grid-cols-1 lg:grid-cols-4 gap-4 overflow-hidden">
+              <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between overflow-hidden h-[74vh] shadow-xs">
                 
-                {/* COLUMN 1: PROJECT MEMBER ROSTER */}
-                <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col space-y-3 overflow-y-auto">
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-extrabold text-slate-900 dark:text-white flex items-center justify-between">
-                      <span>Project Members</span>
-                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 font-mono text-[10px] rounded-md font-bold">5 Online</span>
+                {/* Channel Header */}
+                <div className="pb-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-cyan-500" /> {projectName} Channel ({projectCode})
                     </h3>
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-                      <input
-                        type="text"
-                        value={memberSearch}
-                        onChange={(e) => setMemberSearch(e.target.value)}
-                        placeholder="Search roster..."
-                        className="w-full text-xs pl-8 pr-2 py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-medium"
-                      />
-                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium">STOMP SockJS `/ws-chat` • WebSocket Synced</p>
                   </div>
 
-                  <div className="space-y-3 pt-1 text-xs">
-                    {/* PM */}
-                    <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Project Manager</span>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="font-extrabold truncate text-slate-900 dark:text-white">{project.projectManagerName || 'Vikramaditya Sharma'}</span>
-                        </div>
-                        <span className="px-1.5 py-0.5 bg-cyan-500/10 text-cyan-600 font-mono text-[9px] font-bold rounded">P1</span>
-                      </div>
-                    </div>
-
-                    {/* Lead */}
-                    <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Technical Lead</span>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                          <span className="font-extrabold truncate text-slate-900 dark:text-white">{project.projectLeadName || 'Ranadhir Pal'}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Customer */}
-                    <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-1">
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Customer VP</span>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="w-2 h-2 rounded-full bg-amber-500" />
-                          <span className="font-extrabold truncate text-slate-900 dark:text-white">{project.customerRepresentative || 'Marcus Vance'}</span>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[10px] flex items-center gap-1.5 border border-emerald-500/20">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Connected
+                    </span>
                   </div>
                 </div>
 
-                {/* COLUMN 2: WHATSAPP-STYLE CENTER CHAT STREAM */}
-                <div className="lg:col-span-2 p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col justify-between overflow-hidden">
-                  
-                  {/* Header */}
-                  <div className="pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-cyan-500" /> Real-Time Channel ({projectCode})
-                      </h3>
-                      <p className="text-[11px] text-slate-500 font-medium">STOMP SockJS `/ws-chat` • WebSocket Synced</p>
-                    </div>
-
-                    <div className="flex items-center gap-1 text-xs">
-                      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900"><PhoneCall className="w-4 h-4" /></button>
-                      <button className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-slate-400 hover:text-slate-900"><Video className="w-4 h-4" /></button>
-                    </div>
+                {/* Messages Stream */}
+                <div className="flex-1 overflow-y-auto p-3 space-y-4">
+                  <div className="text-center my-2">
+                    <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 font-mono text-[10px] font-bold rounded-full">
+                      Today
+                    </span>
                   </div>
 
-                  {/* Messages Stream (WhatsApp Style Alignment) */}
-                  <div className="flex-1 overflow-y-auto p-3 space-y-3">
-                    <div className="text-center my-2"><span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-400 font-mono text-[10px] font-bold rounded-full">Today</span></div>
+                  {chatMessages.map((msg) => {
+                    const isMe = msg.senderId === currentUserId || msg.senderName === 'You';
+                    return (
+                      <div key={msg.id} className={`flex items-end gap-2.5 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        {!isMe && (
+                          <div className="w-8 h-8 rounded-2xl bg-slate-800 text-cyan-400 font-black text-xs flex items-center justify-center shrink-0 border border-slate-700">
+                            {msg.senderName.charAt(0)}
+                          </div>
+                        )}
 
-                    {chatMessages.map((msg) => {
-                      const isMe = msg.senderId === currentUserId || msg.senderName === 'You';
-                      return (
-                        <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`space-y-1 max-w-lg ${isMe ? 'items-end' : 'items-start'}`}>
                           {!isMe && (
-                            <div className="w-7 h-7 rounded-full bg-slate-800 text-cyan-400 font-extrabold text-xs flex items-center justify-center shrink-0">
-                              {msg.senderName.charAt(0)}
+                            <div className="flex items-center gap-2 text-[10px] px-1">
+                              <span className="font-extrabold text-slate-900 dark:text-white">{msg.senderName}</span>
+                              <span className="text-slate-400 font-mono">({msg.senderRole})</span>
                             </div>
                           )}
 
-                          <div className={`space-y-1 max-w-md ${isMe ? 'items-end' : 'items-start'}`}>
-                            {!isMe && (
-                              <div className="flex items-center gap-2 text-[10px]">
-                                <span className="font-extrabold text-slate-900 dark:text-white">{msg.senderName}</span>
-                                <span className="text-slate-400 font-mono">({msg.senderRole})</span>
+                          <div className={`p-3.5 rounded-2xl text-xs font-medium leading-relaxed shadow-xs ${
+                            isMe 
+                              ? 'bg-cyan-500 text-slate-950 font-bold rounded-br-none' 
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-200/60 dark:border-slate-700/60'
+                          }`}>
+                            {msg.content && <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>}
+
+                            {/* Attachment Cards Rendering */}
+                            {msg.attachments && msg.attachments.length > 0 && (
+                              <div className="mt-2.5 space-y-2 pt-2 border-t border-slate-700/20">
+                                {msg.attachments.map((att: any, attIdx: number) => (
+                                  <AttachmentCard
+                                    key={att.id || attIdx}
+                                    attachment={att}
+                                    onPreviewPdf={(url, title) => { setPdfPreviewUrl(url); setPdfPreviewTitle(title); }}
+                                    onPreviewImage={(url) => setImageLightboxUrl(url)}
+                                  />
+                                ))}
                               </div>
                             )}
 
-                            <div className={`p-3 rounded-2xl text-xs font-medium leading-relaxed shadow-xs ${
-                              isMe 
-                                ? 'bg-cyan-500 text-slate-950 font-bold rounded-br-none' 
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-bl-none border border-slate-200/60 dark:border-slate-700/60'
-                            }`}>
-                              {msg.content}
-
-                              <div className={`flex items-center justify-end gap-1 mt-1 text-[9px] ${isMe ? 'text-slate-800 font-mono' : 'text-slate-400'}`}>
-                                <span>{msg.sentAt}</span>
-                                {isMe && <CheckCheck className="w-3.5 h-3.5 text-slate-900" />}
-                              </div>
+                            <div className={`flex items-center justify-end gap-1.5 mt-1.5 text-[9px] ${isMe ? 'text-slate-800 font-mono' : 'text-slate-400'}`}>
+                              <span>{msg.sentAt}</span>
+                              {isMe && <CheckCheck className="w-3.5 h-3.5 text-slate-900" />}
                             </div>
                           </div>
                         </div>
-                      );
-                    })}
-                    <div ref={chatBottomRef} />
-                  </div>
-
-                  {/* Input Form */}
-                  <form onSubmit={handleSendChatMessage} className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                    <button type="button" className="p-2 text-slate-400 hover:text-slate-600"><Paperclip className="w-4 h-4" /></button>
-                    <input
-                      type="text"
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Type a message or @mention a team member..."
-                      className="flex-1 text-xs p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-medium text-slate-900 dark:text-slate-100"
-                    />
-                    <button type="submit" className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-1">
-                      <Send className="w-3.5 h-3.5" />
-                    </button>
-                  </form>
-                </div>
-
-                {/* COLUMN 3: RIGHT CHANNEL METADATA */}
-                <div className="p-4 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex flex-col space-y-4 overflow-y-auto">
-                  <h3 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Channel Specs</h3>
-                  
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Pinned Updates</span>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 font-medium">"Google Drive OAuth 2.0 offline refresh flow is verified."</p>
-                  </div>
-
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-2 text-xs">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Shared Storage Files</span>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 font-mono text-[11px] text-cyan-600 dark:text-cyan-400 font-bold">
-                        <Paperclip className="w-3 h-3" /> Architecture_Spec_v1.pdf
                       </div>
-                    </div>
-                  </div>
+                    );
+                  })}
+                  <div ref={chatBottomRef} />
                 </div>
 
+                {/* Staged Pending Attachment Badge */}
+                {pendingAttachment && (
+                  <div className="px-3.5 py-2 mx-3 mb-2 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-between text-xs text-cyan-400 font-bold">
+                    <div className="flex items-center gap-2.5 truncate">
+                      <Paperclip className="w-4 h-4 shrink-0 text-cyan-400" />
+                      <span className="truncate">{pendingAttachment.fileName} ({formatBytes(pendingAttachment.fileSize)})</span>
+                    </div>
+                    <button onClick={() => setPendingAttachment(null)} className="p-1 text-slate-400 hover:text-rose-400 rounded-lg">✕</button>
+                  </div>
+                )}
+
+                {/* Chat Input Bar */}
+                <form onSubmit={handleSendChatMessage} className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2.5">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileAttachmentSelect}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAttachment}
+                    className="p-3 text-slate-400 hover:text-cyan-400 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 transition-colors shrink-0"
+                    title="Attach Files (PDF, Images, Video, Audio, DOCX, ZIP)"
+                  >
+                    {isUploadingAttachment ? <Loader2 className="w-4 h-4 animate-spin text-cyan-400" /> : <Paperclip className="w-4 h-4" />}
+                  </button>
+
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Type a message or attach document/media files..."
+                    className="flex-1 text-xs p-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-500"
+                  />
+                  <button type="submit" className="px-5 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-1.5 shrink-0">
+                    <Send className="w-4 h-4" />
+                    <span>Send</span>
+                  </button>
+                </form>
               </div>
             )}
 
@@ -675,6 +863,62 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
         </div>
 
       </div>
+
+      {/* PDF PREVIEW MODAL */}
+      {pdfPreviewUrl && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2 truncate">
+                <FileText className="w-5 h-5 text-rose-400" />
+                <h3 className="font-black text-sm text-white truncate font-mono">{pdfPreviewTitle || 'PDF Document Preview'}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={pdfPreviewUrl}
+                  download={pdfPreviewTitle || 'document.pdf'}
+                  className="px-3 py-1.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl inline-flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" /> Download PDF
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setPdfPreviewUrl(null)}
+                  className="p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 bg-slate-950 p-2">
+              <iframe
+                src={pdfPreviewUrl}
+                title="PDF Preview"
+                className="w-full h-full rounded-2xl border-none"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* IMAGE LIGHTBOX MODAL */}
+      {imageLightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={() => setImageLightboxUrl(null)}
+        >
+          <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+            <button
+              type="button"
+              onClick={() => setImageLightboxUrl(null)}
+              className="absolute -top-12 right-0 p-2 text-white bg-slate-800 rounded-full hover:bg-slate-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img src={imageLightboxUrl} alt="Preview" className="max-h-[85vh] rounded-2xl object-contain shadow-2xl" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

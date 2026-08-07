@@ -10,12 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @RestController
-@RequestMapping("/storage")
+@RequestMapping({"/api/v1/storage", "/api/storage", "/storage"})
 @RequiredArgsConstructor
 @Tag(name = "Cloudinary Storage Engine", description = "Cloud asset CDN upload and media management")
 public class StorageController {
@@ -25,23 +27,48 @@ public class StorageController {
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload media file or document to Cloudinary CDN")
-    public ResponseEntity<ApiResponse<Map<String, String>>> uploadFile(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "folder", defaultValue = "avatars") String folder,
+            @RequestParam(value = "folder", required = false) String folder,
+            @RequestParam(value = "category", required = false) String category,
+            @RequestParam(value = "uploadedBy", required = false) String uploadedBy,
+            @RequestParam(value = "module", required = false) String module,
             @RequestParam(value = "projectCode", required = false) String projectCode) {
-        String url = cloudinaryService.uploadFile(file, folder);
-        Map<String, String> responseData = Map.of("url", url, "folder", folder, "fileName", file.getOriginalFilename());
-        
+
+        String targetFolder = folder != null && !folder.isBlank() ? folder :
+                (category != null ? category.toLowerCase().replaceAll("\\s+", "_") : "avatars");
+
+        String url = cloudinaryService.uploadFile(file, targetFolder);
+
+        String id = "file-" + UUID.randomUUID().toString().substring(0, 8);
+        String filename = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+        String format = filename.contains(".") ? filename.substring(filename.lastIndexOf(".") + 1) : "bin";
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("id", id);
+        responseData.put("name", filename);
+        responseData.put("category", category != null ? category : "Documents");
+        responseData.put("url", url);
+        responseData.put("publicId", "techknife/" + targetFolder + "/" + id);
+        responseData.put("fileSize", file.getSize());
+        responseData.put("format", format);
+        responseData.put("uploadedBy", uploadedBy != null ? uploadedBy : "Admin User");
+        responseData.put("uploadedByEmail", "admin@techknife.io");
+        responseData.put("module", module != null ? module : "General Storage");
+        responseData.put("isPrivate", false);
+        responseData.put("createdAt", java.time.Instant.now().toString());
+
         try {
-            String target = (projectCode != null && !projectCode.isBlank()) ? projectCode : folder;
+            String target = (projectCode != null && !projectCode.isBlank()) ? projectCode : targetFolder;
             messagingTemplate.convertAndSend("/topic/project." + target, Map.of(
                 "eventType", "DOCUMENT_UPLOADED",
-                "fileName", file.getOriginalFilename(),
+                "fileName", filename,
                 "url", url,
-                "folder", folder
+                "folder", targetFolder
             ));
         } catch (Exception ignored) {}
 
         return ResponseEntity.ok(ApiResponse.success(responseData, "File uploaded successfully to Cloudinary"));
     }
 }
+

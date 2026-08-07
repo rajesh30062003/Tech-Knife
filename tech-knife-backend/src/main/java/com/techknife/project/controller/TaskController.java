@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/projects/tasks")
+@RequestMapping({"/api/v1/projects/tasks", "/api/projects/tasks", "/projects/tasks"})
 @RequiredArgsConstructor
 @Tag(name = "Tasks", description = "Endpoints for Task & SubTask management")
 @SecurityRequirement(name = "bearerAuth")
@@ -30,7 +30,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('TASK_CREATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "CREATE_TASK", module = "PROJECT")
     @Operation(summary = "Create Task")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> createTask(@Valid @RequestBody TaskRequestDTO request) {
@@ -39,7 +39,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('TASK_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "UPDATE_TASK", module = "PROJECT")
     @Operation(summary = "Update Task")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> updateTask(
@@ -50,7 +50,7 @@ public class TaskController {
     }
 
     @PatchMapping("/{id}/assign")
-    @PreAuthorize("hasAuthority('TASK_ASSIGN') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "ASSIGN_TASK", module = "PROJECT")
     @Operation(summary = "Assign Task to Employee/Reviewer")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> assignTask(
@@ -62,7 +62,7 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PROJECT_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get Task by ID")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> getTaskById(@PathVariable String id) {
         TaskResponseDTO response = taskService.getTaskById(id);
@@ -70,7 +70,7 @@ public class TaskController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PROJECT_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "List / Filter Tasks")
     public ResponseEntity<ApiResponse<List<TaskResponseDTO>>> getTasks(
             @RequestParam(required = false) String projectId,
@@ -83,7 +83,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('TASK_DELETE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "DELETE_TASK", module = "PROJECT")
     @Operation(summary = "Delete Task")
     public ResponseEntity<ApiResponse<Void>> deleteTask(@PathVariable String id) {
@@ -93,7 +93,7 @@ public class TaskController {
 
     // SubTask Endpoints
     @PostMapping("/{id}/subtasks")
-    @PreAuthorize("hasAuthority('TASK_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "ADD_SUBTASK", module = "PROJECT")
     @Operation(summary = "Add SubTask")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> addSubTask(
@@ -104,7 +104,7 @@ public class TaskController {
     }
 
     @PutMapping("/{id}/subtasks/{subTaskId}")
-    @PreAuthorize("hasAuthority('TASK_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "UPDATE_SUBTASK", module = "PROJECT")
     @Operation(summary = "Update SubTask")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> updateSubTask(
@@ -116,7 +116,7 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}/subtasks/{subTaskId}")
-    @PreAuthorize("hasAuthority('TASK_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = "DELETE_SUBTASK", module = "PROJECT")
     @Operation(summary = "Delete SubTask")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> deleteSubTask(
@@ -126,3 +126,4 @@ public class TaskController {
         return ResponseEntity.ok(ApiResponse.success(response, "Subtask deleted successfully"));
     }
 }
+

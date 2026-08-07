@@ -76,11 +76,16 @@ public class InternalMessageServiceImpl implements InternalMessageService {
         List<MessageAttachment> attachments = null;
         if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
             attachments = request.getAttachments().stream().map(a -> MessageAttachment.builder()
+                    .id(a.getId() != null ? a.getId() : "att-" + UUID.randomUUID().toString().substring(0, 8))
+                    .driveFileId(a.getDriveFileId())
                     .fileName(a.getFileName())
-                    .fileUrl(a.getFileUrl())
-                    .fileType(a.getFileType())
+                    .mimeType(a.getMimeType() != null ? a.getMimeType() : a.getFileType())
                     .fileSize(a.getFileSize())
-                    .uploadedAt(Instant.now())
+                    .previewUrl(a.getPreviewUrl() != null ? a.getPreviewUrl() : a.getFileUrl())
+                    .downloadUrl(a.getDownloadUrl() != null ? a.getDownloadUrl() : a.getFileUrl())
+                    .thumbnailUrl(a.getThumbnailUrl())
+                    .uploadedBy(a.getUploadedBy() != null ? a.getUploadedBy() : senderName)
+                    .uploadedAt(a.getUploadedAt() != null ? a.getUploadedAt() : Instant.now())
                     .build()).collect(Collectors.toList());
         }
 
@@ -196,10 +201,15 @@ public class InternalMessageServiceImpl implements InternalMessageService {
         List<MessageAttachmentDTO> attDtos = null;
         if (m.getAttachments() != null) {
             attDtos = m.getAttachments().stream().map(a -> MessageAttachmentDTO.builder()
+                    .id(a.getId())
+                    .driveFileId(a.getDriveFileId())
                     .fileName(a.getFileName())
-                    .fileUrl(a.getFileUrl())
-                    .fileType(a.getFileType())
+                    .mimeType(a.getMimeType())
                     .fileSize(a.getFileSize())
+                    .previewUrl(a.getPreviewUrl())
+                    .downloadUrl(a.getDownloadUrl())
+                    .thumbnailUrl(a.getThumbnailUrl())
+                    .uploadedBy(a.getUploadedBy())
                     .uploadedAt(a.getUploadedAt())
                     .build()).collect(Collectors.toList());
         }

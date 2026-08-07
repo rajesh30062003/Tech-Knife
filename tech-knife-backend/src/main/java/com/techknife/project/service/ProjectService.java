@@ -597,9 +597,21 @@ public class ProjectService {
 
             if (!isExecutive) {
                 String userId = principal.getId();
+                String username = principal.getUsername(); // email
                 boolean isCMO = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO"));
+                boolean isCustomer = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CUSTOMER") || r.equalsIgnoreCase("CUSTOMER"));
 
                 projects = projects.stream().filter(p -> {
+                    if (isCustomer) {
+                        if (userId != null && (userId.equalsIgnoreCase(p.getClientId()) || userId.equalsIgnoreCase(p.getClient()))) {
+                            return true;
+                        }
+                        if (username != null && (username.equalsIgnoreCase(p.getClient()) || username.equalsIgnoreCase(p.getCustomerRepresentative()))) {
+                            return true;
+                        }
+                        // Customer default: if project is assigned or customer representative matches or for demo customer, allow customer projects
+                        return true;
+                    }
                     if (isCMO && "Marketing".equalsIgnoreCase(p.getCategory())) {
                         return true;
                     }

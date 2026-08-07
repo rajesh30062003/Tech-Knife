@@ -25,6 +25,16 @@ export default defineConfig(() => {
           changeOrigin: true,
           secure: false,
         },
+        '/drive': {
+          target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/storage': {
+          target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
+          changeOrigin: true,
+          secure: false,
+        },
         '/ws-chat': {
           target: process.env.VITE_API_BASE_URL || 'http://localhost:8080',
           changeOrigin: true,

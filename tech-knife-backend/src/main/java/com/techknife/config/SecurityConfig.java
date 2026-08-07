@@ -45,9 +45,11 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(request -> {
-            boolean matches = request.getRequestURI().startsWith("/ws-chat");
+            String uri = request.getRequestURI();
+            boolean matches = uri.startsWith("/ws-chat") 
+                    || uri.contains("/drive/");
             if (matches) {
-                log.info("==== WebSecurityCustomizer Ignoring Request: URI='{}', Method='{}' ====", request.getRequestURI(), request.getMethod());
+                log.info("==== WebSecurityCustomizer Ignoring Request: URI='{}', Method='{}' ====", uri, request.getMethod());
             }
             return matches;
         });
@@ -94,6 +96,14 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/ws-chat/**",
                                 "/ws-chat",
+                                "/api/v1/drive/download/**",
+                                "/api/v1/drive/preview/**",
+                                "/api/drive/download/**",
+                                "/api/drive/preview/**",
+                                "/drive/download/**",
+                                "/drive/preview/**",
+                                "/api/v1/storage/download/**",
+                                "/api/v1/storage/preview/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

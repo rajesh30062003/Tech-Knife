@@ -13,9 +13,23 @@ import java.time.Instant;
 @AllArgsConstructor
 public class MessageAttachmentDTO {
 
+    private String id;
+    private String driveFileId;
     private String fileName;
-    private String fileUrl;
-    private String fileType;
+    private String mimeType;
     private Long fileSize;
+    private String previewUrl;
+    private String downloadUrl;
+    private String thumbnailUrl;
+    private String uploadedBy;
     private Instant uploadedAt;
+
+    // Backward-compatibility getters
+    public String getFileUrl() {
+        return downloadUrl != null ? downloadUrl : (previewUrl != null ? previewUrl : "");
+    }
+
+    public String getFileType() {
+        return mimeType != null ? mimeType : "application/octet-stream";
+    }
 }

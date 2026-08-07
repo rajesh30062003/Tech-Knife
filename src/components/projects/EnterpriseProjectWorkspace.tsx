@@ -21,6 +21,8 @@ import { EnterpriseAiWorkspace } from './ai/EnterpriseAiWorkspace';
 import { EnterpriseDevOpsWorkspace } from '../devops/EnterpriseDevOpsWorkspace';
 import { EnterpriseWikiWorkspace } from '../wiki/EnterpriseWikiWorkspace';
 import { EnterpriseSecuritySuite } from '../security/EnterpriseSecuritySuite';
+import { EnterpriseProjectPlanningWorkspace } from './planning/EnterpriseProjectPlanningWorkspace';
+import { EnterpriseTaskManagementWorkspace } from './tasks/EnterpriseTaskManagementWorkspace';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -805,6 +807,15 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
                 <div className="space-y-2"><label className="text-xs font-bold block">Interns ({assignedInterns.length})</label><InternSelect value={assignedInterns} onChange={(val) => setAssignedInterns(val)} multiple={true} /></div>
               </div>
             )}
+
+            {/* PLANNING WORKSPACE TAB */}
+            {activeTab === 'planning' && <EnterpriseProjectPlanningWorkspace project={project} />}
+
+            {/* TASKS & KANBAN MANAGEMENT WORKSPACE TABS */}
+            {activeTab === 'tasks' && <EnterpriseTaskManagementWorkspace project={project} initialView="list" />}
+            {activeTab === 'kanban' && <EnterpriseTaskManagementWorkspace project={project} initialView="kanban" />}
+            {activeTab === 'sprint' && <EnterpriseTaskManagementWorkspace project={project} initialView="tree" />}
+            {activeTab === 'timeline' && <EnterpriseTaskManagementWorkspace project={project} initialView="timeline" />}
 
             {/* REPORTS & AUDIT TAB */}
             {activeTab === 'reports' && <UniversalReportExporter defaultModule="Projects & Deliverables" />}

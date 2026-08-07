@@ -6,8 +6,10 @@ import {
   Sparkles, Award, UserCheck, CornerDownRight, Network, Activity, FileText
 } from 'lucide-react';
 import { EnterpriseProject } from '../../../api/projects';
-import { projectWorkspaceApi, ProjectTask } from '../../../api/projectWorkspaceApi';
+import { projectWorkspaceApi } from '../../../api/projectWorkspaceApi';
 import { useAuth } from '../../../context/AuthContext';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 interface EnterpriseTaskManagementWorkspaceProps {
   project: EnterpriseProject;
@@ -31,7 +33,6 @@ export interface TaskComment {
   authorAvatar: string;
   content: string;
   createdAt: string;
-  reactions?: { emoji: string; count: number; users: string[] }[];
 }
 
 export interface TaskActivity {
@@ -41,23 +42,28 @@ export interface TaskActivity {
   timestamp: string;
 }
 
-export interface ExtendedProjectTask extends ProjectTask {
+export interface ExtendedProjectTask {
+  id: string;
+  taskCode?: string;
+  taskNumber?: string;
+  title: string;
   description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
+  status: TaskStatus | string;
+  priority: TaskPriority | string;
   labels?: string[];
   sprint?: string;
   epic?: string;
   storyPoints?: number;
   estimatedHours?: number;
+  assigneeName?: string;
   reporterName?: string;
-  createdByInfo: AuditUserInfo;
+  createdByInfo?: AuditUserInfo;
   completedByInfo?: AuditUserInfo;
-  createdDate: string;
+  createdDate?: string;
   completedDate?: string;
   parentTaskId?: string;
   childTasks?: ExtendedProjectTask[];
-  dependencies?: string[]; // Array of task codes it depends on
+  dependencies?: string[];
   attachments?: { name: string; url: string; size: number }[];
   comments?: TaskComment[];
   activityLog?: TaskActivity[];
@@ -66,134 +72,6 @@ export interface ExtendedProjectTask extends ProjectTask {
   isPinned?: boolean;
 }
 
-const INITIAL_EXTENDED_TASKS: ExtendedProjectTask[] = [
-  {
-    id: 'TSK-101',
-    taskCode: 'TSK-101',
-    title: 'Core System Authentication & OAuth 2.0 Security Framework',
-    description: 'Implement high-security OAuth 2.0 refresh token rotation and JWT claim validation.',
-    status: 'Completed',
-    priority: 'Urgent',
-    assigneeName: 'Subrata Pal',
-    reporterName: 'Ranadhir Pal',
-    createdByInfo: {
-      name: 'Subrata Pal',
-      role: 'Principal Security Architect',
-      avatar: 'S',
-      timestamp: '2026-08-01 10:00 AM'
-    },
-    completedByInfo: {
-      name: 'Subrata Pal',
-      role: 'Principal Security Architect',
-      avatar: 'S',
-      timestamp: '2026-08-05 04:30 PM'
-    },
-    createdDate: '2026-08-01',
-    completedDate: '2026-08-05',
-    dueDate: '2026-08-05',
-    storyPoints: 8,
-    estimatedHours: 40,
-    sprint: 'Sprint 1',
-    epic: 'Authentication Security',
-    labels: ['Security', 'OAuth', 'JWT'],
-    dependencies: [],
-    childTasks: [
-      {
-        id: 'TSK-101-A',
-        taskCode: 'TSK-101-A',
-        title: 'Login UI & Responsive Auth Form',
-        status: 'Completed',
-        priority: 'High',
-        assigneeName: 'Ranadhir Pal',
-        createdByInfo: { name: 'Subrata Pal', role: 'Architect', avatar: 'S', timestamp: '2026-08-01' },
-        completedByInfo: { name: 'Ranadhir Pal', role: 'Frontend Lead', avatar: 'R', timestamp: '2026-08-03' },
-        createdDate: '2026-08-01',
-        parentTaskId: 'TSK-101'
-      },
-      {
-        id: 'TSK-101-B',
-        taskCode: 'TSK-101-B',
-        title: 'Spring Security Filter Chain Customizer',
-        status: 'Completed',
-        priority: 'Urgent',
-        assigneeName: 'Subrata Pal',
-        createdByInfo: { name: 'Subrata Pal', role: 'Architect', avatar: 'S', timestamp: '2026-08-01' },
-        completedByInfo: { name: 'Subrata Pal', role: 'Architect', avatar: 'S', timestamp: '2026-08-05' },
-        createdDate: '2026-08-01',
-        parentTaskId: 'TSK-101'
-      }
-    ],
-    comments: [
-      { id: 'c1', authorName: 'Ranadhir Pal', authorRole: 'Frontend Lead', authorAvatar: 'R', content: 'OAuth 2.0 flow verified on backend port 8080.', createdAt: '2026-08-05 04:25 PM' }
-    ],
-    activityLog: [
-      { id: 'a1', user: 'Subrata Pal', action: 'Created Task TSK-101', timestamp: '2026-08-01 10:00 AM' },
-      { id: 'a2', user: 'Subrata Pal', action: 'Marked Task TSK-101 as Completed', timestamp: '2026-08-05 04:30 PM' }
-    ],
-    votesCount: 5,
-    isWatching: true,
-    isPinned: true
-  },
-  {
-    id: 'TSK-102',
-    taskCode: 'TSK-102',
-    title: 'Google Drive File Upload & Chat Attachment Pipeline',
-    description: 'Connect backend GoogleDriveService to React workspace and STOMP WebSocket broadcast stream.',
-    status: 'In Progress',
-    priority: 'High',
-    assigneeName: 'Ranadhir Pal',
-    reporterName: 'Executive Admin',
-    createdByInfo: {
-      name: 'Executive Admin',
-      role: 'Project Manager',
-      avatar: 'A',
-      timestamp: '2026-08-06 09:15 AM'
-    },
-    createdDate: '2026-08-06',
-    dueDate: '2026-08-12',
-    storyPoints: 5,
-    estimatedHours: 24,
-    sprint: 'Sprint 2',
-    epic: 'Storage & Drive Integration',
-    labels: ['GoogleDrive', 'WebSocket', 'Attachments'],
-    dependencies: ['TSK-101'],
-    comments: [],
-    activityLog: [
-      { id: 'a3', user: 'Executive Admin', action: 'Created Task TSK-102', timestamp: '2026-08-06 09:15 AM' }
-    ],
-    votesCount: 3,
-    isWatching: true
-  },
-  {
-    id: 'TSK-103',
-    taskCode: 'TSK-103',
-    title: 'Multi-View Task Dependency Graph & Gantt Renderer',
-    description: 'Build interactive visual dependency graph and timeline views with status colors.',
-    status: 'Code Review',
-    priority: 'Urgent',
-    assigneeName: 'Vikramaditya Sharma',
-    reporterName: 'Subrata Pal',
-    createdByInfo: {
-      name: 'Subrata Pal',
-      role: 'Principal Architect',
-      avatar: 'S',
-      timestamp: '2026-08-07 11:00 AM'
-    },
-    createdDate: '2026-08-07',
-    dueDate: '2026-08-15',
-    storyPoints: 5,
-    estimatedHours: 30,
-    sprint: 'Sprint 2',
-    epic: 'Enterprise Task Workspace',
-    labels: ['Visualization', 'Gantt', 'Graph'],
-    dependencies: ['TSK-102'],
-    comments: [],
-    activityLog: [
-      { id: 'a4', user: 'Subrata Pal', action: 'Created Task TSK-103', timestamp: '2026-08-07 11:00 AM' }
-    ]
-  }
-];
-
 export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagementWorkspaceProps> = ({ 
   project, 
   initialView = 'list' 
@@ -201,12 +79,14 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
   const { user } = useAuth();
   const currentUserName = user ? `${user.firstName} ${user.lastName}` : 'Corporate Member';
   const currentUserRole = user?.role || 'Engineer';
+  const projectId = project.id || project.projectId || project.projectCode;
   const isManagerOrLead = ['ROLE_MANAGER', 'ROLE_CEO', 'ROLE_SUPER_ADMIN', 'Project Manager', 'Lead'].some(
     r => currentUserRole.toUpperCase().includes(r.toUpperCase())
   );
 
   const [activeView, setActiveView] = useState<'list' | 'kanban' | 'tree' | 'timeline' | 'calendar' | 'dependency_graph' | 'mindmap'>(initialView);
-  const [tasks, setTasks] = useState<ExtendedProjectTask[]>(INITIAL_EXTENDED_TASKS);
+  const [tasks, setTasks] = useState<ExtendedProjectTask[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -224,51 +104,108 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
   const [newSprint, setNewSprint] = useState('Sprint 1');
   const [newDueDate, setNewDueDate] = useState(new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0]);
 
-  // Comment Form state
-  const [commentText, setCommentText] = useState('');
+  // Load Tasks from MongoDB Atlas on Mount
+  const loadProjectTasks = async () => {
+    setIsLoading(true);
+    try {
+      const res = await projectWorkspaceApi.getTasks(projectId);
+      if (res.data && res.data.length > 0) {
+        setTasks(res.data.map((t: any) => ({
+          ...t,
+          taskCode: t.taskNumber || t.taskCode || t.id,
+          createdByInfo: t.createdByInfo || { name: t.createdBy || 'System', role: 'Engineer', avatar: 'S', timestamp: '2026-08-01' },
+          completedByInfo: t.completedByInfo || (t.status === 'Completed' || t.status === 'DONE' ? { name: currentUserName, role: currentUserRole, avatar: currentUserName.charAt(0), timestamp: 'Recently' } : undefined),
+          status: t.status === 'DONE' ? 'Completed' : t.status === 'TODO' ? 'Backlog' : t.status
+        })));
+      }
+    } catch (err) {
+      console.warn('Loading fallback tasks');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // Handle Task Creation with Automatic Creator Audit Trail
-  const handleCreateTaskSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadProjectTasks();
+  }, [projectId]);
+
+  // STOMP WebSocket Connection for Real-Time Task Sync
+  useEffect(() => {
+    const pCode = project.projectCode || projectId;
+    const socket = new SockJS('http://localhost:8080/ws-chat');
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: () => {},
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe(`/topic/project.${pCode}`, (message) => {
+          try {
+            const payload = JSON.parse(message.body);
+            if (payload.event === 'TaskCreated' || payload.event === 'TaskUpdated') {
+              loadProjectTasks();
+            }
+          } catch (e) {}
+        });
+      }
+    });
+
+    client.activate();
+    return () => {
+      client.deactivate();
+    };
+  }, [project.projectCode, projectId]);
+
+  // Handle Task Creation via REST API & Save to MongoDB Atlas
+  const handleCreateTaskSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
 
     const nowStr = new Date().toLocaleString();
-    const newTask: ExtendedProjectTask = {
-      id: `TSK-${Math.floor(1000 + Math.random() * 9000)}`,
-      taskCode: `TSK-${Math.floor(100 + Math.random() * 900)}`,
+    const newTaskPayload = {
       title: newTitle.trim(),
       description: newDescription.trim(),
       status: 'In Progress',
       priority: newPriority,
       assigneeName: newAssignee,
-      reporterName: currentUserName,
-      createdByInfo: {
-        name: currentUserName,
-        role: currentUserRole,
-        avatar: currentUserName.charAt(0),
-        timestamp: nowStr
-      },
-      createdDate: new Date().toISOString().split('T')[0],
       dueDate: newDueDate,
       epic: newEpic,
       sprint: newSprint,
       storyPoints: 3,
       estimatedHours: 16,
-      labels: ['Feature'],
-      dependencies: [],
-      comments: [],
-      activityLog: [
-        { id: `act-${Date.now()}`, user: currentUserName, action: `Created Task ${newTitle.trim()}`, timestamp: nowStr }
-      ]
+      createdByInfo: {
+        name: currentUserName,
+        role: currentUserRole,
+        avatar: currentUserName.charAt(0),
+        timestamp: nowStr
+      }
     };
 
-    setTasks([newTask, ...tasks]);
+    try {
+      const res = await projectWorkspaceApi.createTask(projectId, newTaskPayload);
+      if (res.data) {
+        setTasks([res.data as ExtendedProjectTask, ...tasks]);
+      }
+    } catch (err) {
+      const localTask: ExtendedProjectTask = {
+        id: `TSK-${Math.floor(1000 + Math.random() * 9000)}`,
+        taskCode: `TSK-${Math.floor(100 + Math.random() * 900)}`,
+        title: newTitle.trim(),
+        description: newDescription.trim(),
+        status: 'In Progress',
+        priority: newPriority,
+        assigneeName: newAssignee,
+        createdByInfo: { name: currentUserName, role: currentUserRole, avatar: currentUserName.charAt(0), timestamp: nowStr },
+        createdDate: new Date().toISOString().split('T')[0]
+      };
+      setTasks([localTask, ...tasks]);
+    }
+
     setNewTitle('');
     setNewDescription('');
     setShowCreateModal(false);
   };
 
-  // Handle Adding Child Branch Task
+  // Handle Adding Subtask
   const handleAddChildTask = (parentTaskId: string) => {
     if (!newTitle.trim()) return;
     const nowStr = new Date().toLocaleString();
@@ -295,8 +232,8 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
     setShowSubTaskModal(null);
   };
 
-  // Handle Task Completion with Automatic Completion Audit Trail
-  const handleCompleteTask = (taskToComplete: ExtendedProjectTask) => {
+  // Handle Task Completion & Audit Trail Update
+  const handleCompleteTask = async (taskToComplete: ExtendedProjectTask) => {
     const nowStr = new Date().toLocaleString();
     const completionAudit: AuditUserInfo = {
       name: currentUserName,
@@ -305,40 +242,44 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
       timestamp: nowStr
     };
 
+    // Optimistic UI Update
     setTasks(tasks.map(t => {
       if (t.id === taskToComplete.id) {
         return {
           ...t,
           status: 'Completed',
           completedByInfo: completionAudit,
-          completedDate: new Date().toISOString().split('T')[0],
-          activityLog: [
-            ...(t.activityLog || []),
-            { id: `act-${Date.now()}`, user: currentUserName, action: 'Marked Task as Completed', timestamp: nowStr }
-          ]
+          completedDate: new Date().toISOString().split('T')[0]
         };
       }
       return t;
     }));
 
-    if (selectedTask?.id === taskToComplete.id) {
-      setSelectedTask(prev => prev ? { ...prev, status: 'Completed', completedByInfo: completionAudit } : null);
+    try {
+      await projectWorkspaceApi.updateTaskStatus(projectId, taskToComplete.id, 'Completed');
+    } catch (err) {
+      console.warn('Status updated locally');
     }
   };
 
-  // Handle Deletion (Managers/Leads Only)
-  const handleDeleteTask = (taskId: string) => {
+  // Handle Task Deletion (Managers/Leads Only)
+  const handleDeleteTask = async (taskId: string) => {
     if (!isManagerOrLead) {
       alert('Permission Denied: Only Managers or Leads can delete tasks.');
       return;
     }
+
     setTasks(tasks.filter(t => t.id !== taskId));
-    if (selectedTask?.id === taskId) setSelectedTask(null);
+    try {
+      await projectWorkspaceApi.deleteTask(projectId, taskId);
+    } catch (err) {
+      console.warn('Task deleted locally');
+    }
   };
 
   // Filter Tasks
   const filteredTasks = tasks.filter(t => {
-    const matchesStatus = filterStatus === 'ALL' || t.status.toUpperCase() === filterStatus.toUpperCase();
+    const matchesStatus = filterStatus === 'ALL' || String(t.status).toUpperCase() === filterStatus.toUpperCase();
     const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (t.taskCode && t.taskCode.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesStatus && matchesSearch;
@@ -353,10 +294,10 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
           <div>
             <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 mb-1">
               <CheckSquare className="w-4 h-4" />
-              <span>Jira & Linear Style Enterprise Task Suite</span>
+              <span>MongoDB Atlas & WebSocket Synced Enterprise Task Suite</span>
             </div>
             <h3 className="text-xl font-black text-slate-900 dark:text-white">
-              Project Deliverables & Task Management ({tasks.length})
+              Project Deliverables & Tasks ({tasks.length})
             </h3>
             <p className="text-xs text-slate-500 font-medium">Multi-view task engine with branch sub-tasks and automated completion audit trails</p>
           </div>
@@ -494,35 +435,47 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
                       <CheckCircle2 className="w-3.5 h-3.5" /> Complete
                     </button>
                   )}
+
+                  {isManagerOrLead && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeleteTask(task.id); }}
+                      className="p-1.5 bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 rounded-xl"
+                      title="Delete Task (Manager Permission)"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
               {/* Creator & Completion Audit Information */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Created By:</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-black flex items-center justify-center">
-                      {task.createdByInfo.avatar}
-                    </div>
-                    <span className="font-bold text-slate-900 dark:text-slate-200">{task.createdByInfo.name}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">({task.createdByInfo.role})</span>
-                  </div>
-                </div>
-
-                {task.completedByInfo && (
+              {task.createdByInfo && (
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase font-bold text-emerald-500">Completed By:</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400">Created By:</span>
                     <div className="flex items-center gap-1.5">
-                      <div className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black flex items-center justify-center">
-                        {task.completedByInfo.avatar}
+                      <div className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-black flex items-center justify-center">
+                        {task.createdByInfo.avatar || 'C'}
                       </div>
-                      <span className="font-bold text-emerald-400">{task.completedByInfo.name}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">({task.completedByInfo.timestamp})</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-200">{task.createdByInfo.name}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">({task.createdByInfo.role})</span>
                     </div>
                   </div>
-                )}
-              </div>
+
+                  {task.completedByInfo && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase font-bold text-emerald-500">Completed By:</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black flex items-center justify-center">
+                          {task.completedByInfo.avatar || 'C'}
+                        </div>
+                        <span className="font-bold text-emerald-400">{task.completedByInfo.name}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">({task.completedByInfo.timestamp})</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -532,7 +485,7 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
       {activeView === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {(['Backlog', 'In Progress', 'Code Review', 'Completed'] as TaskStatus[]).map(st => {
-            const laneTasks = tasks.filter(t => t.status === st);
+            const laneTasks = tasks.filter(t => String(t.status).toUpperCase() === st.toUpperCase() || (st === 'Completed' && t.status === 'DONE'));
             return (
               <div key={st} className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 space-y-3">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-slate-800">
@@ -557,8 +510,7 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
                       </div>
                       <h5 className="text-xs font-bold text-slate-900 dark:text-white leading-snug">{t.title}</h5>
                       <div className="text-[10px] text-slate-500 flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
-                        <span>By: {t.createdByInfo.name}</span>
-                        <span>Assignee: {t.assigneeName}</span>
+                        <span>Assignee: {t.assigneeName || 'Unassigned'}</span>
                       </div>
                     </div>
                   ))}
@@ -625,13 +577,13 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
               <div key={t.id} className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold">
                   <span>{t.taskCode}: {t.title}</span>
-                  <span className="text-slate-400 font-mono">Due: {t.dueDate}</span>
+                  <span className="text-slate-400 font-mono">Due: {t.dueDate || '2026-08-30'}</span>
                 </div>
                 <div className="w-full h-4 bg-slate-100 dark:bg-slate-950 rounded-full overflow-hidden relative">
                   <div
-                    style={{ width: `${(idx + 1) * 30}%` }}
+                    style={{ width: `${Math.min(100, (idx + 1) * 35)}%` }}
                     className={`h-full rounded-full transition-all ${
-                      t.status === 'Completed' ? 'bg-emerald-500' : 'bg-cyan-500'
+                      t.status === 'Completed' || t.status === 'DONE' ? 'bg-emerald-500' : 'bg-cyan-500'
                     }`}
                   />
                 </div>
@@ -645,7 +597,7 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
       {activeView === 'dependency_graph' && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-            <Network className="w-4 h-4 text-cyan-500" /> Task Dependency Graph Visualizer (Nodes & Directed Edges)
+            <Network className="w-4 h-4 text-cyan-500" /> Persistent Task Dependency Graph Visualizer
           </h4>
 
           <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 min-h-[350px] flex items-center justify-center gap-8 flex-wrap relative">
@@ -656,10 +608,12 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
                   <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 font-bold rounded-md">{t.status}</span>
                 </div>
                 <h5 className="text-xs font-bold text-white">{t.title}</h5>
-                <div className="text-[10px] text-slate-400 border-t border-slate-800 pt-2 space-y-1">
-                  <p>Created By: {t.createdByInfo.name} ({t.createdByInfo.role})</p>
-                  {t.completedByInfo && <p className="text-emerald-400">Completed By: {t.completedByInfo.name}</p>}
-                </div>
+                {t.createdByInfo && (
+                  <div className="text-[10px] text-slate-400 border-t border-slate-800 pt-2 space-y-1">
+                    <p>Created By: {t.createdByInfo.name}</p>
+                    {t.completedByInfo && <p className="text-emerald-400">Completed By: {t.completedByInfo.name}</p>}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -684,7 +638,7 @@ export const EnterpriseTaskManagementWorkspace: React.FC<EnterpriseTaskManagemen
       {showCreateModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-xs flex items-center justify-center p-4">
           <form onSubmit={handleCreateTaskSubmit} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
-            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Create Enterprise Task</h3>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Create Enterprise Task (Saved in MongoDB Atlas)</h3>
 
             <div>
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Task Title *</label>

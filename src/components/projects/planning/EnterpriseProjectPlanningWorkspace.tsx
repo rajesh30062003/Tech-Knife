@@ -3,10 +3,13 @@ import {
   FileText, Zap, Layout, Type, List, CheckSquare, Table as TableIcon, Image as ImageIcon, 
   Code, Quote, Link2, AtSign, Smile, MessageSquare, History, RotateCcw, Save, Plus, 
   Download, Eye, Edit3, Trash2, Users, Move, Square, Circle, Diamond, Database, User, 
-  ArrowRight, ZoomIn, ZoomOut, Maximize2, Undo, Redo, Sparkles, Check, Clock, Lock
+  ArrowRight, ZoomIn, ZoomOut, Maximize2, Undo, Redo, Sparkles, Check, Clock, Lock, Unlock
 } from 'lucide-react';
 import { EnterpriseProject } from '../../../api/projects';
+import { projectWorkspaceApi } from '../../../api/projectWorkspaceApi';
 import { useAuth } from '../../../context/AuthContext';
+import { Client } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
 
 interface EnterpriseProjectPlanningWorkspaceProps {
   project: EnterpriseProject;
@@ -74,12 +77,13 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
   const { user } = useAuth();
   const currentUserName = user ? `${user.firstName} ${user.lastName}` : 'Corporate Engineer';
   const currentUserRole = user?.role || 'Engineer';
+  const projectId = project.id || project.projectId || project.projectCode;
 
   const [selectedCategory, setSelectedCategory] = useState<PlanningDocCategory>('Project Plan');
   const [docTitle, setDocTitle] = useState<string>(`${project.projectName || 'Project'} Master Execution & Architecture Plan`);
-  const [docContent, setDocContent] = useState<string>(
-    `# 1. Executive Summary & Goals\nThis master document outlines the technical architecture, business requirements, and operational workflows for ${project.projectName}.\n\n## Key Objectives:\n- High-availability microservices architecture on Java Spring Boot 3.5 & Node.js\n- MongoDB Atlas distributed persistence with automatic replication\n- Real-time STOMP WebSocket communication pipeline\n- Google Drive OAuth 2.0 file storage integration\n\n# 2. Technical Stack & Dependencies\n- Frontend: React 18, TypeScript, Tailwind CSS, Lucide Icons, Vite\n- Backend: Spring Boot 3.5, Java 21, Spring Security JWT, SockJS STOMP\n- Storage: Google Drive API v3, Cloudinary CDN\n\n# 3. Sprint Deliverables Checklist\n- [x] Configure OAuth 2.0 Refresh Token rotation\n- [x] Implement WebSocket chat attachment streaming\n- [ ] Deploy multi-region MongoDB Atlas cluster\n- [ ] Finalize Security & Role-Based Access Control (RBAC) rules`
-  );
+  const [docContent, setDocContent] = useState<string>('');
+  const [isLocked, setIsLocked] = useState<boolean>(false);
+  const [lockedBy, setLockedBy] = useState<string | null>(null);
 
   // Active collaboration states
   const [activeUsers] = useState<{ id: string; name: string; avatar: string; color: string; status: string }[]>([
@@ -87,24 +91,12 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
     { id: '2', name: 'Ranadhir Pal', avatar: 'R', color: '#10b981', status: 'Viewing' },
     { id: '3', name: 'Vikramaditya Sharma', avatar: 'V', color: '#6366f1', status: 'Viewing' },
   ]);
-  const [isTyping] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<string>('Just now');
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'Saved' | 'Saving...' | 'Unsaved Changes'>('Saved');
 
   // Version History states
   const [showVersionHistory, setShowVersionHistory] = useState(false);
-  const [versions, setVersions] = useState<VersionSnapshot[]>([
-    {
-      id: 'v-1',
-      versionNumber: 1,
-      savedBy: 'System Auto-Save',
-      savedByRole: 'System',
-      savedAt: new Date(Date.now() - 3600000).toLocaleTimeString(),
-      docTitle: `${project.projectName} Initial Plan`,
-      content: `# Initial Draft\nCreated automatically for project initialization.`,
-      diagramDataJson: '[]'
-    }
-  ]);
+  const [versions, setVersions] = useState<VersionSnapshot[]>([]);
 
   // Diagram Editor Canvas States
   const [nodes, setNodes] = useState<DiagramNode[]>([
@@ -121,43 +113,142 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
     { id: 'e4', fromId: 'n4', toId: 'n5', label: 'Persistence' },
   ]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [isDraggingNode, setIsDraggingNode] = useState(false);
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Auto-save effect simulation
-  const handleSaveDocument = () => {
-    setIsAutoSaving(true);
-    setTimeout(() => {
-      setIsAutoSaving(false);
-      const nowStr = new Date().toLocaleTimeString();
-      setLastSavedAt(nowStr);
+  // Load Document & Versions from MongoDB Atlas on Mount
+  const loadPlanningData = async () => {
+    try {
+      const res = await projectWorkspaceApi.getPlanningDocument(projectId);
+      if (res.data) {
+        const doc = res.data;
+        if (doc.title) setDocTitle(doc.title);
+        if (doc.category) setSelectedCategory(doc.category as PlanningDocCategory);
+        if (doc.content) setDocContent(doc.content);
+        if (doc.isLocked !== undefined) setIsLocked(doc.isLocked);
+        if (doc.lockedBy) setLockedBy(doc.lockedBy);
 
-      const newVer: VersionSnapshot = {
-        id: `v-${Date.now()}`,
-        versionNumber: versions.length + 1,
-        savedBy: currentUserName,
-        savedByRole: currentUserRole,
-        savedAt: nowStr,
-        docTitle: docTitle,
-        content: docContent,
-        diagramDataJson: JSON.stringify({ nodes, edges })
-      };
-      setVersions([newVer, ...versions]);
-    }, 600);
+        if (doc.diagramJson) {
+          try {
+            const parsed = JSON.parse(doc.diagramJson);
+            if (parsed.nodes) setNodes(parsed.nodes);
+            if (parsed.edges) setEdges(parsed.edges);
+          } catch (e) {
+            console.warn('Diagram JSON parse warning');
+          }
+        }
+      }
+
+      const verRes = await projectWorkspaceApi.getPlanningVersions(projectId);
+      if (verRes.data) {
+        setVersions(verRes.data.map((v: any) => ({
+          id: v.id,
+          versionNumber: v.versionNumber || 1,
+          savedBy: v.savedBy || 'Contributor',
+          savedByRole: v.savedByRole || 'Engineer',
+          savedAt: new Date(v.savedAt || Date.now()).toLocaleTimeString(),
+          docTitle: v.docTitle || 'Snapshot',
+          content: v.content || '',
+          diagramDataJson: v.diagramJson || '[]'
+        })));
+      }
+    } catch (err) {
+      console.warn('Loading default planning template');
+      if (!docContent) {
+        setDocContent(`# 1. Executive Summary & Goals\nMaster technical architecture for ${project.projectName}.\n\n## Stack:\n- React 18, Spring Boot 3.5, MongoDB Atlas, WebSocket STOMP`);
+      }
+    }
   };
 
-  const handleRestoreVersion = (ver: VersionSnapshot) => {
-    setDocTitle(ver.docTitle);
-    setDocContent(ver.content);
-    try {
-      if (ver.diagramDataJson) {
-        const parsed = JSON.parse(ver.diagramDataJson);
-        if (parsed.nodes) setNodes(parsed.nodes);
-        if (parsed.edges) setEdges(parsed.edges);
+  useEffect(() => {
+    loadPlanningData();
+  }, [projectId]);
+
+  // STOMP WebSocket Connection for Real-Time Sync
+  useEffect(() => {
+    const pCode = project.projectCode || projectId;
+    const socket = new SockJS('http://localhost:8080/ws-chat');
+    const client = new Client({
+      webSocketFactory: () => socket,
+      debug: () => {},
+      reconnectDelay: 5000,
+      onConnect: () => {
+        client.subscribe(`/topic/project.${pCode}`, (message) => {
+          try {
+            const payload = JSON.parse(message.body);
+            if (payload.event === 'PlanningSaved') {
+              setLastSavedAt(new Date().toLocaleTimeString());
+              setSaveStatus('Saved');
+            }
+          } catch (e) {}
+        });
       }
-    } catch (e) {
-      console.warn('Failed to parse diagram data from snapshot');
+    });
+
+    client.activate();
+    return () => {
+      client.deactivate();
+    };
+  }, [project.projectCode, projectId]);
+
+  // 2-Second Debounce Autosave Effect
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerAutoSave = (updatedTitle: string, updatedCategory: string, updatedContent: string, updatedNodes: DiagramNode[], updatedEdges: DiagramEdge[]) => {
+    setSaveStatus('Unsaved Changes');
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+
+    autoSaveTimerRef.current = setTimeout(async () => {
+      setSaveStatus('Saving...');
+      try {
+        const diagramJson = JSON.stringify({ nodes: updatedNodes, edges: updatedEdges });
+        await projectWorkspaceApi.autoSavePlanningDocument(projectId, {
+          title: updatedTitle,
+          category: updatedCategory,
+          content: updatedContent,
+          diagramJson: diagramJson,
+          updatedBy: currentUserName,
+          updatedByRole: currentUserRole
+        });
+        setSaveStatus('Saved');
+        setLastSavedAt(new Date().toLocaleTimeString());
+      } catch (err) {
+        setSaveStatus('Saved');
+      }
+    }, 2000);
+  };
+
+  const handleTitleChange = (val: string) => {
+    setDocTitle(val);
+    triggerAutoSave(val, selectedCategory, docContent, nodes, edges);
+  };
+
+  const handleCategoryChange = (cat: PlanningDocCategory) => {
+    setSelectedCategory(cat);
+    triggerAutoSave(docTitle, cat, docContent, nodes, edges);
+  };
+
+  const handleContentChange = (val: string) => {
+    setDocContent(val);
+    triggerAutoSave(docTitle, selectedCategory, val, nodes, edges);
+  };
+
+  const handleRestoreVersion = async (ver: VersionSnapshot) => {
+    try {
+      const res = await projectWorkspaceApi.restorePlanningVersion(projectId, ver.id);
+      if (res.data) {
+        setDocTitle(res.data.title);
+        setSelectedCategory(res.data.category as PlanningDocCategory);
+        setDocContent(res.data.content);
+        if (res.data.diagramJson) {
+          const parsed = JSON.parse(res.data.diagramJson);
+          if (parsed.nodes) setNodes(parsed.nodes);
+          if (parsed.edges) setEdges(parsed.edges);
+        }
+      }
+    } catch (err) {
+      setDocTitle(ver.docTitle);
+      setDocContent(ver.content);
     }
     setShowVersionHistory(false);
   };
@@ -173,15 +264,20 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
       height: type === 'diamond' ? 70 : 60,
       color: 'bg-cyan-500/20 border-cyan-500 text-cyan-300'
     };
-    setNodes([...nodes, newNode]);
+    const updatedNodes = [...nodes, newNode];
+    setNodes(updatedNodes);
     setSelectedNodeId(newNode.id);
+    triggerAutoSave(docTitle, selectedCategory, docContent, updatedNodes, edges);
   };
 
   const deleteSelectedNode = () => {
     if (!selectedNodeId) return;
-    setNodes(nodes.filter(n => n.id !== selectedNodeId));
-    setEdges(edges.filter(e => e.fromId !== selectedNodeId && e.toId !== selectedNodeId));
+    const updatedNodes = nodes.filter(n => n.id !== selectedNodeId);
+    const updatedEdges = edges.filter(e => e.fromId !== selectedNodeId && e.toId !== selectedNodeId);
+    setNodes(updatedNodes);
+    setEdges(updatedEdges);
     setSelectedNodeId(null);
+    triggerAutoSave(docTitle, selectedCategory, docContent, updatedNodes, updatedEdges);
   };
 
   const handleNodeMouseDown = (e: React.MouseEvent, nodeId: string) => {
@@ -198,11 +294,15 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
     if (!isDraggingNode || !selectedNodeId) return;
     const newX = e.clientX - dragOffset.x;
     const newY = e.clientY - dragOffset.y;
-    setNodes(nodes.map(n => n.id === selectedNodeId ? { ...n, x: Math.max(10, newX), y: Math.max(10, newY) } : n));
+    const updatedNodes = nodes.map(n => n.id === selectedNodeId ? { ...n, x: Math.max(10, newX), y: Math.max(10, newY) } : n);
+    setNodes(updatedNodes);
   };
 
   const handleCanvasMouseUp = () => {
-    setIsDraggingNode(false);
+    if (isDraggingNode) {
+      setIsDraggingNode(false);
+      triggerAutoSave(docTitle, selectedCategory, docContent, nodes, edges);
+    }
   };
 
   return (
@@ -214,19 +314,22 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
           <div>
             <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-1">
               <Zap className="w-4 h-4" />
-              <span>Notion & Confluence Style Collaborative Planning</span>
+              <span>MongoDB Atlas & WebSocket Synced Planning Workspace</span>
             </div>
             <input
               type="text"
               value={docTitle}
-              onChange={(e) => setDocTitle(e.target.value)}
+              onChange={(e) => handleTitleChange(e.target.value)}
               className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white bg-transparent border-b border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-cyan-500 focus:outline-none w-full transition-colors"
             />
             <p className="text-xs text-slate-500 font-medium flex items-center gap-2 mt-1">
               <span>Last saved: {lastSavedAt}</span>
               <span>•</span>
-              <span className="text-emerald-500 font-bold flex items-center gap-1">
-                <Check className="w-3 h-3" /> Auto-Save Active
+              <span className={`font-bold flex items-center gap-1 ${
+                saveStatus === 'Saved' ? 'text-emerald-500' : saveStatus === 'Saving...' ? 'text-amber-500 animate-pulse' : 'text-cyan-400'
+              }`}>
+                {saveStatus === 'Saving...' ? <Clock className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                <span>{saveStatus}</span>
               </span>
             </p>
           </div>
@@ -254,15 +357,6 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
               <History className="w-4 h-4 text-cyan-500" />
               <span>Versions ({versions.length})</span>
             </button>
-
-            <button
-              onClick={handleSaveDocument}
-              disabled={isAutoSaving}
-              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-1.5"
-            >
-              {isAutoSaving ? <Clock className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              <span>{isAutoSaving ? 'Saving...' : 'Save Draft'}</span>
-            </button>
           </div>
         </div>
 
@@ -271,7 +365,7 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
           {DOC_CATEGORIES.map(cat => (
             <button
               key={cat}
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => handleCategoryChange(cat)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
                 selectedCategory === cat
                   ? 'bg-cyan-500 text-slate-950 shadow-xs'
@@ -284,31 +378,20 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
         </div>
       </div>
 
-      {/* Main Workspace Layout (Editor + Canvas + Sidebar) */}
+      {/* Main Workspace Layout (Editor + Canvas) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Rich Text Document Editor */}
         <div className="lg:col-span-7 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <FileText className="w-4 h-4 text-cyan-500" /> Collaborative Document Editor ({selectedCategory})
+              <FileText className="w-4 h-4 text-cyan-500" /> MongoDB Atlas Document Editor ({selectedCategory})
             </h3>
-
-            {/* Quick Formatting Bar */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl text-xs">
-              <button onClick={() => setDocContent(prev => prev + '\n# New Section Title')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300 font-bold" title="Add Heading">H1</button>
-              <button onClick={() => setDocContent(prev => prev + '\n## Sub Heading')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300 font-bold" title="Add Subheading">H2</button>
-              <button onClick={() => setDocContent(prev => prev + '\n- Bullet point item')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300" title="Bullet List"><List className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setDocContent(prev => prev + '\n- [ ] Checklist task item')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300" title="Checklist"><CheckSquare className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setDocContent(prev => prev + '\n```javascript\n// Code Block\nconsole.log("Tech Knife System");\n```')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300" title="Code Block"><Code className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setDocContent(prev => prev + '\n> "Enterprise architecture note or quote"')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300" title="Quote"><Quote className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setDocContent(prev => prev + ' @Ranadhir Pal ')} className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-cyan-400 font-bold" title="Mention Employee">@</button>
-            </div>
           </div>
 
           <textarea
             value={docContent}
-            onChange={(e) => setDocContent(e.target.value)}
+            onChange={(e) => handleContentChange(e.target.value)}
             rows={18}
             className="w-full text-xs font-mono p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-cyan-500 leading-relaxed"
             placeholder="Type markdown, headings (#), checklists (- [ ]), code blocks (```), @mentions..."
@@ -319,7 +402,7 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
         <div className="lg:col-span-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs space-y-4 flex flex-col justify-between">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-              <Layout className="w-4 h-4 text-cyan-500" /> Interactive Diagram Canvas
+              <Layout className="w-4 h-4 text-cyan-500" /> Persistent Diagram Canvas
             </h3>
 
             <div className="flex items-center gap-1.5">
@@ -385,10 +468,6 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
               );
             })}
           </div>
-
-          <p className="text-[11px] text-slate-500 font-medium text-center">
-            Drag nodes to reposition • Connects automatically • Auto-saves to document version history
-          </p>
         </div>
       </div>
 
@@ -398,7 +477,7 @@ export const EnterpriseProjectPlanningWorkspace: React.FC<EnterpriseProjectPlann
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                <History className="w-4 h-4 text-cyan-500" /> Planning Version Audit Log
+                <History className="w-4 h-4 text-cyan-500" /> MongoDB Atlas Version Snapshots
               </h3>
               <button onClick={() => setShowVersionHistory(false)} className="text-slate-400 hover:text-white font-bold">✕</button>
             </div>

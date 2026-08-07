@@ -79,6 +79,31 @@ public class Task {
     @Builder.Default
     private List<SubTask> subtasks = new ArrayList<>();
 
+    private String sprint;
+
+    private String epic;
+
+    @Builder.Default
+    private Double loggedHours = 0.0;
+
+    @Builder.Default
+    private List<String> dependencies = new ArrayList<>();
+
+    private Object createdByInfo;
+
+    private Object completedByInfo;
+
+    private LocalDate completedDate;
+
+    @Builder.Default
+    private Integer votesCount = 0;
+
+    @Builder.Default
+    private Boolean isPinned = false;
+
+    @Builder.Default
+    private Boolean isWatching = false;
+
     @CreatedDate
     private Instant createdAt;
 

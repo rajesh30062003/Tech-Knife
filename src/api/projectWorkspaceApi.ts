@@ -69,19 +69,55 @@ export const projectWorkspaceApi = {
     return res.data;
   },
 
+  // Planning Document & Diagram Persistence
+  getPlanningDocument: async (projectId: string): Promise<ApiResponse<any>> => {
+    const res = await apiClient.get<ApiResponse<any>>(`/projects/${projectId}/planning`);
+    return res.data;
+  },
+
+  autoSavePlanningDocument: async (projectId: string, requestData: any): Promise<ApiResponse<any>> => {
+    const res = await apiClient.patch<ApiResponse<any>>(`/projects/${projectId}/planning`, requestData);
+    return res.data;
+  },
+
+  getPlanningVersions: async (projectId: string): Promise<ApiResponse<any[]>> => {
+    const res = await apiClient.get<ApiResponse<any[]>>(`/projects/${projectId}/planning/versions`);
+    return res.data;
+  },
+
+  restorePlanningVersion: async (projectId: string, versionId: string): Promise<ApiResponse<any>> => {
+    const res = await apiClient.post<ApiResponse<any>>(`/projects/${projectId}/planning/versions/${versionId}/restore`);
+    return res.data;
+  },
+
+  lockPlanningDocument: async (projectId: string, userName: string): Promise<ApiResponse<any>> => {
+    const res = await apiClient.post<ApiResponse<any>>(`/projects/${projectId}/planning/lock?userName=${encodeURIComponent(userName)}`);
+    return res.data;
+  },
+
+  unlockPlanningDocument: async (projectId: string): Promise<ApiResponse<any>> => {
+    const res = await apiClient.post<ApiResponse<any>>(`/projects/${projectId}/planning/unlock`);
+    return res.data;
+  },
+
   // Project Tasks
   getTasks: async (projectId: string): Promise<ApiResponse<ProjectTask[]>> => {
-    const res = await apiClient.get<ApiResponse<ProjectTask[]>>(`/projects/${projectId}/tasks`);
+    const res = await apiClient.get<ApiResponse<ProjectTask[]>>(`/projects/tasks?projectId=${projectId}`);
     return res.data;
   },
 
   createTask: async (projectId: string, task: Partial<ProjectTask>): Promise<ApiResponse<ProjectTask>> => {
-    const res = await apiClient.post<ApiResponse<ProjectTask>>(`/projects/${projectId}/tasks`, task);
+    const res = await apiClient.post<ApiResponse<ProjectTask>>(`/projects/tasks`, { ...task, projectId });
     return res.data;
   },
 
   updateTaskStatus: async (projectId: string, taskId: string, status: string): Promise<ApiResponse<ProjectTask>> => {
-    const res = await apiClient.patch<ApiResponse<ProjectTask>>(`/projects/${projectId}/tasks/${taskId}/status`, { status });
+    const res = await apiClient.put<ApiResponse<ProjectTask>>(`/projects/tasks/${taskId}`, { status });
+    return res.data;
+  },
+
+  deleteTask: async (projectId: string, taskId: string): Promise<ApiResponse<void>> => {
+    const res = await apiClient.delete<ApiResponse<void>>(`/projects/tasks/${taskId}`);
     return res.data;
   },
 

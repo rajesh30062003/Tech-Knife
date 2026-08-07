@@ -47,6 +47,17 @@ public class TaskResponseDTO {
     private List<SubTask> subtasks = new ArrayList<>();
     private Integer totalSubtasks;
     private Integer completedSubtasks;
+    private String sprint;
+    private String epic;
+    private Double loggedHours;
+    @Builder.Default
+    private List<String> dependencies = new ArrayList<>();
+    private Object createdByInfo;
+    private Object completedByInfo;
+    private LocalDate completedDate;
+    private Integer votesCount;
+    private Boolean isPinned;
+    private Boolean isWatching;
     private Instant createdAt;
     private Instant updatedAt;
     private String createdBy;

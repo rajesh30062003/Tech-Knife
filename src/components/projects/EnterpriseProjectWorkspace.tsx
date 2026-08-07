@@ -334,14 +334,18 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
       reconnectDelay: 5000,
       debug: (str) => console.log("[STOMP]", str),
       onConnect: () => {
+        console.log(`[STOMP CONNECTED] Subscribing to /topic/project.${projectCode}`);
         stompClient.subscribe(`/topic/project.${projectCode}`, (message) => {
           try {
+            console.log("[STOMP FRAME RECEIVED RAW]", message.body);
             const data = JSON.parse(message.body);
+            console.log("[STOMP PARSED DATA]", data);
+            console.log("[STOMP ATTACHMENTS IN PAYLOAD]", data.attachments);
             if (data.content && data.id) {
               setChatMessages(prev => {
                 if (prev.some(m => m.id === data.id)) return prev;
                 const filtered = prev.filter(m => !(m.id.startsWith('temp-') && m.content === data.content));
-                return [...filtered, {
+                const newMsgList = [...filtered, {
                   id: data.id,
                   senderId: data.senderId || 'u-remote',
                   senderName: data.senderName || 'Team Member',
@@ -351,6 +355,8 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
                   isRead: true,
                   attachments: data.attachments || [],
                 }];
+                console.log("[REACT STATE UPDATED AFTER STOMP RECEIVE]", newMsgList);
+                return newMsgList;
               });
             }
           } catch (e) {
@@ -398,20 +404,9 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
         });
       }
     } catch (err) {
-      console.warn('Drive upload fallback for chat attachment');
-      const localObjUrl = URL.createObjectURL(file);
-      const userName = user ? `${user.firstName} ${user.lastName}` : 'Corporate User';
-      setPendingAttachment({
-        id: `att-local-${Date.now()}`,
-        fileName: file.name,
-        mimeType: file.type || 'application/octet-stream',
-        fileSize: file.size,
-        previewUrl: localObjUrl,
-        downloadUrl: localObjUrl,
-        thumbnailUrl: (file.type.startsWith('image/') || file.type.startsWith('video/')) ? localObjUrl : '',
-        uploadedBy: userName,
-        uploadedAt: new Date().toISOString(),
-      });
+      console.error('Drive upload failed for chat attachment:', err);
+      alert('File upload failed. Attachment was not sent.');
+      setPendingAttachment(null);
     } finally {
       setIsUploadingAttachment(false);
     }

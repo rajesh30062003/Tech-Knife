@@ -4,9 +4,6 @@
 # Log files
 *.log
 
-# BlueJ files
-*.ctxt
-
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
@@ -19,7 +16,7 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 
 # Build tools / IDEs
@@ -36,9 +33,12 @@ mvnw.cmd
 .settings/
 .vscode/
 
-# Environment files
+# Secrets & Environment files
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+credentials/
+*.pem
+*.p12
+*.key
+google-drive-service.json

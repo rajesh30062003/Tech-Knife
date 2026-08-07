@@ -4,5 +4,13 @@ dist/
 coverage/
 .DS_Store
 *.log
-.env*
+
+# Secrets & Environment Files
+.env
+.env.*
 !.env.example
+credentials/
+*.pem
+*.p12
+*.key
+google-drive-service.json

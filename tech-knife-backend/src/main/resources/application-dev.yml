@@ -9,7 +9,7 @@ spring:
 
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb+srv://techknife01_db_user:cgTVT9DFas3hoG3n@techknife.yotus1r.mongodb.net/techknife?retryWrites=true&w=majority&appName=TechKnife}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/techknife}
       database: ${MONGODB_DATABASE:techknife}
 
       auto-index-creation: true

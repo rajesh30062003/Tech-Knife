@@ -87,7 +87,8 @@ public class DriveController {
         }
 
         if (bytes == null || bytes.length == 0) {
-            bytes = ("%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000062 00000 n \n0000000125 00000 n \ntrailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n200\n%%EOF").getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+            log.error("Download failed: File bytes missing/empty for fileId: {}", fileId);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         String mime = record.getMimeType() != null ? record.getMimeType() : "application/octet-stream";
@@ -129,7 +130,8 @@ public class DriveController {
         }
 
         if (bytes == null || bytes.length == 0) {
-            bytes = ("%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>\nendobj\nxref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n0000000062 00000 n \n0000000125 00000 n \ntrailer\n<< /Size 4 /Root 1 0 R >>\nstartxref\n200\n%%EOF").getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+            log.error("Preview failed: File bytes missing/empty for fileId: {}", fileId);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
 
         String mime = record.getMimeType() != null ? record.getMimeType() : "application/pdf";
@@ -157,8 +159,13 @@ public class DriveController {
 
     @GetMapping("/oauth2callback")
     @Operation(summary = "Google Drive OAuth 2.0 Callback Endpoint")
-    public ResponseEntity<ApiResponse<String>> oauth2Callback(@RequestParam(value = "code", required = false) String code) {
-        log.info("Google Drive OAuth2 callback invoked with code: {}", code);
-        return ResponseEntity.ok(ApiResponse.success("OAuth 2.0 Authorization Code Received & Saved", "Google Drive Auth Success"));
+    public ResponseEntity<ApiResponse<Map<String, Object>>> oauth2Callback(@RequestParam(value = "code", required = false) String code) {
+        log.info("Google Drive OAuth2 callback invoked with authorization code: {}", code);
+        if (code != null && !code.isBlank()) {
+            Map<String, Object> tokens = googleDriveService.exchangeAuthorizationCode(code);
+            log.info("Successfully exchanged authorization code for OAuth tokens: {}", tokens);
+            return ResponseEntity.ok(ApiResponse.success(tokens, "Google Drive OAuth 2.0 Authentication Success!"));
+        }
+        return ResponseEntity.ok(ApiResponse.success(Map.of("message", "No code provided"), "Google Drive Auth Warning"));
     }
 }

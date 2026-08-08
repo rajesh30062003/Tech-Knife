@@ -27,6 +27,19 @@ import { EnterpriseProjectPlanningWorkspace } from './planning/EnterpriseProject
 import { EnterpriseTaskManagementWorkspace } from './tasks/EnterpriseTaskManagementWorkspace';
 import { ProjectDocumentsTab } from './tabs/ProjectDocumentsTab';
 import { ProjectOverviewTab } from './tabs/ProjectOverviewTab';
+import { ProjectSprintTab } from './tabs/ProjectSprintTab';
+import { ProjectMilestonesTab } from './tabs/ProjectMilestonesTab';
+import { ProjectMeetingsTab } from './tabs/ProjectMeetingsTab';
+import { ProjectRisksTab } from './tabs/ProjectRisksTab';
+import { ProjectAnalyticsTab } from './tabs/ProjectAnalyticsTab';
+import { ProjectNotificationsTab } from './tabs/ProjectNotificationsTab';
+import { 
+  PROJECT_STATUS_LIST, 
+  getStatusProgress, 
+  normalizeProjectStatus, 
+  canApproveProjectStatus, 
+  getStatusLabel 
+} from '../../constants/projectStatus';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -39,10 +52,7 @@ export type EnterpriseWorkspaceTab =
   | 'kanban' 
   | 'sprint' 
   | 'timeline' 
-  | 'milestones' 
   | 'meetings' 
-  | 'team' 
-  | 'customer' 
   | 'devops' 
   | 'risks' 
   | 'analytics' 
@@ -51,7 +61,6 @@ export type EnterpriseWorkspaceTab =
   | 'notifications' 
   | 'wiki' 
   | 'ai_workspace' 
-  | 'automation' 
   | 'security' 
   | 'settings';
 
@@ -466,7 +475,9 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
 
   const projectCode = project.projectCode || project.projectId || project.id;
   const projectName = project.projectName || project.shortName || 'Enterprise Deliverable';
-  const progress = project.overallProgressPercentage ?? project.progressPercentage ?? 68;
+  const isApprover = canApproveProjectStatus(user, project);
+  const currentStatus = normalizeProjectStatus(project.status);
+  const progress = getStatusProgress(currentStatus, Math.round(Number(project.overallProgressPercentage ?? project.progressPercentage ?? 0)));
 
   // Handlers
   const handleSendChatMessage = async (e: React.FormEvent) => {
@@ -534,9 +545,10 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
     if (!project.id) return;
     setIsSaving(true);
     try {
-      await projectsApi.updateStatus(project.id, settingsStatus, 'Status updated via workspace');
+      const derivedProg = getStatusProgress(settingsStatus, progress);
+      await projectsApi.updateStatus(project.id, settingsStatus, 'Status updated via workspace settings', derivedProg);
       await projectsApi.update(project.id, { priority: settingsPriority, projectVisibility: settingsVisibility });
-      setSaveMessage('Project settings updated!');
+      setSaveMessage('Project settings & status updated!');
       if (onProjectUpdated) onProjectUpdated();
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (err) {
@@ -565,13 +577,11 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
         { id: 'sprint', label: 'Sprint Management', icon: Clock },
         { id: 'timeline', label: 'Timeline & Milestones', icon: Calendar },
         { id: 'meetings', label: 'Meetings & Syncs', icon: Video },
-        { id: 'team', label: 'Team & Capacity', icon: Users },
       ]
     },
     {
       title: 'GOVERNANCE & ANALYTICS',
       items: [
-        { id: 'customer', label: 'Customer Approvals', icon: Award },
         { id: 'devops', label: 'Repository & DevOps', icon: GitBranch },
         { id: 'risks', label: 'Risks & Governance', icon: AlertTriangle },
         { id: 'analytics', label: 'Productivity Analytics', icon: BarChart3 },
@@ -581,11 +591,10 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
       ]
     },
     {
-      title: 'KNOWLEDGE & SETTINGS',
+      title: 'KNOWLEDGE & TOOLS',
       items: [
         { id: 'wiki', label: 'Knowledge Base & Wiki', icon: BookOpen },
         { id: 'ai_workspace', label: 'AI Copilot Assistant', icon: Bot },
-        { id: 'automation', label: 'Automation Rules', icon: Cpu },
         { id: 'security', label: 'Security & SSO', icon: ShieldCheck },
         { id: 'settings', label: 'Project Settings', icon: Settings },
       ]
@@ -626,7 +635,28 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
             </span>
 
             <div className="shrink-0">
-              <StatusBadge status={project.status || 'PLANNED'} />
+              {isApprover ? (
+                <select
+                  value={currentStatus}
+                  onChange={async (e) => {
+                    const newStatus = e.target.value;
+                    const newProgress = getStatusProgress(newStatus, progress);
+                    try {
+                      await projectsApi.updateStatus(project.id, newStatus, 'Status updated via workspace header', newProgress);
+                      if (onProjectUpdated) onProjectUpdated();
+                    } catch (err) {
+                      console.error('Failed to update status from workspace header:', err);
+                    }
+                  }}
+                  className="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-slate-900 text-cyan-400 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer"
+                >
+                  {PROJECT_STATUS_LIST.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+              ) : (
+                <StatusBadge status={currentStatus} />
+              )}
             </div>
 
             <h1 className="text-base sm:text-lg lg:text-xl font-extrabold text-white tracking-tight truncate max-w-xs sm:max-w-md lg:max-w-xl">
@@ -643,11 +673,13 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
           {/* Right Side: Quick Metric Pills & Actions */}
           <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
             
-            {/* Budget Summary Pill */}
+            {/* Target Release Date Pill */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800 text-xs">
-              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-slate-400 font-medium">Budget:</span>
-              <span className="text-emerald-400 font-bold font-mono">${(project.budget || 85000).toLocaleString()}</span>
+              <Calendar className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-slate-400 font-medium">Target Release:</span>
+              <span className="text-indigo-300 font-bold font-mono">
+                {project.endDate || project.targetEndDate || project.estimatedCompletion ? new Date(project.endDate || project.targetEndDate || project.estimatedCompletion!).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not set'}
+              </span>
             </div>
 
             {/* Progress Pill */}
@@ -831,6 +863,54 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
           {/* Center Main Viewport Workspace Content Panel */}
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 scroll-smooth">
             
+            {/* Pending Status Change Banner */}
+            {project.pendingStatusRequest && (
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-500 text-slate-950 font-black text-[10px] uppercase font-mono tracking-wider">
+                      Pending Status Approval
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">{project.pendingStatusRequest.requestedAt}</span>
+                  </div>
+                  <p className="text-xs font-bold">
+                    {getStatusLabel(project.status)} → <span className="text-cyan-400 font-black">{getStatusLabel(project.pendingStatusRequest.requestedStatus)}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Requested by: <strong className="text-slate-700 dark:text-slate-200">{project.pendingStatusRequest.requestedBy}</strong>
+                    {project.pendingStatusRequest.reason && <span> — "{project.pendingStatusRequest.reason}"</span>}
+                  </p>
+                </div>
+                {isApprover && (
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const targetStatus = project.pendingStatusRequest!.requestedStatus;
+                        const targetProgress = getStatusProgress(targetStatus, progress);
+                        await projectsApi.update(project.id, { pendingStatusRequest: null });
+                        await projectsApi.updateStatus(project.id, targetStatus, 'Approved pending status request', targetProgress);
+                        if (onProjectUpdated) onProjectUpdated();
+                      }}
+                      className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-xs cursor-pointer"
+                    >
+                      Approve Change
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await projectsApi.update(project.id, { pendingStatusRequest: null });
+                        if (onProjectUpdated) onProjectUpdated();
+                      }}
+                      className="px-3.5 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-xs rounded-xl cursor-pointer"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* OVERVIEW DASHBOARD TAB */}
             {activeTab === 'overview' && (
               <ProjectOverviewTab project={project} />
@@ -964,30 +1044,24 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
               <ProjectDocumentsTab project={project} />
             )}
 
-            {/* TEAM & CAPACITY TAB */}
-            {activeTab === 'team' && (
-              <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2"><Users className="w-4 h-4 text-emerald-500" /> Roster Allocation</h3>
-                  {canManage && <button onClick={handleSaveTeam} disabled={isSaving} className="px-5 py-2 bg-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-md">Save Allocations</button>}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2"><label className="text-xs font-bold block">Project Manager</label><EmployeeSelect value={managerId} onChange={(val) => setManagerId(val as string)} multiple={false} /></div>
-                  <div className="space-y-2"><label className="text-xs font-bold block">Technical Lead</label><EmployeeSelect value={leadId} onChange={(val) => setLeadId(val as string)} multiple={false} /></div>
-                </div>
-                <div className="space-y-2"><label className="text-xs font-bold block">Engineers ({assignedEmployees.length})</label><EmployeeSelect value={assignedEmployees} onChange={(val) => setAssignedEmployees(val as string[])} multiple={true} /></div>
-                <div className="space-y-2"><label className="text-xs font-bold block">Interns ({assignedInterns.length})</label><InternSelect value={assignedInterns} onChange={(val) => setAssignedInterns(val)} multiple={true} /></div>
-              </div>
-            )}
-
             {/* PLANNING WORKSPACE TAB */}
             {activeTab === 'planning' && <EnterpriseProjectPlanningWorkspace project={project} />}
 
             {/* TASKS & KANBAN MANAGEMENT WORKSPACE TABS */}
             {activeTab === 'tasks' && <EnterpriseTaskManagementWorkspace project={project} initialView="list" />}
             {activeTab === 'kanban' && <EnterpriseTaskManagementWorkspace project={project} initialView="kanban" />}
-            {activeTab === 'sprint' && <EnterpriseTaskManagementWorkspace project={project} initialView="tree" />}
-            {activeTab === 'timeline' && <EnterpriseTaskManagementWorkspace project={project} initialView="timeline" />}
+            {activeTab === 'sprint' && <ProjectSprintTab project={project} />}
+            {activeTab === 'timeline' && <ProjectMilestonesTab project={project} />}
+            {activeTab === 'meetings' && <ProjectMeetingsTab project={project} />}
+
+            {/* RISKS & GOVERNANCE TAB */}
+            {activeTab === 'risks' && <ProjectRisksTab project={project} />}
+
+            {/* PRODUCTIVITY ANALYTICS TAB */}
+            {activeTab === 'analytics' && <ProjectAnalyticsTab project={project} />}
+
+            {/* NOTIFICATIONS TAB */}
+            {activeTab === 'notifications' && <ProjectNotificationsTab project={project} />}
 
             {/* REPORTS & AUDIT TAB */}
             {activeTab === 'reports' && <UniversalReportExporter defaultModule="Projects & Deliverables" />}
@@ -1010,16 +1084,26 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
               <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                   <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Project Settings</h3>
-                  {canManage && <button onClick={handleSaveSettings} disabled={isSaving} className="px-5 py-2 bg-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-md">Save Settings</button>}
+                  {isApprover && <button onClick={handleSaveSettings} disabled={isSaving} className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow-md">Save Settings</button>}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                   <div>
                     <label className="font-bold block mb-1">Status Lifecycle</label>
-                    <select value={settingsStatus} onChange={(e) => setSettingsStatus(e.target.value)} className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
-                      <option value="PLANNED">PLANNED</option>
-                      <option value="IN_PROGRESS">IN PROGRESS</option>
-                      <option value="COMPLETED">COMPLETED</option>
-                    </select>
+                    {isApprover ? (
+                      <select value={settingsStatus} onChange={(e) => setSettingsStatus(e.target.value)} className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
+                        {PROJECT_STATUS_LIST.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <StatusBadge status={settingsStatus} />
+                    )}
+                  </div>
+                  <div>
+                    <label className="font-bold block mb-1">Derived Overall Progress</label>
+                    <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 font-mono font-bold text-cyan-600 dark:text-cyan-400">
+                      {getStatusProgress(settingsStatus, progress)}% <span className="text-[10px] text-slate-400 font-sans font-normal">(Derived from status)</span>
+                    </div>
                   </div>
                 </div>
               </div>

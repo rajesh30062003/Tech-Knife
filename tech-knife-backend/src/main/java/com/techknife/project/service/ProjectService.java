@@ -588,46 +588,19 @@ public class ProjectService {
 
         if (principal != null) {
             List<String> roles = principal.getRoles() != null ? principal.getRoles() : new ArrayList<>();
-            boolean isExecutive = roles.stream().anyMatch(r ->
-                    r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
-                    r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
-                    r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
-                    r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO")
-            );
+            boolean isCustomer = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CUSTOMER") || r.equalsIgnoreCase("CUSTOMER"));
 
-            if (!isExecutive) {
+            if (isCustomer) {
                 String userId = principal.getId();
                 String username = principal.getUsername(); // email
-                boolean isCMO = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CMO") || r.equalsIgnoreCase("CMO"));
-                boolean isCustomer = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CUSTOMER") || r.equalsIgnoreCase("CUSTOMER"));
-
                 projects = projects.stream().filter(p -> {
-                    if (isCustomer) {
-                        if (userId != null && (userId.equalsIgnoreCase(p.getClientId()) || userId.equalsIgnoreCase(p.getClient()))) {
-                            return true;
-                        }
-                        if (username != null && (username.equalsIgnoreCase(p.getClient()) || username.equalsIgnoreCase(p.getCustomerRepresentative()))) {
-                            return true;
-                        }
-                        // Customer default: if project is assigned or customer representative matches or for demo customer, allow customer projects
+                    if (userId != null && (userId.equalsIgnoreCase(p.getClientId()) || userId.equalsIgnoreCase(p.getClient()))) {
                         return true;
                     }
-                    if (isCMO && "Marketing".equalsIgnoreCase(p.getCategory())) {
+                    if (username != null && (username.equalsIgnoreCase(p.getClient()) || username.equalsIgnoreCase(p.getCustomerRepresentative()))) {
                         return true;
                     }
-                    if (userId.equals(p.getProjectManagerId()) || userId.equals(p.getProjectLeadId())) {
-                        return true;
-                    }
-                    if (p.getAssignedEmployees() != null && p.getAssignedEmployees().contains(userId)) {
-                        return true;
-                    }
-                    if (p.getAssignedInterns() != null && p.getAssignedInterns().contains(userId)) {
-                        return true;
-                    }
-                    if (p.getMembers() != null && p.getMembers().stream().anyMatch(m -> userId.equals(m.getEmployeeId()))) {
-                        return true;
-                    }
-                    return false;
+                    return true;
                 }).collect(Collectors.toList());
             }
         }
@@ -762,14 +735,18 @@ public class ProjectService {
     }
 
     private String resolveEmployeeName(String employeeId) {
-        if (employeeId == null || employeeId.isBlank()) return "Unassigned";
+        if (employeeId == null || employeeId.isBlank() || employeeId.toLowerCase().contains("unassigned")) return "Unassigned";
         try {
             return employeeRepository.findByEmployeeId(employeeId)
                     .map(e -> e.getFirstName() + " " + e.getLastName())
-                    .orElse("Unassigned (" + employeeId + ")");
+                    .orElseGet(() -> {
+                        return employeeRepository.findByOfficialEmail(employeeId)
+                                .map(e -> e.getFirstName() + " " + e.getLastName())
+                                .orElse("Unassigned");
+                    });
         } catch (Exception ex) {
             log.warn("Could not resolve employee name for id '{}': {}", employeeId, ex.getMessage());
-            return "Unassigned (" + employeeId + ")";
+            return "Unassigned";
         }
     }
 
@@ -805,6 +782,26 @@ public class ProjectService {
         int completedTasks = (int) projectTasks.stream().filter(t -> t.getStatus() == TaskStatus.DONE || t.getStatus() == TaskStatus.COMPLETED).count();
 
         double progress = totalTasks > 0 ? ((double) completedTasks / totalTasks) * 100.0 : (project.getProgressPercentage() != null ? project.getProgressPercentage() : 0.0);
+
+        String pmId = project.getProjectManagerId();
+        String pmName = resolveEmployeeName(pmId);
+        if ("Unassigned".equals(pmName) && project.getProjectManagerName() != null) {
+            String clean = project.getProjectManagerName().replaceAll("\\s*\\([^)]*\\)", "").trim();
+            if (!clean.isBlank() && !clean.toLowerCase().contains("unassigned") && !clean.startsWith("EMP-") && !clean.startsWith("EXEC-")) {
+                pmName = clean;
+            }
+        }
+
+        String leadId = project.getProjectLeadId();
+        String leadName = resolveEmployeeName(leadId);
+        if ("Unassigned".equals(leadName) && project.getProjectLeadName() != null) {
+            String clean = project.getProjectLeadName().replaceAll("\\s*\\([^)]*\\)", "").trim();
+            if (!clean.isBlank() && !clean.toLowerCase().contains("unassigned") && !clean.startsWith("EMP-") && !clean.startsWith("EXEC-")) {
+                leadName = clean;
+            } else {
+                leadName = "Unassigned";
+            }
+        }
 
         return ProjectResponseDTO.builder()
                 .id(project.getId())
@@ -842,10 +839,10 @@ public class ProjectService {
                 .repositoryVisibility(project.getRepositoryVisibility())
                 .projectVisibility(project.getProjectVisibility())
                 .deploymentType(project.getDeploymentType())
-                .projectManagerId(project.getProjectManagerId())
-                .projectManagerName(project.getProjectManagerName())
-                .projectLeadId(project.getProjectLeadId())
-                .projectLeadName(project.getProjectLeadName())
+                .projectManagerId(pmId)
+                .projectManagerName(pmName)
+                .projectLeadId(leadId)
+                .projectLeadName(leadName)
                 .projectSponsor(project.getProjectSponsor())
                 .customerRepresentative(project.getCustomerRepresentative())
                 .assignedEmployees(project.getAssignedEmployees())

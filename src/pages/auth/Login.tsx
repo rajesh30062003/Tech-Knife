@@ -18,16 +18,18 @@ const loginSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
-const SEEDED_ACCOUNTS = [
-  { label: 'CEO', email: 'ranadhir.pal@techknife.com', desc: 'Ranadhir Pal (ROLE_CEO)' },
-  { label: 'MD', email: 'sourav.roy@techknife.com', desc: 'Sourav Roy (ROLE_MD)' },
-  { label: 'CTO', email: 'subrata.pal@techknife.com', desc: 'Subrata Pal (ROLE_CTO)' },
-  { label: 'Growth Head', email: 'anindita.c@techknife.com', desc: 'Anindita Chakraborty (ROLE_GROWTH_HEAD)' },
-  { label: 'Sr. Eng Manager', email: 'rahul.garai@techknife.com', desc: 'Rahul Garai (ROLE_SENIOR_ENGINEERING_MANAGER)' },
-  { label: 'Intern (Eng)', email: 'rahul.pal@techknife.com', desc: 'Rahul Pal (ROLE_INTERN)' },
-  { label: 'Intern (Marketing)', email: 'sangita.k@techknife.com', desc: 'Sangita Koner (ROLE_INTERN)' },
-  { label: 'Intern (Tech)', email: 'salman.k@techknife.com', desc: 'Salman Kaji (ROLE_INTERN)' },
-  { label: 'Customer', email: 'amit.sharma@example.com', desc: 'Amit Sharma (ROLE_CUSTOMER)' },
+const CANONICAL_ACCOUNTS = [
+  { label: 'CEO / CTO', id: 'TK-001', name: 'Ranadhir Pal', email: 'rjrajeshpal30@gmail.com', designation: 'Chief Executive Officer', role: 'ROLE_CEO' },
+  { label: 'MD', id: 'TK-002', name: 'Sourav Roy', email: 'souravroy6412@gmail.com', designation: 'Managing Director', role: 'ROLE_MD' },
+  { label: 'System Engineer', id: 'TK-005', name: 'Rahul Garai', email: 'garairahul087@gmail.com', designation: 'System Engineer', role: 'ROLE_EMPLOYEE' },
+  { label: 'Team Member', id: 'TK-006', name: 'Rahul Pal', email: 'rahulpal01102002@gmail.com', designation: 'Engineering Staff', role: 'ROLE_EMPLOYEE' },
+  { label: 'Team Member', id: 'TK-007', name: 'Sangita Koner', email: 'sangitakoner455@gmail.com', designation: 'Marketing Staff', role: 'ROLE_EMPLOYEE' },
+  { label: 'Team Member', id: 'TK-008', name: 'Salman Kaji', email: 'salmankazi1603@gmail.com', designation: 'Technology Staff', role: 'ROLE_EMPLOYEE' },
+  { label: 'CEO (Official)', id: 'EMP-001', name: 'Ranadhir Pal', email: 'ranadhir.pal@techknife.com', designation: 'Chief Executive Officer', role: 'ROLE_CEO' },
+  { label: 'MD (Official)', id: 'EMP-002', name: 'Sourav Roy', email: 'sourav.roy@techknife.com', designation: 'Managing Director', role: 'ROLE_MD' },
+  { label: 'CTO (Official)', id: 'EMP-003', name: 'Subrata Pal', email: 'subrata.pal@techknife.com', designation: 'Chief Technology Officer', role: 'ROLE_CTO' },
+  { label: 'Sr. Eng Manager', id: 'EMP-005', name: 'Rahul Garai', email: 'rahul.garai@techknife.com', designation: 'Senior Engineering Manager', role: 'ROLE_SENIOR_ENGINEERING_MANAGER' },
+  { label: 'Customer', id: 'CUST-001', name: 'Amit Sharma', email: 'amit.sharma@example.com', designation: 'Client Representative', role: 'ROLE_CUSTOMER' },
 ];
 
 export const Login: React.FC = () => {
@@ -50,7 +52,7 @@ export const Login: React.FC = () => {
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: 'ranadhir.pal@techknife.com',
-      password: 'TechKnife@2026',
+      password: '',
     },
   });
 
@@ -71,7 +73,6 @@ export const Login: React.FC = () => {
 
   const handleAccountSelect = (email: string) => {
     setValue('email', email);
-    setValue('password', 'TechKnife@2026');
   };
 
   return (
@@ -84,10 +85,10 @@ export const Login: React.FC = () => {
           <Logo variant="full" size="xl" showTagline inverted />
         </Link>
         <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
-          Enterprise MongoDB Atlas Sign-In
+          Enterprise Sign-In
         </h2>
         <p className="text-xs text-slate-400">
-          Enter your official corporate email credentials stored in MongoDB Atlas
+          Enter your official corporate email credentials
         </p>
       </div>
 
@@ -175,7 +176,7 @@ export const Login: React.FC = () => {
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying with MongoDB Atlas...</span>
+                  <span>Verifying credentials...</span>
                 </>
               ) : (
                 <>
@@ -190,22 +191,26 @@ export const Login: React.FC = () => {
           <div className="mt-8 pt-6 border-t border-slate-800/80">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Seeded Leadership & Users (MongoDB)
+                Seeded Directory & Leadership Accounts
               </span>
-              <span className="text-[10px] bg-blue-500/20 text-blue-300 font-mono px-2 py-0.5 rounded-full">
-                Password: TechKnife@2026
+              <span className="text-[10px] bg-slate-800 text-slate-400 font-mono px-2.5 py-0.5 rounded-full border border-slate-700">
+                Select account email
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-              {SEEDED_ACCOUNTS.map((acc) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
+              {CANONICAL_ACCOUNTS.map((acc) => (
                 <button
                   key={acc.email}
                   type="button"
                   onClick={() => handleAccountSelect(acc.email)}
-                  className="p-2 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/80 text-left transition-all hover:scale-[1.02]"
+                  className="p-2.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/80 text-left transition-all hover:scale-[1.02] group"
                 >
-                  <span className="block text-xs font-bold text-blue-400">{acc.label}</span>
-                  <span className="block text-[10px] text-slate-400 truncate">{acc.desc}</span>
+                  <div className="flex items-center justify-between gap-1 mb-0.5">
+                    <span className="text-xs font-bold text-cyan-400 group-hover:text-cyan-300">{acc.label}</span>
+                    <span className="text-[9px] font-mono text-slate-500">{acc.id}</span>
+                  </div>
+                  <span className="block text-[11px] font-semibold text-slate-200 truncate">{acc.name}</span>
+                  <span className="block text-[10px] text-slate-400 truncate font-mono mt-0.5">{acc.email}</span>
                 </button>
               ))}
             </div>

@@ -97,9 +97,9 @@ export const ProjectTeamTab: React.FC<ProjectTeamTabProps> = ({ project, onProje
             multiple={false}
             placeholder="Select Project Manager..."
           />
-          {project.projectManagerName && (
+          {project.projectManagerName && project.projectManagerName !== 'Unassigned' && (
             <p className="text-xs text-slate-500 font-medium">
-              Current Manager: <span className="font-bold text-slate-800 dark:text-slate-200">{project.projectManagerName}</span>
+              Current Manager: <span className="font-bold text-slate-800 dark:text-slate-200">{project.projectManagerName.replace(/\s*\([^)]*\)/g, '').trim()}</span>
             </p>
           )}
         </div>
@@ -116,9 +116,9 @@ export const ProjectTeamTab: React.FC<ProjectTeamTabProps> = ({ project, onProje
             multiple={false}
             placeholder="Select Project Technical Lead..."
           />
-          {project.projectLeadName && (
+          {project.projectLeadName && !project.projectLeadName.toLowerCase().includes('unassigned') && (
             <p className="text-xs text-slate-500 font-medium">
-              Current Lead: <span className="font-bold text-slate-800 dark:text-slate-200">{project.projectLeadName}</span>
+              Current Lead: <span className="font-bold text-slate-800 dark:text-slate-200">{project.projectLeadName.replace(/\s*\([^)]*\)/g, '').trim()}</span>
             </p>
           )}
         </div>

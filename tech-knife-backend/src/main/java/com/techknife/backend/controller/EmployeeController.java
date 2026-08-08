@@ -100,7 +100,7 @@ public class EmployeeController {
     @Operation(summary = "List employees with search, department, manager, status filtering, and pagination")
     public ResponseEntity<ApiResponse<PagedResponse<EmployeeResponse>>> getAllEmployees(
             @RequestParam(value = "page", defaultValue = "0") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "size", defaultValue = "500") int size,
             @RequestParam(value = "limit", required = false) Integer limit,
             @RequestParam(value = "search", required = false) String search,
             @RequestParam(value = "departmentId", required = false) String departmentId,

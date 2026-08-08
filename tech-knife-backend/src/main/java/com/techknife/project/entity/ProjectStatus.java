@@ -5,25 +5,30 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ProjectStatus {
     PLANNED,
-    REQUIREMENT_GATHERING,
+    REQ_GATHERING,
     DESIGN,
-    BACKEND_DEVELOPMENT,
-    FRONTEND_DEVELOPMENT,
-    FULLSTACK_DEVELOPMENT,
+    BACKEND_DEV,
+    FRONTEND_DEV,
+    FULLSTACK_DEV,
     API_INTEGRATION,
     TESTING,
     QA,
-    CODE_REVIEW,
-    IN_PROGRESS,
     UAT,
     DEPLOYMENT,
     LIVE,
     MAINTENANCE,
-    ON_HOLD,
-    BLOCKED,
     COMPLETED,
-    ARCHIVED,
-    CANCELLED;
+    ON_HOLD,
+    CANCELLED,
+    // Legacy enums for backwards compatibility
+    REQUIREMENT_GATHERING,
+    BACKEND_DEVELOPMENT,
+    FRONTEND_DEVELOPMENT,
+    FULLSTACK_DEVELOPMENT,
+    CODE_REVIEW,
+    IN_PROGRESS,
+    BLOCKED,
+    ARCHIVED;
 
     @JsonValue
     public String toValue() {
@@ -36,13 +41,12 @@ public enum ProjectStatus {
             return PLANNED;
         }
         String clean = value.trim().replaceAll("[-\\s]+", "_").toUpperCase();
-        if ("IN_PROGRESS".equals(clean) || "INPROGRESS".equals(clean) || "PROGRESS".equals(clean)) {
-            return IN_PROGRESS;
-        }
-        if ("PLANNING".equals(clean)) return PLANNED;
-        if ("UI_DESIGN".equals(clean)) return DESIGN;
-        if ("DEVELOPMENT".equals(clean)) return IN_PROGRESS;
-        if ("ACTIVE".equals(clean)) return LIVE;
+
+        if ("REQUIREMENT_GATHERING".equals(clean)) return REQ_GATHERING;
+        if ("BACKEND_DEVELOPMENT".equals(clean)) return BACKEND_DEV;
+        if ("FRONTEND_DEVELOPMENT".equals(clean)) return FRONTEND_DEV;
+        if ("FULLSTACK_DEVELOPMENT".equals(clean) || "IN_PROGRESS".equals(clean) || "DEVELOPMENT".equals(clean)) return FULLSTACK_DEV;
+        if ("CODE_REVIEW".equals(clean) || "REVIEW".equals(clean)) return QA;
 
         for (ProjectStatus status : values()) {
             if (status.name().equalsIgnoreCase(clean) || status.name().equalsIgnoreCase(value.trim())) {

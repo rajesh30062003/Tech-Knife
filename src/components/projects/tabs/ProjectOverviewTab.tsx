@@ -1,23 +1,120 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
-  Briefcase, Calendar, DollarSign, Clock, Layers, Cpu, Database, Cloud, 
-  ExternalLink, Github, Terminal, CheckCircle2, ShieldCheck, UserCheck, 
-  Sparkles, Users, FileText, ArrowUpRight, CheckSquare, Activity, Globe, FolderGit2
+  Calendar, Cpu, Database, Cloud, Terminal, CheckCircle2, ShieldCheck, 
+  Sparkles, Users, FileText
 } from 'lucide-react';
 import { EnterpriseProject } from '../../../api/projects';
+import { employeesApi, EmployeeData } from '../../../api/employees';
+import { 
+  resolveEmployee, 
+  resolveEmployeeName, 
+  resolveProjectManager, 
+  resolveProjectLead 
+} from '../../../utils/employeeResolver';
 
 interface ProjectOverviewTabProps {
   project: EnterpriseProject;
 }
 
+interface RosterMember {
+  role: string;
+  name: string;
+  code?: string;
+}
+
+const formatSavedCompletionDate = (dateStr?: string | null) => {
+  if (!dateStr || !dateStr.trim()) return 'Not set';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = monthNames[d.getMonth()];
+    const year = d.getFullYear();
+    return `${day} ${month} ${year}`;
+  } catch {
+    return dateStr;
+  }
+};
+
 export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project }) => {
-  const links = project.links || {};
+  const [employeesList, setEmployeesList] = useState<EmployeeData[]>([]);
+
+  useEffect(() => {
+    employeesApi.getEmployees().then(res => {
+      if (res?.employees && Array.isArray(res.employees)) {
+        setEmployeesList(res.employees);
+      }
+    }).catch(() => {});
+  }, []);
+
   const progress = project.overallProgressPercentage ?? project.progressPercentage ?? 68;
-  const budget = project.budget || project.estimatedCost || 85000;
-  const estimatedHours = project.estimatedHours || 480;
-  const estimatedWeeks = project.estimatedDuration || 12;
-  const totalTeamMembers = (project.assignedEmployees?.length || 0) + (project.assignedInterns?.length || 0);
+  const completionDateRaw = project.endDate || project.targetEndDate || project.estimatedCompletion;
+  const formattedCompletionDate = formatSavedCompletionDate(completionDateRaw);
+
+  const findEmployee = (idOrName?: string | null) => {
+    if (!idOrName) return null;
+    const target = idOrName.trim().toLowerCase();
+    return employeesList.find(e => 
+      (e.id && e.id.toLowerCase() === target) ||
+      (e.employeeId && e.employeeId.toLowerCase() === target) ||
+      (e.employeeCode && e.employeeCode.toLowerCase() === target) ||
+      (`${e.firstName} ${e.lastName}`.toLowerCase() === target)
+    );
+  };
+
+  const getRosterMembers = (): RosterMember[] => {
+    const roster: RosterMember[] = [];
+
+    // Project Manager
+    const m = resolveProjectManager(project, employeesList);
+    if (m) {
+      roster.push({ role: 'Project Manager', name: m.fullName, code: m.employeeId });
+    } else {
+      const cleanName = resolveEmployeeName(project.projectManagerName || project.projectManagerId, employeesList);
+      if (cleanName !== 'Unassigned') {
+        roster.push({ role: 'Project Manager', name: cleanName });
+      }
+    }
+
+    // Technical Lead
+    const l = resolveProjectLead(project, employeesList);
+    if (l) {
+      roster.push({ role: 'Technical Lead', name: l.fullName, code: l.employeeId });
+    } else {
+      const cleanName = resolveEmployeeName(project.projectLeadName || project.projectLeadId, employeesList);
+      if (cleanName !== 'Unassigned') {
+        roster.push({ role: 'Technical Lead', name: cleanName });
+      }
+    }
+
+    // Engineers & Interns
+    if (project.assignedEmployees && project.assignedEmployees.length > 0) {
+      project.assignedEmployees.forEach((item) => {
+        if (item !== project.projectManagerId && item !== project.projectLeadId) {
+          const emp = resolveEmployee(item, employeesList);
+          if (emp) {
+            roster.push({ role: 'Engineer', name: emp.fullName, code: emp.employeeId });
+          }
+        }
+      });
+    }
+
+    // Interns
+    if (project.assignedInterns && project.assignedInterns.length > 0) {
+      project.assignedInterns.forEach((item) => {
+        const emp = findEmployee(item);
+        const name = emp ? `${emp.firstName} ${emp.lastName}` : item;
+        const code = emp?.employeeId || emp?.employeeCode;
+        roster.push({ role: 'Intern', name, code });
+      });
+    }
+
+    return roster;
+  };
+
+  const rosterList = getRosterMembers();
 
   const containerVariants = {
     hidden: { opacity: 0, y: 12 },
@@ -40,8 +137,8 @@ export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project 
       initial="hidden"
       animate="visible"
     >
-      {/* Top 4 KPI Dashboard Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+      {/* Top Simplified KPI Metric Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-5">
         
         {/* Card 1: Overall Progress */}
         <motion.div 
@@ -82,99 +179,71 @@ export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project 
           </p>
         </motion.div>
 
-        {/* Card 2: Budget Valuation */}
-        <motion.div 
-          variants={itemVariants}
-          className="group relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:shadow-md hover:border-emerald-500/30 transition-all duration-200 flex flex-col justify-between gap-4"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-              Budget Valuation
-            </span>
-            <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 group-hover:scale-105 transition-transform">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl lg:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono tracking-tight">
-                ${budget.toLocaleString('en-US')}
-              </span>
-              <span className="text-xs font-bold text-slate-400">USD</span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-              Cap Limit • Approved Allocation
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Financial Governance Active</span>
-          </div>
-        </motion.div>
-
-        {/* Card 3: Estimated Duration */}
+        {/* Card 2: Completion Date */}
         <motion.div 
           variants={itemVariants}
           className="group relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:shadow-md hover:border-indigo-500/30 transition-all duration-200 flex flex-col justify-between gap-4"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-              Duration Target
+              Completion Date
             </span>
             <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 group-hover:scale-105 transition-transform">
-              <Clock className="w-4 h-4" />
+              <Calendar className="w-4 h-4" />
             </div>
           </div>
 
           <div>
             <div className="flex items-baseline gap-1.5">
               <span className="text-2xl lg:text-3xl font-extrabold text-indigo-600 dark:text-indigo-400 font-mono tracking-tight">
-                {estimatedHours}
+                {formattedCompletionDate}
               </span>
-              <span className="text-xs font-bold text-indigo-500">Hours</span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-              {estimatedWeeks} Weeks Estimated Sprint Cycle
+              Saved Target Completion Date
             </p>
           </div>
 
-          <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">
-            <Calendar className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-            <span className="truncate">{project.startDate || '2026-01-01'} to {project.endDate || project.targetEndDate || '2026-12-31'}</span>
+          <div className="flex items-center gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+            <span className="w-2 h-2 rounded-full bg-indigo-500" />
+            <span>Project Deadline Target</span>
           </div>
         </motion.div>
 
-        {/* Card 4: Active Team Roster */}
+        {/* Card 3: Team Roster (All Members) */}
         <motion.div 
           variants={itemVariants}
-          className="group relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:shadow-md hover:border-amber-500/30 transition-all duration-200 flex flex-col justify-between gap-4"
+          className="group relative overflow-hidden p-5 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs hover:shadow-md hover:border-amber-500/30 transition-all duration-200 flex flex-col justify-between gap-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
               Team Roster
             </span>
-            <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 group-hover:scale-105 transition-transform">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">
-                {totalTeamMembers > 0 ? totalTeamMembers : 1}
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-mono text-xs font-extrabold border border-amber-500/20">
+                {rosterList.length} {rosterList.length === 1 ? 'Member' : 'Members'}
               </span>
-              <span className="text-xs font-bold text-amber-500">Allocated</span>
+              <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 truncate">
-              Manager: {project.projectManagerName || 'Unassigned'}
-            </p>
           </div>
 
-          <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-            <span className="truncate">Lead: {project.projectLeadName || 'Unassigned'}</span>
-            <UserCheck className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+          <div className="max-h-44 overflow-y-auto pr-1 space-y-2">
+            {rosterList.length > 0 ? (
+              rosterList.map((m, idx) => (
+                <div key={idx} className="p-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-extrabold text-slate-400 block">{m.role}</span>
+                    <span className="font-extrabold text-slate-900 dark:text-slate-100">
+                      {m.name} {m.code ? <span className="text-slate-400 font-mono font-normal">({m.code})</span> : ''}
+                    </span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <span className="text-xs text-slate-400 font-medium">No team members assigned</span>
+            )}
           </div>
         </motion.div>
 
@@ -213,7 +282,7 @@ export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project 
           </p>
         ) : (
           <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-dashed border-slate-300 dark:border-slate-800 text-center text-xs text-slate-400 font-medium">
-            No detailed description provided for this enterprise deliverable yet.
+            No detailed description provided for this deliverable yet.
           </div>
         )}
 
@@ -239,7 +308,7 @@ export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project 
             <Cpu className="w-4 h-4" />
           </div>
           <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            Technology Stack & Cloud Infrastructure
+            Technology Stack & Infrastructure
           </h3>
         </div>
 
@@ -286,68 +355,12 @@ export const ProjectOverviewTab: React.FC<ProjectOverviewTabProps> = ({ project 
             <div className="min-w-0">
               <span className="text-[10px] text-slate-400 uppercase font-bold block">Deployment</span>
               <span className="font-bold text-xs text-slate-900 dark:text-slate-100 truncate block">
-                {project.deploymentType || 'Kubernetes / Containerized'}
+                {project.deploymentType || 'Containerized Deployment'}
               </span>
             </div>
           </div>
         </div>
       </motion.div>
-
-      {/* Repositories & System Links Grid */}
-      <motion.div 
-        variants={itemVariants}
-        className="p-6 rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800/80 shadow-xs space-y-4"
-      >
-        <div className="flex items-center gap-2.5 border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-            <FolderGit2 className="w-4 h-4" />
-          </div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            Repositories & System Environments
-          </h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          {[
-            { label: 'GitHub Primary Repo', url: links.githubUrl || project.repositoryUrl, icon: Github },
-            { label: 'Frontend Repository', url: links.frontendRepoUrl, icon: FolderGit2 },
-            { label: 'Backend Repository', url: links.backendRepoUrl, icon: Terminal },
-            { label: 'CI/CD Pipeline', url: links.cicdPipelineUrl, icon: Activity },
-            { label: 'Staging Environment', url: links.stagingUrl, icon: Globe },
-            { label: 'Production URL', url: links.productionUrl || links.deploymentUrl, icon: ExternalLink },
-            { label: 'Swagger API Specs', url: links.swaggerUrl || links.apiDocUrl, icon: FileText },
-            { label: 'Google Drive Asset Storage', url: links.googleDriveUrl || links.driveUrl, icon: Layers },
-          ].map((item, idx) => (
-            <div 
-              key={idx} 
-              className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3 group hover:border-cyan-500/30 transition-all"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <item.icon className="w-4 h-4 text-slate-400 group-hover:text-cyan-500 shrink-0 transition-colors" />
-                <div className="truncate">
-                  <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">{item.label}</span>
-                  <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 truncate block">
-                    {item.url || 'Not configured'}
-                  </span>
-                </div>
-              </div>
-
-              {item.url && (
-                <a
-                  href={item.url.startsWith('http') ? item.url : `https://${item.url}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-1.5 text-slate-400 hover:text-cyan-500 dark:hover:text-cyan-400 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors shrink-0"
-                  title={`Open ${item.label}`}
-                >
-                  <ArrowUpRight className="w-4 h-4" />
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      </motion.div>
     </motion.div>
   );
 };
-

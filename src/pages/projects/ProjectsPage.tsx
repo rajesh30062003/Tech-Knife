@@ -9,16 +9,39 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { projectsApi, EnterpriseProject, ProjectActivity, ProjectLinksData } from '../../api/projects';
+import { employeesApi, EmployeeData } from '../../api/employees';
 import { StatusBadge } from '../../components/common/StatusBadge';
 import { EmployeeSelect } from '../../components/common/EmployeeSelect';
 import { InternSelect } from '../../components/common/InternSelect';
 import { EnterpriseProjectWorkspace } from '../../components/projects/EnterpriseProjectWorkspace';
+import { 
+  PROJECT_STATUS_LIST, 
+  getStatusProgress, 
+  normalizeProjectStatus, 
+  canApproveProjectStatus, 
+  getStatusLabel 
+} from '../../constants/projectStatus';
+import { 
+  resolveEmployeeName, 
+  resolveProjectManager, 
+  resolveProjectLead, 
+  normalizeProjectRoster 
+} from '../../utils/employeeResolver';
 
 export const ProjectsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [projects, setProjects] = useState<EnterpriseProject[]>([]);
+  const [employeesList, setEmployeesList] = useState<EmployeeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    employeesApi.getEmployees().then((res) => {
+      if (res?.employees && Array.isArray(res.employees)) {
+        setEmployeesList(res.employees);
+      }
+    }).catch(() => {});
+  }, []);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -33,6 +56,11 @@ export const ProjectsPage: React.FC = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isLinksModalOpen, setIsLinksModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+  
+  // Status Request Modal State
+  const [requestStatusProject, setRequestStatusProject] = useState<EnterpriseProject | null>(null);
+  const [requestedStatus, setRequestedStatus] = useState<string>('FRONTEND_DEV');
+  const [requestReason, setRequestReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openProjectWorkspace = (project: EnterpriseProject) => {
@@ -422,20 +450,9 @@ export const ProjectsPage: React.FC = () => {
               className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700 dark:text-slate-300 focus:outline-none"
             >
               <option value="ALL">All Statuses</option>
-              <option value="PLANNED">Planned</option>
-              <option value="REQUIREMENT_GATHERING">Req Gathering</option>
-              <option value="DESIGN">Design</option>
-              <option value="BACKEND_DEVELOPMENT">Backend Dev</option>
-              <option value="FRONTEND_DEVELOPMENT">Frontend Dev</option>
-              <option value="FULLSTACK_DEVELOPMENT">Fullstack Dev</option>
-              <option value="API_INTEGRATION">API Integration</option>
-              <option value="TESTING">Testing</option>
-              <option value="QA">QA</option>
-              <option value="UAT">UAT</option>
-              <option value="DEPLOYMENT">Deployment</option>
-              <option value="LIVE">Live</option>
-              <option value="MAINTENANCE">Maintenance</option>
-              <option value="COMPLETED">Completed</option>
+              {PROJECT_STATUS_LIST.map((s) => (
+                <option key={s.value} value={s.value}>{s.label}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -458,11 +475,15 @@ export const ProjectsPage: React.FC = () => {
             const projectCode = prj.projectCode ?? '-';
             const projectName = prj.projectName ?? '-';
             const description = prj.description || 'Enterprise project delivery module';
-            const progress = Math.round(Number(prj.overallProgressPercentage ?? prj.progressPercentage ?? 0));
-            const managerName = prj.projectManagerName || 'Unassigned';
-            const leadName = prj.projectLeadName || 'Unassigned';
+            const currentStatus = normalizeProjectStatus(prj.status);
+            const progress = getStatusProgress(currentStatus, Math.round(Number(prj.overallProgressPercentage ?? prj.progressPercentage ?? 0)));
+            const managerObj = resolveProjectManager(prj, employeesList);
+            const leadObj = resolveProjectLead(prj, employeesList);
+            const managerName = managerObj ? managerObj.fullName : resolveEmployeeName(prj.projectManagerName || prj.projectManagerId, employeesList);
+            const leadName = leadObj ? leadObj.fullName : resolveEmployeeName(prj.projectLeadName || prj.projectLeadId, employeesList);
             const githubUrl = prj.links?.githubUrl;
             const techStack = (prj.technologyStack ?? []).filter(Boolean);
+            const isApprover = canApproveProjectStatus(user, prj);
 
             return (
               <div
@@ -470,17 +491,19 @@ export const ProjectsPage: React.FC = () => {
                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 shadow-xs hover:border-cyan-500/50 transition-all flex flex-col justify-between group"
               >
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="px-2.5 py-0.5 rounded-md bg-slate-900 text-cyan-400 text-[10px] font-mono font-bold tracking-wide">
                       {projectCode}
                     </span>
-                    {canAssign ? (
+                    
+                    {isApprover ? (
                       <select
-                        value={prj.status ?? 'PLANNED'}
+                        value={currentStatus}
                         onChange={async (e) => {
                           const newStatus = e.target.value;
+                          const newProgress = getStatusProgress(newStatus, progress);
                           try {
-                            await projectsApi.updateStatus(prj.id, newStatus, 'Status updated via project dashboard');
+                            await projectsApi.updateStatus(prj.id, newStatus, 'Status updated via project dashboard', newProgress);
                             await loadProjects();
                           } catch (err) {
                             console.error('Failed to update status:', err);
@@ -488,18 +511,70 @@ export const ProjectsPage: React.FC = () => {
                         }}
                         className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                       >
-                        <option value="PLANNED">PLANNED</option>
-                        <option value="IN_PROGRESS">IN PROGRESS</option>
-                        <option value="TESTING">TESTING</option>
-                        <option value="REVIEW">REVIEW</option>
-                        <option value="COMPLETED">COMPLETED</option>
-                        <option value="ON_HOLD">ON HOLD</option>
-                        <option value="CANCELLED">CANCELLED</option>
+                        {PROJECT_STATUS_LIST.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
                       </select>
                     ) : (
-                      <StatusBadge status={prj.status ?? 'PLANNED'} />
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={currentStatus} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRequestStatusProject(prj);
+                            setRequestedStatus(currentStatus);
+                          }}
+                          className="text-[10px] font-bold px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-colors"
+                        >
+                          Request Status Change
+                        </button>
+                      </div>
                     )}
                   </div>
+
+                  {/* Pending Status Request Alert Banner */}
+                  {prj.pendingStatusRequest && (
+                    <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] uppercase font-mono font-bold">Pending Status Change Request</span>
+                        <span className="text-[10px] text-slate-400 font-mono">{prj.pendingStatusRequest.requestedAt}</span>
+                      </div>
+                      <p className="text-xs font-bold">
+                        {getStatusLabel(prj.status)} → <span className="text-cyan-400 font-black">{getStatusLabel(prj.pendingStatusRequest.requestedStatus)}</span>
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Requested by: <strong className="text-slate-700 dark:text-slate-200">{prj.pendingStatusRequest.requestedBy}</strong>
+                        {prj.pendingStatusRequest.reason && <span> — "{prj.pendingStatusRequest.reason}"</span>}
+                      </p>
+                      {isApprover && (
+                        <div className="flex items-center justify-end gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const targetStatus = prj.pendingStatusRequest!.requestedStatus;
+                              const targetProgress = getStatusProgress(targetStatus, progress);
+                              await projectsApi.update(prj.id, { pendingStatusRequest: null });
+                              await projectsApi.updateStatus(prj.id, targetStatus, 'Approved pending status request', targetProgress);
+                              await loadProjects();
+                            }}
+                            className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-[10px] rounded-lg shadow-xs"
+                          >
+                            Approve Change
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await projectsApi.update(prj.id, { pendingStatusRequest: null });
+                              await loadProjects();
+                            }}
+                            className="px-3 py-1 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-extrabold text-[10px] rounded-lg"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <h3
@@ -1133,6 +1208,84 @@ export const ProjectsPage: React.FC = () => {
         onClose={() => setIsWorkspaceOpen(false)}
         onProjectUpdated={() => loadProjects()}
       />
+
+      {/* Request Status Change Modal for Unauthorized Users */}
+      {requestStatusProject && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const pendingReq = {
+                requestedStatus,
+                reason: requestReason.trim(),
+                requestedBy: user ? `${user.firstName} ${user.lastName}` : 'Team Member',
+                requestedByRole: user?.role || 'EMPLOYEE',
+                requestedAt: new Date().toISOString().split('T')[0],
+              };
+              await projectsApi.update(requestStatusProject.id, { pendingStatusRequest: pendingReq });
+              setRequestStatusProject(null);
+              setRequestReason('');
+              await loadProjects();
+            }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl text-slate-800 dark:text-slate-200"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                Request Project Status Change
+              </h3>
+              <button type="button" onClick={() => setRequestStatusProject(null)} className="p-1 text-slate-400 hover:text-slate-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 font-medium">
+              Current Official Status: <strong className="text-slate-900 dark:text-white font-bold">{getStatusLabel(requestStatusProject.status)}</strong>
+            </p>
+
+            <div>
+              <label className="text-xs font-bold block mb-1">Requested Status *</label>
+              <select
+                value={requestedStatus}
+                onChange={(e) => setRequestedStatus(e.target.value)}
+                className="w-full text-xs font-bold p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                {PROJECT_STATUS_LIST.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label} ({s.progress >= 0 ? `${s.progress}% Derived Progress` : 'Preserves Progress'})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold block mb-1">Reason / Justification (Optional)</label>
+              <textarea
+                rows={3}
+                value={requestReason}
+                onChange={(e) => setRequestReason(e.target.value)}
+                placeholder="Explain deliverable milestone status..."
+                className="w-full text-xs font-medium p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setRequestStatusProject(null)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 font-bold text-xs text-slate-700 dark:text-slate-300 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-cyan-500 text-slate-950 font-black text-xs rounded-xl shadow-md"
+              >
+                Submit Status Request
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
     </div>
   );

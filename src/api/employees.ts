@@ -67,7 +67,7 @@ export const employeesApi = {
     page?: number;
     limit?: number;
   }): Promise<{ employees: EmployeeData[]; total: number; totalPages: number }> {
-    const cleanParams: any = { ...params };
+    const cleanParams: any = { limit: 500, ...params };
     if (cleanParams.department === 'ALL' || cleanParams.department === 'all') delete cleanParams.department;
     if (cleanParams.status === 'ALL' || cleanParams.status === 'all') delete cleanParams.status;
     if (cleanParams.role === 'ALL' || cleanParams.role === 'all') delete cleanParams.role;

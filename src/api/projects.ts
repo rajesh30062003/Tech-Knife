@@ -28,15 +28,25 @@ export interface ProjectLinksData {
   serverDetails?: string | null;
 }
 
+export interface ProjectMember {
+  employeeId?: string;
+  employeeName?: string;
+  role?: string;
+  allocationPercentage?: number;
+  joinedDate?: string;
+  designation?: string;
+  department?: string;
+}
+
 export interface EnterpriseProject {
-  id: string;
-  projectId?: string | null;
-  projectCode?: string | null;
-  projectName?: string | null;
-  shortName?: string | null;
-  description?: string | null;
-  objectives?: string | null;
-  client?: string | null;
+  id?: string;
+  projectId?: string;
+  projectCode?: string;
+  projectName?: string;
+  shortName?: string;
+  description?: string;
+  objectives?: string;
+  client?: string;
   clientId?: string | null;
   clientOrganization?: string | null;
   department?: string | null;
@@ -72,11 +82,19 @@ export interface EnterpriseProject {
   customerRepresentative?: string | null;
   assignedEmployees?: string[] | null;
   assignedInterns?: string[] | null;
+  members?: ProjectMember[] | null;
   links?: ProjectLinksData | null;
   remarks?: string | null;
   tags?: string[] | null;
   logoUrl?: string | null;
   overallProgressPercentage?: number | null;
+  pendingStatusRequest?: {
+    requestedStatus: string;
+    reason?: string;
+    requestedBy: string;
+    requestedByRole?: string;
+    requestedAt: string;
+  } | null;
   totalTasks?: number | null;
   completedTasks?: number | null;
   createdAt?: string | null;
@@ -89,12 +107,12 @@ export interface ProjectActivity {
   id: string;
   projectId: string;
   action: string;
-  performedBy: string;
-  userRole: string;
-  fieldModified?: string;
+  user: string;
+  timestamp: string;
+  details: string;
+  field?: string;
   oldValue?: string;
   newValue?: string;
-  timestamp: string;
 }
 
 export const projectsApi = {
@@ -103,7 +121,17 @@ export const projectsApi = {
     return res.data;
   },
 
+  getProjects: async (): Promise<ApiResponse<EnterpriseProject[]>> => {
+    const res = await apiClient.get<ApiResponse<EnterpriseProject[]>>('/projects');
+    return res.data;
+  },
+
   getById: async (id: string): Promise<ApiResponse<EnterpriseProject>> => {
+    const res = await apiClient.get<ApiResponse<EnterpriseProject>>(`/projects/${id}`);
+    return res.data;
+  },
+
+  getProjectById: async (id: string): Promise<ApiResponse<EnterpriseProject>> => {
     const res = await apiClient.get<ApiResponse<EnterpriseProject>>(`/projects/${id}`);
     return res.data;
   },
@@ -118,8 +146,12 @@ export const projectsApi = {
     return res.data;
   },
 
-  updateStatus: async (id: string, status: string, reason?: string): Promise<ApiResponse<EnterpriseProject>> => {
-    const res = await apiClient.patch<ApiResponse<EnterpriseProject>>(`/projects/${id}/status`, { status, reason: reason || 'Status update' });
+  updateStatus: async (id: string, status: string, reason?: string, progressPercentage?: number): Promise<ApiResponse<EnterpriseProject>> => {
+    const res = await apiClient.patch<ApiResponse<EnterpriseProject>>(`/projects/${id}/status`, { 
+      status, 
+      reason: reason || 'Status update',
+      progressPercentage 
+    });
     return res.data;
   },
 

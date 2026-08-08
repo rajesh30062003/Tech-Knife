@@ -8,21 +8,46 @@
     "code": "TK-ECP",
     "createdAt": "2026-07-29T02:55:45.485Z",
     "deadline": "2026-12-31",
-    "lead": "Ganesh Pal",
+    "lead": "Subrata Pal",
     "name": "Enterprise Cloud Portal",
     "progress": 85,
     "status": "IN_PROGRESS",
     "teamCount": 8,
     "updatedAt": "2026-08-05T13:22:22.649Z",
-    "assignedEmployees": [],
+    "assignedEmployees": [
+      "EMP-005",
+      "EMP-003"
+    ],
     "assignedInterns": [
       "INT-001"
     ],
     "projectCode": "PRJ-MIG-1785824926925-1",
-    "members": [],
+    "members": [
+      {
+        "employeeId": "EMP-005",
+        "employeeName": "Rahul Garai (EMP-005)",
+        "role": "PROJECT_MANAGER",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      },
+      {
+        "employeeId": "EMP-003",
+        "employeeName": "Subrata Pal (EMP-003)",
+        "role": "TECH_LEAD",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      },
+      {
+        "employeeId": "INT-001",
+        "employeeName": "Rahul Pal (INT-001)",
+        "role": "INTERN",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      }
+    ],
     "progressPercentage": 0,
-    "projectLeadId": "EMP-006",
-    "projectLeadName": "Ranadhir Pal (EMP-006)",
+    "projectLeadId": "EMP-003",
+    "projectLeadName": "Subrata Pal (EMP-003)",
     "projectManagerId": "EMP-005",
     "projectManagerName": "Rahul Garai (EMP-005)"
   },
@@ -72,11 +97,11 @@
     "deploymentType": "CLOUD",
     "projectManagerId": "EMP-005",
     "projectManagerName": "Rahul Garai (EMP-005)",
-    "projectLeadId": "EMP-006",
-    "projectLeadName": "Ranadhir Pal (EMP-006)",
+    "projectLeadId": "EMP-003",
+    "projectLeadName": "Subrata Pal (EMP-003)",
     "assignedEmployees": [
-      "EMP-007",
-      "EMP-008"
+      "EMP-005",
+      "EMP-003"
     ],
     "assignedInterns": [
       "INT-001"
@@ -101,28 +126,21 @@
         "employeeName": "Rahul Garai (EMP-005)",
         "role": "PROJECT_MANAGER",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-03T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       },
       {
-        "employeeId": "EMP-006",
-        "employeeName": "Ranadhir Pal (EMP-006)",
+        "employeeId": "EMP-003",
+        "employeeName": "Subrata Pal (EMP-003)",
         "role": "TECH_LEAD",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-03T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       },
       {
-        "employeeId": "EMP-007",
-        "employeeName": "Sourav Roy (EMP-007)",
-        "role": "MEMBER",
+        "employeeId": "INT-001",
+        "employeeName": "Rahul Pal (INT-001)",
+        "role": "INTERN",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-03T18:30:00.000Z"
-      },
-      {
-        "employeeId": "EMP-008",
-        "employeeName": "Ganesh Pal (EMP-008)",
-        "role": "MEMBER",
-        "allocationPercentage": 100,
-        "joinedDate": "2026-08-03T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       }
     ],
     "teams": [],
@@ -131,7 +149,8 @@
     "updatedAt": "2026-08-04T09:35:01.657Z",
     "createdBy": "6a70001cad02338dec53be31",
     "updatedBy": "6a703ace63293db054d88922",
-    "_class": "com.techknife.project.entity.Project"
+    "_class": "com.techknife.project.entity.Project",
+    "lead": "Subrata Pal"
   },
   {
     "_id": "6a703e2c8eac932c54f823dd",
@@ -160,12 +179,13 @@
     "repositoryVisibility": "PRIVATE",
     "projectVisibility": "PRIVATE",
     "deploymentType": "CLOUD",
-    "projectManagerId": "EMP-006",
-    "projectManagerName": "Ranadhir Pal (EMP-006)",
+    "projectManagerId": "EMP-001",
+    "projectManagerName": "Ranadhir Pal (EMP-001)",
     "projectLeadId": "EMP-005",
     "projectLeadName": "Rahul Garai (EMP-005)",
     "assignedEmployees": [
-      "EMP-008"
+      "EMP-005",
+      "EMP-003"
     ],
     "assignedInterns": [
       "INT-002"
@@ -175,25 +195,32 @@
     "tags": [],
     "members": [
       {
-        "employeeId": "EMP-006",
-        "employeeName": "Ranadhir Pal (EMP-006)",
+        "employeeId": "EMP-001",
+        "employeeName": "Ranadhir Pal (EMP-001)",
         "role": "PROJECT_MANAGER",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-04T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       },
       {
         "employeeId": "EMP-005",
         "employeeName": "Rahul Garai (EMP-005)",
         "role": "TECH_LEAD",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-04T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       },
       {
-        "employeeId": "EMP-008",
-        "employeeName": "Ganesh Pal (EMP-008)",
+        "employeeId": "EMP-003",
+        "employeeName": "Subrata Pal (EMP-003)",
         "role": "MEMBER",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-04T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      },
+      {
+        "employeeId": "INT-002",
+        "employeeName": "Sangita Koner (INT-002)",
+        "role": "INTERN",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       }
     ],
     "teams": [],
@@ -202,7 +229,8 @@
     "updatedAt": "2026-08-05T02:49:06.809Z",
     "createdBy": "6a703ace63293db054d88922",
     "updatedBy": "6a700efd03662f590406b8e4",
-    "_class": "com.techknife.project.entity.Project"
+    "_class": "com.techknife.project.entity.Project",
+    "lead": "Rahul Garai"
   },
   {
     "_id": "6a70448f91cdab02183cb731",
@@ -232,25 +260,39 @@
     "projectVisibility": "PRIVATE",
     "deploymentType": "CLOUD",
     "projectManagerId": "EMP-005",
-    "projectManagerName": "EXEC-1023499213",
-    "projectLeadId": "EMP-005",
-    "projectLeadName": "EXEC-1023499213",
+    "projectManagerName": "Rahul Garai (EMP-005)",
+    "projectLeadId": "EMP-003",
+    "projectLeadName": "Subrata Pal (EMP-003)",
     "assignedEmployees": [
       "EMP-005"
     ],
     "assignedInterns": [
-      "INT-004"
+      "INT-001"
     ],
     "links": {},
     "customLinks": [],
     "tags": [],
     "members": [
       {
-        "employeeId": "6a703ace63293db054d88922",
-        "employeeName": "Unassigned (6a703ace63293db054d88922)",
+        "employeeId": "EMP-005",
+        "employeeName": "Rahul Garai (EMP-005)",
         "role": "PROJECT_MANAGER",
         "allocationPercentage": 100,
-        "joinedDate": "2026-08-02T18:30:00.000Z"
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      },
+      {
+        "employeeId": "EMP-003",
+        "employeeName": "Subrata Pal (EMP-003)",
+        "role": "TECH_LEAD",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
+      },
+      {
+        "employeeId": "INT-001",
+        "employeeName": "Rahul Pal (INT-001)",
+        "role": "INTERN",
+        "allocationPercentage": 100,
+        "joinedDate": "2026-08-01T00:00:00.000Z"
       }
     ],
     "teams": [],
@@ -259,6 +301,7 @@
     "updatedAt": "2026-08-04T05:27:08.498Z",
     "createdBy": "6a703ace63293db054d88922",
     "updatedBy": "6a700efb03662f590406b8e0",
-    "_class": "com.techknife.project.entity.Project"
+    "_class": "com.techknife.project.entity.Project",
+    "lead": "Subrata Pal"
   }
 ]

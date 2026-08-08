@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class MeetingService {
 
     private final MeetingRepository meetingRepository;
+    private final com.techknife.project.service.ProjectActivityService projectActivityService;
 
     public List<MeetingDTO> getMeetingsByEntity(String entityType, String entityId) {
         return meetingRepository.findByEntityTypeAndEntityId(entityType.toUpperCase(), entityId)
@@ -51,10 +52,26 @@ public class MeetingService {
                 .followUpTasks(dto.getFollowUpTasks() != null ? dto.getFollowUpTasks() : List.of())
                 .status(dto.getStatus() != null ? dto.getStatus() : "SCHEDULED")
                 .organizerId(dto.getOrganizerId())
+                .meetingLink(dto.getMeetingLink())
                 .build();
 
         Meeting saved = meetingRepository.save(meeting);
         log.info("Scheduled Meeting: {} for entity {}", saved.getTitle(), saved.getEntityId());
+
+        if ("PROJECT".equalsIgnoreCase(saved.getEntityType())) {
+            try {
+                String linkInfo = (saved.getMeetingLink() != null && !saved.getMeetingLink().isBlank()) ? " (Link: " + saved.getMeetingLink() + ")" : "";
+                projectActivityService.logActivity(
+                        saved.getEntityId(), saved.getEntityId(),
+                        "Meeting Scheduled", "MEETING",
+                        "Scheduled team sync '" + saved.getTitle() + "'" + linkInfo + ".",
+                        "Meeting", null, saved.getTitle()
+                );
+            } catch (Exception e) {
+                log.warn("Activity logging failed for meeting schedule: {}", e.getMessage());
+            }
+        }
+
         return mapToDTO(saved);
     }
 
@@ -70,14 +87,42 @@ public class MeetingService {
         if (dto.getOutcome() != null) meeting.setOutcome(dto.getOutcome());
         if (dto.getFollowUpTasks() != null) meeting.setFollowUpTasks(dto.getFollowUpTasks());
         if (dto.getStatus() != null) meeting.setStatus(dto.getStatus());
+        if (dto.getMeetingLink() != null) meeting.setMeetingLink(dto.getMeetingLink());
 
         Meeting updated = meetingRepository.save(meeting);
+
+        if ("PROJECT".equalsIgnoreCase(updated.getEntityType())) {
+            try {
+                projectActivityService.logActivity(
+                        updated.getEntityId(), updated.getEntityId(),
+                        "Meeting Updated", "MEETING",
+                        "Updated team sync '" + updated.getTitle() + "'.",
+                        "Meeting", null, updated.getTitle()
+                );
+            } catch (Exception e) {
+                log.warn("Activity logging failed for meeting update: {}", e.getMessage());
+            }
+        }
+
         return mapToDTO(updated);
     }
 
     public void deleteMeeting(String id) {
-        if (!meetingRepository.existsById(id)) {
+        Meeting meeting = meetingRepository.findById(id).orElse(null);
+        if (meeting == null) {
             throw new RuntimeException("Meeting not found with id: " + id);
+        }
+        if ("PROJECT".equalsIgnoreCase(meeting.getEntityType())) {
+            try {
+                projectActivityService.logActivity(
+                        meeting.getEntityId(), meeting.getEntityId(),
+                        "Meeting Cancelled", "MEETING",
+                        "Cancelled team sync '" + meeting.getTitle() + "'.",
+                        "Meeting", meeting.getTitle(), null
+                );
+            } catch (Exception e) {
+                log.warn("Activity logging failed for meeting delete: {}", e.getMessage());
+            }
         }
         meetingRepository.deleteById(id);
     }
@@ -96,6 +141,7 @@ public class MeetingService {
                 .followUpTasks(m.getFollowUpTasks())
                 .status(m.getStatus())
                 .organizerId(m.getOrganizerId())
+                .meetingLink(m.getMeetingLink())
                 .createdAt(m.getCreatedAt())
                 .updatedAt(m.getUpdatedAt())
                 .build();

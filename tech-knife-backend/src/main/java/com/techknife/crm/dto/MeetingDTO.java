@@ -25,6 +25,7 @@ public class MeetingDTO {
     private List<String> followUpTasks;
     private String status;
     private String organizerId;
+    private String meetingLink;
     private Instant createdAt;
     private Instant updatedAt;
 }

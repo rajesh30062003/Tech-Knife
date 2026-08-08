@@ -24,17 +24,26 @@ public class ProjectActivity {
     @Indexed
     private String projectId;
 
-    private String action;
+    @Indexed
+    private String projectCode;
 
-    private String performedBy;
+    private String action;          // e.g. "Task Completed", "Document Uploaded", "Repository Updated"
 
-    private String userRole;
+    private String activityType;    // e.g. "TASK", "DOCUMENT", "REPOSITORY", "STATUS", "MEETING", "TEAM", "PLANNING", "RISK"
 
-    private String fieldModified;
+    private String description;     // Human-readable summary details e.g. "Completed task 'Implement authentication API'"
 
-    private String oldValue;
+    private String performedBy;     // User Full Name e.g. "Rahul Pal"
 
-    private String newValue;
+    private String performedByEmail; // User Email e.g. "rahul.pal@techknife.com"
+
+    private String userRole;        // Role e.g. "Fullstack Developer", "Manager", "CTO"
+
+    private String fieldModified;   // Changed property name e.g. "Backend Repository", "Status"
+
+    private String oldValue;        // Pre-update value
+
+    private String newValue;        // Post-update value
 
     @CreatedDate
     private Instant timestamp;

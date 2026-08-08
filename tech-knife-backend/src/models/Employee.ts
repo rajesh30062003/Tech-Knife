@@ -21,6 +21,7 @@ export interface IEmployee extends Document {
   drivingLicenseNumber?: string;
   personalEmail: string;
   officialEmail: string;
+  githubUrl?: string;
   mobileNumber: string;
   alternateMobileNumber?: string;
   emergencyContactName?: string;
@@ -159,6 +160,7 @@ const EmployeeSchema = new Schema<IEmployee>(
     drivingLicenseNumber: { type: String, default: '' },
     personalEmail: { type: String, default: '' },
     officialEmail: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+    githubUrl: { type: String, default: '' },
     mobileNumber: { type: String, default: '' },
     alternateMobileNumber: { type: String, default: '' },
     emergencyContactName: { type: String, default: '' },

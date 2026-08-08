@@ -76,7 +76,7 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
-  const { user } = useAuth();
+  const { user, canAccessRoute, isFeatureEnabled } = useAuth();
 
   const getIcon = (iconName: string) => {
     switch (iconName) {
@@ -113,10 +113,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const filteredItems = NAV_ITEMS.filter(item => {
+  const filteredItems = NAV_ITEMS.filter((item) => {
     if (!user) return true;
     const userRoles = user.roles && user.roles.length > 0 ? user.roles : [user.role];
-    return userRoles.some(r => item.roles.includes(r));
+    const roleAllowed = userRoles.some((r) => item.roles.includes(r));
+    if (!roleAllowed) return false;
+
+    // Check dynamic route permission from DB Role matrix
+    if (!canAccessRoute(item.path)) return false;
+
+    // Check feature flags
+    if (item.path === '/audit-logs' && !isFeatureEnabled('enableAuditLogs')) return false;
+    if (item.path === '/employees' && !isFeatureEnabled('enableEmployeeManagement')) return false;
+    if (item.path === '/interns' && !isFeatureEnabled('enableInternManagement')) return false;
+    if (item.path === '/projects' && !isFeatureEnabled('enableProjectManagement')) return false;
+
+    return true;
   });
 
   const categories = Array.from(new Set(filteredItems.map(item => item.category || 'General')));

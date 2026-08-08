@@ -23,7 +23,7 @@ public class ProjectReportController {
     private final ProjectReportService projectReportService;
 
     @GetMapping("/generate")
-    @PreAuthorize("hasAuthority('PROJECT_REPORT_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Generate Executive Project Report")
     public ResponseEntity<ApiResponse<ProjectReportDTO>> generateReport(
             @RequestParam String reportType,
@@ -34,7 +34,7 @@ public class ProjectReportController {
     }
 
     @GetMapping("/export/csv")
-    @PreAuthorize("hasAuthority('PROJECT_REPORT_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Export Report as CSV File")
     public ResponseEntity<String> exportReportCsv(
             @RequestParam String reportType,

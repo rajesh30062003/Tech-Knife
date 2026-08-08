@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { User } from '../models/User';
 import { Employee } from '../models/Employee';
 import { Customer } from '../models/Customer';
-import { RoleModel, DepartmentModel, PermissionModel } from '../models/RoleAndDept';
+import { RoleModel, DepartmentModel, PermissionModel, FeatureFlagModel, RoutePermissionModel } from '../models/RoleAndDept';
 import {
   Attendance,
   Salary,
@@ -16,63 +16,373 @@ import {
 } from '../models/EnterpriseModels';
 import { generateDatabaseBackups } from './backupService';
 
+export const AUTHORITATIVE_STAFF_EMAILS = [
+  'rjrajeshpal30@gmail.com',
+  'souravroy6412@gmail.com',
+  'palganeshpal314@gmail.com',
+  'garairahul087@gmail.com',
+  'sangitakoner455@gmail.com',
+  'rahulpal01102002@gmail.com',
+  'salmankazi1603@gmail.com',
+  'nishapanditbwn@gmail.com',
+];
+
+export const ALL_PERMISSIONS_CATALOG = [
+  { code: 'USER_READ', name: 'View Users', module: 'User Management', category: 'Security' },
+  { code: 'USER_CREATE', name: 'Create Users', module: 'User Management', category: 'Security' },
+  { code: 'USER_WRITE', name: 'Edit Users', module: 'User Management', category: 'Security' },
+  { code: 'USER_DELETE', name: 'Delete Users', module: 'User Management', category: 'Security' },
+
+  { code: 'EMPLOYEE_READ', name: 'View Employees', module: 'Employees', category: 'HR' },
+  { code: 'EMPLOYEE_CREATE', name: 'Add Employee', module: 'Employees', category: 'HR' },
+  { code: 'EMPLOYEE_WRITE', name: 'Edit Employee', module: 'Employees', category: 'HR' },
+  { code: 'EMPLOYEE_DELETE', name: 'Remove Employee', module: 'Employees', category: 'HR' },
+
+  { code: 'INTERN_READ', name: 'View Interns', module: 'Interns', category: 'HR' },
+  { code: 'INTERN_CREATE', name: 'Add Intern', module: 'Interns', category: 'HR' },
+  { code: 'INTERN_WRITE', name: 'Edit Intern', module: 'Interns', category: 'HR' },
+  { code: 'INTERN_DELETE', name: 'Remove Intern', module: 'Interns', category: 'HR' },
+
+  { code: 'ROLE_READ', name: 'View Roles & Matrix', module: 'Roles & Permissions', category: 'Security' },
+  { code: 'ROLE_WRITE', name: 'Edit Roles & Matrix', module: 'Roles & Permissions', category: 'Security' },
+  { code: 'ROLE_DELETE', name: 'Delete Roles', module: 'Roles & Permissions', category: 'Security' },
+
+  { code: 'PERMISSION_READ', name: 'View Permission Catalog', module: 'Roles & Permissions', category: 'Security' },
+  { code: 'PERMISSION_WRITE', name: 'Modify Permission Catalog', module: 'Roles & Permissions', category: 'Security' },
+
+  { code: 'PROJECT_READ', name: 'View Projects', module: 'Projects', category: 'Engineering' },
+  { code: 'PROJECT_CREATE', name: 'Create Project', module: 'Projects', category: 'Engineering' },
+  { code: 'PROJECT_WRITE', name: 'Edit Project', module: 'Projects', category: 'Engineering' },
+  { code: 'PROJECT_DELETE', name: 'Delete Project', module: 'Projects', category: 'Engineering' },
+
+  { code: 'TASK_READ', name: 'View Tasks', module: 'Tasks', category: 'Engineering' },
+  { code: 'TASK_CREATE', name: 'Create Task', module: 'Tasks', category: 'Engineering' },
+  { code: 'TASK_WRITE', name: 'Edit Task', module: 'Tasks', category: 'Engineering' },
+  { code: 'TASK_DELETE', name: 'Delete Task', module: 'Tasks', category: 'Engineering' },
+  { code: 'TASK_ASSIGN', name: 'Assign Task', module: 'Tasks', category: 'Engineering' },
+
+  { code: 'DOCUMENT_READ', name: 'View Documents', module: 'Vault & Documents', category: 'Storage' },
+  { code: 'DOCUMENT_UPLOAD', name: 'Upload Document', module: 'Vault & Documents', category: 'Storage' },
+  { code: 'DOCUMENT_WRITE', name: 'Edit Document', module: 'Vault & Documents', category: 'Storage' },
+  { code: 'DOCUMENT_DELETE', name: 'Delete Document', module: 'Vault & Documents', category: 'Storage' },
+  { code: 'DOCUMENT_DOWNLOAD', name: 'Download Document', module: 'Vault & Documents', category: 'Storage' },
+
+  { code: 'REPOSITORY_READ', name: 'View Repositories', module: 'Engineering', category: 'Development' },
+  { code: 'REPOSITORY_CREATE', name: 'Create Repository', module: 'Engineering', category: 'Development' },
+  { code: 'REPOSITORY_WRITE', name: 'Commit / Push Repository', module: 'Engineering', category: 'Development' },
+  { code: 'REPOSITORY_DELETE', name: 'Delete Repository', module: 'Engineering', category: 'Development' },
+
+  { code: 'MEETING_READ', name: 'View Meetings', module: 'Collaboration', category: 'Events' },
+  { code: 'MEETING_CREATE', name: 'Schedule Meeting', module: 'Collaboration', category: 'Events' },
+  { code: 'MEETING_WRITE', name: 'Edit Meeting', module: 'Collaboration', category: 'Events' },
+  { code: 'MEETING_DELETE', name: 'Cancel Meeting', module: 'Collaboration', category: 'Events' },
+
+  { code: 'ACTIVITY_READ', name: 'View Activity Logs', module: 'Audit & Compliance', category: 'Security' },
+  { code: 'AUDIT_LOG_READ', name: 'View Audit Trail', module: 'Audit & Compliance', category: 'Security' },
+
+  { code: 'REPORT_READ', name: 'View Executive Reports', module: 'Analytics', category: 'Reports' },
+  { code: 'REPORT_EXPORT', name: 'Export Reports', module: 'Analytics', category: 'Reports' },
+
+  { code: 'APPROVAL_READ', name: 'View Approvals', module: 'Approvals', category: 'Governance' },
+  { code: 'APPROVAL_CREATE', name: 'Request Approval', module: 'Approvals', category: 'Governance' },
+  { code: 'APPROVAL_APPROVE', name: 'Approve Request', module: 'Approvals', category: 'Governance' },
+  { code: 'APPROVAL_REJECT', name: 'Reject Request', module: 'Approvals', category: 'Governance' },
+
+  { code: 'SETTINGS_READ', name: 'View System Settings', module: 'System', category: 'Core' },
+  { code: 'SETTINGS_WRITE', name: 'Modify System Settings', module: 'System', category: 'Core' },
+
+  { code: 'DASHBOARD_READ', name: 'Access Core Dashboard', module: 'Dashboard', category: 'Core' },
+];
+
+export const ALL_MENU_ROUTES = [
+  '/dashboard',
+  '/admin',
+  '/manager',
+  '/employee',
+  '/intern',
+  '/customer',
+  '/employees',
+  '/interns',
+  '/customers',
+  '/projects',
+  '/tasks',
+  '/repositories',
+  '/documents',
+  '/meetings',
+  '/reports',
+  '/payroll',
+  '/attendance',
+  '/leave',
+  '/crm',
+  '/recruitment',
+  '/audit-logs',
+  '/roles-permissions',
+  '/settings',
+  '/profile',
+];
+
+export const ALL_FEATURE_FLAGS = [
+  { key: 'enableAuditLogs', title: 'Audit Trail Inspection', description: 'Allows viewing immutable system activity logs', enabled: true, module: 'Audit' },
+  { key: 'enableCloudinaryUploads', title: 'Cloudinary Asset Storage', description: 'Allows uploading documents to Cloudinary vault', enabled: true, module: 'Storage' },
+  { key: 'enableApprovalWorkflows', title: 'Approval Workflow Engine', description: 'Allows acting as an approver in workflows', enabled: true, module: 'Governance' },
+  { key: 'enableGithubIntegration', title: 'GitHub Code Integration', description: 'Allows viewing repository pull requests & status', enabled: true, module: 'Engineering' },
+  { key: 'enableEmployeeManagement', title: 'Employee Directory & Management', description: 'Full staff lifecycle governance', enabled: true, module: 'HR' },
+  { key: 'enableInternManagement', title: 'Internship Cohort Operations', description: 'Manage intern tasks, mentors & certificates', enabled: true, module: 'HR' },
+  { key: 'enableProjectManagement', title: 'Project & Sprint Delivery', description: 'Sprint tracking & task execution', enabled: true, module: 'Engineering' },
+  { key: 'enableTaskManagement', title: 'Task Delegation & Tracking', description: 'Task assignment and time logs', enabled: true, module: 'Engineering' },
+];
+
 export const seedDatabase = async (): Promise<void> => {
   try {
-    const defaultPasswordHash = await bcrypt.hash('TechKnife@2026', 10);
+    const defaultPasswordHash = await bcrypt.hash('Admin@123', 10);
 
-    // 1. Roles
+    // 1. Seed Permissions Catalog
+    for (const p of ALL_PERMISSIONS_CATALOG) {
+      await PermissionModel.updateOne({ code: p.code }, { $set: p }, { upsert: true });
+    }
+
+    // 2. Seed Feature Flags
+    for (const f of ALL_FEATURE_FLAGS) {
+      await FeatureFlagModel.updateOne({ key: f.key }, { $set: f }, { upsert: true });
+    }
+
+    // 3. Seed Route Permissions
+    for (const routePath of ALL_MENU_ROUTES) {
+      const allowedRoles = routePath === '/roles-permissions' || routePath === '/admin' || routePath === '/settings' || routePath === '/audit-logs'
+        ? ['ROLE_CEO', 'ROLE_MD', 'ROLE_SUPER_ADMIN', 'ROLE_ADMIN']
+        : ['ROLE_CEO', 'ROLE_MD', 'ROLE_SENIOR_DEVELOPER', 'ROLE_SYSTEM_DEVELOPER', 'ROLE_INTERN', 'ROLE_EMPLOYEE', 'ROLE_CUSTOMER'];
+      
+      await RoutePermissionModel.updateOne(
+        { path: routePath },
+        {
+          $set: {
+            path: routePath,
+            title: routePath.replace('/', '').toUpperCase() || 'DASHBOARD',
+            allowedRoles,
+            enabled: true,
+          },
+        },
+        { upsert: true }
+      );
+    }
+
+    // 4. Baseline Roles Data
+    const defaultFeatureFlags: Record<string, boolean> = {
+      enableAuditLogs: true,
+      enableCloudinaryUploads: true,
+      enableApprovalWorkflows: true,
+      enableGithubIntegration: true,
+      enableEmployeeManagement: true,
+      enableInternManagement: true,
+      enableProjectManagement: true,
+      enableTaskManagement: true,
+    };
+
+    const allPermCodes = ALL_PERMISSIONS_CATALOG.map((p) => p.code);
+
     const rolesData = [
-      { name: 'Super Admin', code: 'ROLE_SUPER_ADMIN', description: 'Complete system control' },
-      { name: 'Admin', code: 'ROLE_ADMIN', description: 'System administration' },
-      { name: 'Chief Executive Officer', code: 'ROLE_CEO', description: 'Executive Leadership' },
-      { name: 'Managing Director', code: 'ROLE_MD', description: 'Managing Directorate' },
-      { name: 'Chief Technology Officer', code: 'ROLE_CTO', description: 'Technology Leadership' },
-      { name: 'Growth Head', code: 'ROLE_GROWTH_HEAD', description: 'Marketing & Growth Leadership' },
-      { name: 'Senior Engineering Manager', code: 'ROLE_SENIOR_ENGINEERING_MANAGER', description: 'Engineering Management' },
-      { name: 'Chief Marketing Officer', code: 'ROLE_CMO', description: 'Marketing Directorate' },
-      { name: 'Director', code: 'ROLE_DIRECTOR', description: 'Department Director' },
-      { name: 'Manager', code: 'ROLE_MANAGER', description: 'Team Manager' },
-      { name: 'Employee', code: 'ROLE_EMPLOYEE', description: 'Staff Employee' },
-      { name: 'Intern', code: 'ROLE_INTERN', description: 'Trainee Intern' },
-      { name: 'Customer', code: 'ROLE_CUSTOMER', description: 'Client / Customer User' },
+      {
+        name: 'Chief Executive Officer',
+        code: 'ROLE_CEO',
+        description: 'Executive Leadership & Highest System Governance',
+        hierarchyLevel: 100,
+        permissions: allPermCodes,
+        menuPermissions: ALL_MENU_ROUTES,
+        featureFlags: defaultFeatureFlags,
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
+      {
+        name: 'Managing Director',
+        code: 'ROLE_MD',
+        description: 'Managing Directorate & Enterprise Operations',
+        hierarchyLevel: 90,
+        permissions: allPermCodes.filter((p) => p !== 'ROLE_DELETE' && p !== 'PERMISSION_WRITE'),
+        menuPermissions: ALL_MENU_ROUTES,
+        featureFlags: defaultFeatureFlags,
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
+      {
+        name: 'Senior Developer',
+        code: 'ROLE_SENIOR_DEVELOPER',
+        description: 'Senior Software Architecture & Project Delivery Lead',
+        hierarchyLevel: 70,
+        permissions: [
+          'DASHBOARD_READ',
+          'EMPLOYEE_READ',
+          'INTERN_READ',
+          'PROJECT_READ',
+          'PROJECT_CREATE',
+          'PROJECT_WRITE',
+          'TASK_READ',
+          'TASK_CREATE',
+          'TASK_WRITE',
+          'TASK_ASSIGN',
+          'DOCUMENT_READ',
+          'DOCUMENT_UPLOAD',
+          'DOCUMENT_DOWNLOAD',
+          'REPOSITORY_READ',
+          'REPOSITORY_CREATE',
+          'REPOSITORY_WRITE',
+          'MEETING_READ',
+          'MEETING_CREATE',
+          'ACTIVITY_READ',
+          'AUDIT_LOG_READ',
+          'REPORT_READ',
+          'REPORT_EXPORT',
+          'APPROVAL_READ',
+          'APPROVAL_CREATE',
+        ],
+        menuPermissions: [
+          '/dashboard',
+          '/manager',
+          '/employee',
+          '/employees',
+          '/interns',
+          '/projects',
+          '/tasks',
+          '/repositories',
+          '/documents',
+          '/meetings',
+          '/reports',
+          '/attendance',
+          '/leave',
+          '/profile',
+        ],
+        featureFlags: defaultFeatureFlags,
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
+      {
+        name: 'System Developer',
+        code: 'ROLE_SYSTEM_DEVELOPER',
+        description: 'System Engineering & Infrastructure Staff',
+        hierarchyLevel: 60,
+        permissions: [
+          'DASHBOARD_READ',
+          'PROJECT_READ',
+          'PROJECT_WRITE',
+          'TASK_READ',
+          'TASK_CREATE',
+          'TASK_WRITE',
+          'DOCUMENT_READ',
+          'DOCUMENT_UPLOAD',
+          'DOCUMENT_DOWNLOAD',
+          'REPOSITORY_READ',
+          'REPOSITORY_WRITE',
+          'MEETING_READ',
+          'MEETING_CREATE',
+          'APPROVAL_READ',
+          'APPROVAL_CREATE',
+        ],
+        menuPermissions: [
+          '/dashboard',
+          '/employee',
+          '/projects',
+          '/tasks',
+          '/repositories',
+          '/documents',
+          '/meetings',
+          '/attendance',
+          '/leave',
+          '/profile',
+        ],
+        featureFlags: defaultFeatureFlags,
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
+      {
+        name: 'Intern',
+        code: 'ROLE_INTERN',
+        description: 'Trainee Intern Cohort Member',
+        hierarchyLevel: 30,
+        permissions: [
+          'DASHBOARD_READ',
+          'PROJECT_READ',
+          'TASK_READ',
+          'TASK_WRITE',
+          'DOCUMENT_READ',
+          'DOCUMENT_UPLOAD',
+          'REPOSITORY_READ',
+          'MEETING_READ',
+          'APPROVAL_CREATE',
+        ],
+        menuPermissions: [
+          '/dashboard',
+          '/intern',
+          '/projects',
+          '/tasks',
+          '/repositories',
+          '/documents',
+          '/meetings',
+          '/profile',
+        ],
+        featureFlags: {
+          ...defaultFeatureFlags,
+          enableEmployeeManagement: false,
+          enableAuditLogs: false,
+        },
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
+      {
+        name: 'Customer',
+        code: 'ROLE_CUSTOMER',
+        description: 'Client Representative / Customer User',
+        hierarchyLevel: 10,
+        permissions: ['DASHBOARD_READ', 'PROJECT_READ', 'DOCUMENT_READ'],
+        menuPermissions: ['/dashboard', '/customer', '/projects', '/documents', '/profile'],
+        featureFlags: { ...defaultFeatureFlags, enableEmployeeManagement: false, enableAuditLogs: false },
+        status: 'Active',
+        updatedBy: 'System Baseline',
+      },
     ];
 
     for (const r of rolesData) {
-      await RoleModel.updateOne({ code: r.code }, { $setOnInsert: r }, { upsert: true });
+      await RoleModel.updateOne({ code: r.code }, { $set: r }, { upsert: true });
     }
 
-    // 2. Departments
+    // 5. Departments
     const deptsData = [
-      { name: 'Management', code: 'MGMT', headName: 'Ranadhir Pal', description: 'Executive Leadership & Direction' },
-      { name: 'Technology', code: 'TECH', headName: 'Subrata Pal', description: 'Core Technology & Architecture' },
-      { name: 'Marketing', code: 'MKTG', headName: 'Anindita Chakraborty', description: 'Global Growth & Marketing' },
-      { name: 'Engineering', code: 'ENG', headName: 'Rahul Garai', description: 'Software Engineering & Delivery' },
-      { name: 'Human Resources', code: 'HR', headName: 'Sarah Connor', description: 'Human Capital & People Ops' },
-      { name: 'Finance', code: 'FIN', headName: 'Arthur Pendelton', description: 'Financial Operations' },
+      { name: 'Management', code: 'MGMT', headName: 'Ranadhir Pal', description: 'Executive Leadership & Governance', employeeCount: 2 },
+      { name: 'Technology', code: 'TECH', headName: 'Sourav Roy', description: 'Core Technology & Operations', employeeCount: 2 },
+      { name: 'Engineering', code: 'ENG', headName: 'Ganesh Pal', description: 'Software Engineering & Delivery', employeeCount: 4 },
+      { name: 'Systems', code: 'SYS', headName: 'Rahul Garai', description: 'Systems Architecture & Infrastructure', employeeCount: 4 },
     ];
 
     for (const d of deptsData) {
-      await DepartmentModel.updateOne({ code: d.code }, { $setOnInsert: d }, { upsert: true });
+      await DepartmentModel.updateOne({ code: d.code }, { $set: d }, { upsert: true });
     }
 
-    // 3. Leadership Employees Data
-    const leadership = [
+    // 6. Database Cleanup: Remove all staff accounts outside authoritative list
+    await User.deleteMany({
+      email: { $nin: [...AUTHORITATIVE_STAFF_EMAILS, 'amit.sharma@example.com'] },
+    });
+    await Employee.deleteMany({
+      officialEmail: { $nin: AUTHORITATIVE_STAFF_EMAILS },
+    });
+
+    // 7. Authoritative Employee Staff Data (4 Employees)
+    const employees = [
       {
         employeeId: 'EMP-001',
         employeeCode: 'TK-001',
         fullName: 'Ranadhir Pal',
         firstName: 'Ranadhir',
         lastName: 'Pal',
-        username: 'ranadhir',
-        officialEmail: 'ranadhir.pal@techknife.com',
-        personalEmail: 'ranadhir@gmail.com',
+        username: 'ranadhirpal',
+        officialEmail: 'rjrajeshpal30@gmail.com',
+        personalEmail: 'rjrajeshpal30@gmail.com',
         role: 'ROLE_CEO',
-        designation: 'Chief Executive Officer',
+        designation: 'CEO',
         department: 'Management',
-        hierarchyLevel: 1,
-        mobileNumber: '+91 98765 43210',
+        employmentType: 'Employee',
+        hierarchyLevel: 100,
+        mobileNumber: '8503687142',
+        githubUrl: 'https://github.com/rajesh30062003',
         joiningDate: '2020-01-01',
-        skills: ['Executive Strategy', 'Enterprise Governance', 'Venture Growth'],
+        skills: ['Executive Leadership', 'Corporate Governance', 'Strategic Vision'],
         salary: 350000,
         managerId: '',
         managerName: '',
@@ -83,16 +393,18 @@ export const seedDatabase = async (): Promise<void> => {
         fullName: 'Sourav Roy',
         firstName: 'Sourav',
         lastName: 'Roy',
-        username: 'sourav',
-        officialEmail: 'sourav.roy@techknife.com',
-        personalEmail: 'sourav@gmail.com',
+        username: 'souravroy',
+        officialEmail: 'souravroy6412@gmail.com',
+        personalEmail: 'souravroy6412@gmail.com',
         role: 'ROLE_MD',
         designation: 'Managing Director',
         department: 'Management',
-        hierarchyLevel: 1,
-        mobileNumber: '+91 98765 43211',
+        employmentType: 'Employee',
+        hierarchyLevel: 90,
+        mobileNumber: '9749005543',
+        githubUrl: 'https://github.com/souravroy6412-crypto',
         joiningDate: '2020-02-01',
-        skills: ['Operations Strategy', 'Global Partnerships', 'Enterprise Growth'],
+        skills: ['Operations Strategy', 'Global Partnerships', 'Enterprise Operations'],
         salary: 320000,
         managerId: '',
         managerName: '',
@@ -100,131 +412,153 @@ export const seedDatabase = async (): Promise<void> => {
       {
         employeeId: 'EMP-003',
         employeeCode: 'TK-003',
-        fullName: 'Subrata Pal',
-        firstName: 'Subrata',
+        fullName: 'Ganesh Pal',
+        firstName: 'Ganesh',
         lastName: 'Pal',
-        username: 'subrata',
-        officialEmail: 'subrata.pal@techknife.com',
-        personalEmail: 'subrata@gmail.com',
-        role: 'ROLE_CTO',
-        designation: 'Chief Technology Officer',
-        department: 'Technology',
-        hierarchyLevel: 2,
-        mobileNumber: '+91 98765 43212',
-        joiningDate: '2020-03-01',
-        skills: ['Cloud Architecture', 'System Scalability', 'AI/ML Engineering', 'MongoDB Atlas'],
-        salary: 300000,
+        username: 'ganeshpal',
+        officialEmail: 'palganeshpal314@gmail.com',
+        personalEmail: 'palganeshpal314@gmail.com',
+        role: 'ROLE_SENIOR_DEVELOPER',
+        designation: 'Senior Developer',
+        department: 'Engineering',
+        employmentType: 'Employee',
+        hierarchyLevel: 70,
+        mobileNumber: '8509771608',
+        githubUrl: 'https://github.com/subrata850977',
+        joiningDate: '2021-03-01',
+        skills: ['Fullstack Architecture', 'React & TypeScript', 'Microservices', 'Database Systems'],
+        salary: 280000,
         managerId: 'EMP-001',
         managerName: 'Ranadhir Pal',
       },
       {
         employeeId: 'EMP-004',
         employeeCode: 'TK-004',
-        fullName: 'Anindita Chakraborty',
-        firstName: 'Anindita',
-        lastName: 'Chakraborty',
-        username: 'anindita',
-        officialEmail: 'anindita.c@techknife.com',
-        personalEmail: 'anindita@gmail.com',
-        role: 'ROLE_GROWTH_HEAD',
-        designation: 'Growth Head',
-        department: 'Marketing',
-        hierarchyLevel: 2,
-        mobileNumber: '+91 98765 43213',
-        joiningDate: '2021-05-15',
-        skills: ['Performance Marketing', 'Brand Scaling', 'User Acquisition'],
-        salary: 220000,
-        managerId: 'EMP-002',
-        managerName: 'Sourav Roy',
-      },
-      {
-        employeeId: 'EMP-005',
-        employeeCode: 'TK-005',
         fullName: 'Rahul Garai',
         firstName: 'Rahul',
         lastName: 'Garai',
         username: 'rahulgarai',
-        officialEmail: 'rahul.garai@techknife.com',
-        personalEmail: 'rahulgarai@gmail.com',
-        role: 'ROLE_SENIOR_ENGINEERING_MANAGER',
-        designation: 'Senior Engineering Manager',
+        officialEmail: 'garairahul087@gmail.com',
+        personalEmail: 'garairahul087@gmail.com',
+        role: 'ROLE_SYSTEM_DEVELOPER',
+        designation: 'System Developer',
         department: 'Engineering',
-        hierarchyLevel: 3,
-        mobileNumber: '+91 98765 43214',
+        employmentType: 'Employee',
+        hierarchyLevel: 60,
+        mobileNumber: '9641302571',
+        githubUrl: 'https://github.com/9641302571',
         joiningDate: '2021-08-01',
-        skills: ['Engineering Leadership', 'Microservices', 'System Architecture', 'Agile Operations'],
+        skills: ['System Engineering', 'Backend Services', 'API Integration', 'Cloud Ops'],
         salary: 250000,
         managerId: 'EMP-003',
-        managerName: 'Subrata Pal',
+        managerName: 'Ganesh Pal',
       },
     ];
 
-    // 4. Interns Data
+    // 8. Authoritative Intern Data (4 Interns)
     const interns = [
       {
         employeeId: 'INT-001',
         employeeCode: 'TK-INT-01',
-        fullName: 'Rahul Pal',
-        firstName: 'Rahul',
-        lastName: 'Pal',
-        username: 'rahulpal',
-        officialEmail: 'rahul.pal@techknife.com',
-        personalEmail: 'rahulpal.intern@gmail.com',
+        fullName: 'Sangita Koner',
+        firstName: 'Sangita',
+        lastName: 'Koner',
+        username: 'sangitakoner',
+        officialEmail: 'sangitakoner455@gmail.com',
+        personalEmail: 'sangitakoner455@gmail.com',
         role: 'ROLE_INTERN',
-        designation: 'Engineering Intern',
+        designation: 'Intern',
         department: 'Engineering',
-        hierarchyLevel: 4,
-        mobileNumber: '+91 98765 43215',
+        employmentType: 'Intern',
+        hierarchyLevel: 30,
+        mobileNumber: '6297747765',
+        githubUrl: 'https://github.com/sangitakoner455',
         joiningDate: '2025-06-01',
-        skills: ['React', 'TypeScript', 'Node.js', 'MongoDB'],
+        skills: ['React', 'TypeScript', 'Frontend Engineering'],
         salary: 25000,
+        managerId: 'EMP-003',
+        managerName: 'Ganesh Pal',
       },
       {
         employeeId: 'INT-002',
         employeeCode: 'TK-INT-02',
-        fullName: 'Sangita Koner',
-        firstName: 'Sangita',
-        lastName: 'Koner',
-        username: 'sangita',
-        officialEmail: 'sangita.k@techknife.com',
-        personalEmail: 'sangitakoner@gmail.com',
+        fullName: 'Rahul Pal',
+        firstName: 'Rahul',
+        lastName: 'Pal',
+        username: 'rahulpal',
+        officialEmail: 'rahulpal01102002@gmail.com',
+        personalEmail: 'rahulpal01102002@gmail.com',
         role: 'ROLE_INTERN',
-        designation: 'Marketing Intern',
-        department: 'Marketing',
-        hierarchyLevel: 4,
-        mobileNumber: '+91 98765 43216',
+        designation: 'Intern',
+        department: 'Engineering',
+        employmentType: 'Intern',
+        hierarchyLevel: 30,
+        mobileNumber: '6296909151',
+        githubUrl: 'https://github.com/Rahulpal0001',
         joiningDate: '2025-06-01',
-        skills: ['SEO', 'Content Strategy', 'Social Media Analytics'],
+        skills: ['Python', 'Data Engineering', 'Web Development'],
         salary: 25000,
+        managerId: 'EMP-004',
+        managerName: 'Rahul Garai',
       },
       {
         employeeId: 'INT-003',
         employeeCode: 'TK-INT-03',
-        fullName: 'Salman Kaji',
+        fullName: 'Salman Kazi',
         firstName: 'Salman',
-        lastName: 'Kaji',
-        username: 'salman',
-        officialEmail: 'salman.k@techknife.com',
-        personalEmail: 'salmankaji@gmail.com',
+        lastName: 'Kazi',
+        username: 'salmankazi',
+        officialEmail: 'salmankazi1603@gmail.com',
+        personalEmail: 'salmankazi1603@gmail.com',
         role: 'ROLE_INTERN',
-        designation: 'Technology Intern',
-        department: 'Technology',
-        hierarchyLevel: 4,
-        mobileNumber: '+91 98765 43217',
+        designation: 'Intern',
+        department: 'Engineering',
+        employmentType: 'Intern',
+        hierarchyLevel: 30,
+        mobileNumber: '9907701227',
+        githubUrl: 'https://github.com/salmankazi1603-lab',
         joiningDate: '2025-06-01',
-        skills: ['Python', 'Docker', 'Linux', 'Database Tuning'],
+        skills: ['Linux Systems', 'Docker', 'API Testing'],
         salary: 25000,
+        managerId: 'EMP-004',
+        managerName: 'Rahul Garai',
+      },
+      {
+        employeeId: 'INT-004',
+        employeeCode: 'TK-INT-04',
+        fullName: 'Nisha Pandit',
+        firstName: 'Nisha',
+        lastName: 'Pandit',
+        username: 'nishapandit',
+        officialEmail: 'nishapanditbwn@gmail.com',
+        personalEmail: 'nishapanditbwn@gmail.com',
+        role: 'ROLE_INTERN',
+        designation: 'Intern',
+        department: 'Engineering',
+        employmentType: 'Intern',
+        hierarchyLevel: 30,
+        mobileNumber: '9083049585',
+        githubUrl: 'https://github.com/nishapanditindia',
+        joiningDate: '2025-06-01',
+        skills: ['UI/UX Design', 'Frontend Development', 'QA Testing'],
+        salary: 25000,
+        managerId: 'EMP-003',
+        managerName: 'Ganesh Pal',
       },
     ];
 
-    const allStaff = [...leadership, ...interns];
+    const allStaff = [...employees, ...interns];
 
     for (const s of allStaff) {
+      // Find role perms for User permissions array
+      const roleDoc = rolesData.find((r) => r.code === s.role);
+      const userPerms = roleDoc ? roleDoc.permissions : ['USER_READ', 'PROJECT_READ'];
+
       // Upsert User
       await User.updateOne(
         { email: s.officialEmail },
         {
-          $setOnInsert: {
+          $set: {
             userId: s.employeeId,
             email: s.officialEmail,
             username: s.username,
@@ -237,10 +571,11 @@ export const seedDatabase = async (): Promise<void> => {
             designation: s.designation,
             phoneNumber: s.mobileNumber,
             avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.fullName)}&background=0D8ABC&color=fff`,
+            githubUrl: s.githubUrl,
             enabled: true,
             accountNonLocked: true,
             emailVerified: true,
-            permissions: ['USER_READ', 'PROJECT_READ'],
+            permissions: userPerms,
           },
         },
         { upsert: true }
@@ -261,16 +596,17 @@ export const seedDatabase = async (): Promise<void> => {
             officialEmail: s.officialEmail,
             personalEmail: s.personalEmail,
             mobileNumber: s.mobileNumber,
+            githubUrl: s.githubUrl,
             designation: s.designation,
             role: s.role,
             department: s.department,
             hierarchyLevel: s.hierarchyLevel,
-            managerId: (s as any).managerId || '',
-            managerName: (s as any).managerName || '',
+            managerId: s.managerId || '',
+            managerName: s.managerName || '',
             joiningDate: s.joiningDate,
             skills: s.skills,
             employmentStatus: 'Active',
-            employmentType: s.role === 'ROLE_INTERN' ? 'Intern' : 'Full-Time',
+            employmentType: s.employmentType,
             companyName: 'Tech Knife Enterprises',
             email: s.officialEmail,
             enabled: true,
@@ -291,12 +627,12 @@ export const seedDatabase = async (): Promise<void> => {
         { upsert: true }
       );
 
-      // Seed Today's Attendance Record for every employee & intern
+      // Seed Attendance
       const todayStr = new Date().toISOString().split('T')[0];
       await Attendance.updateOne(
         { userId: s.employeeId, date: todayStr },
         {
-          $setOnInsert: {
+          $set: {
             attendanceId: `ATT-${s.employeeId}-${todayStr}`,
             userId: s.employeeId,
             userEmail: s.officialEmail,
@@ -329,7 +665,7 @@ export const seedDatabase = async (): Promise<void> => {
       );
     }
 
-    // 5. Default Customer Data
+    // 9. Default Customer Data
     const customerData = {
       customerId: 'CUST-001',
       fullName: 'Amit Sharma',
@@ -344,11 +680,10 @@ export const seedDatabase = async (): Promise<void> => {
       status: 'Active' as const,
     };
 
-    // Upsert Customer User Account
     await User.updateOne(
       { email: customerData.email },
       {
-        $setOnInsert: {
+        $set: {
           userId: customerData.customerId,
           email: customerData.email,
           username: 'amitsharma',
@@ -370,11 +705,10 @@ export const seedDatabase = async (): Promise<void> => {
       { upsert: true }
     );
 
-    // Upsert Customer Profile Document
     await Customer.updateOne(
       { email: customerData.email },
       {
-        $setOnInsert: {
+        $set: {
           customerId: customerData.customerId,
           fullName: customerData.fullName,
           companyName: customerData.companyName,
@@ -397,11 +731,11 @@ export const seedDatabase = async (): Promise<void> => {
       { upsert: true }
     );
 
-    // 6. Seed Default Projects, Tasks, Announcements, Notifications & Settings
+    // 10. Core Enterprise Models
     await Project.updateOne(
       { projectId: 'PRJ-001' },
       {
-        $setOnInsert: {
+        $set: {
           projectId: 'PRJ-001',
           name: 'Enterprise Cloud Portal',
           code: 'TK-ECP',
@@ -411,7 +745,7 @@ export const seedDatabase = async (): Promise<void> => {
           deadline: '2026-12-31',
           budget: '₹ 25,00,000',
           teamCount: 8,
-          lead: 'Subrata Pal',
+          lead: 'Ganesh Pal',
         },
       },
       { upsert: true }
@@ -420,7 +754,7 @@ export const seedDatabase = async (): Promise<void> => {
     await Task.updateOne(
       { taskId: 'TSK-001' },
       {
-        $setOnInsert: {
+        $set: {
           taskId: 'TSK-001',
           title: 'MongoDB Atlas Data Migration',
           projectName: 'Enterprise Cloud Portal',
@@ -436,10 +770,10 @@ export const seedDatabase = async (): Promise<void> => {
     await Announcement.updateOne(
       { announcementId: 'ANC-001' },
       {
-        $setOnInsert: {
+        $set: {
           announcementId: 'ANC-001',
           title: 'Tech Knife Production System Launch',
-          content: 'All enterprise operations are now fully backed up and powered by live MongoDB Atlas infrastructure.',
+          content: 'All enterprise operations are now powered by the authoritative RBAC engine and live MongoDB Atlas infrastructure.',
           author: 'Ranadhir Pal (CEO)',
           category: 'Executive Update',
           pinned: true,
@@ -451,11 +785,11 @@ export const seedDatabase = async (): Promise<void> => {
     await Notification.updateOne(
       { notificationId: 'NTF-001' },
       {
-        $setOnInsert: {
+        $set: {
           notificationId: 'NTF-001',
           userId: 'EMP-001',
-          title: 'System Initialized',
-          message: 'MongoDB Atlas live database connection established successfully.',
+          title: 'RBAC Engine Initialized',
+          message: 'Full RBAC permission matrix and role catalog seeded successfully.',
           type: 'success',
           read: false,
         },
@@ -466,7 +800,7 @@ export const seedDatabase = async (): Promise<void> => {
     await Setting.updateOne(
       { key: 'SYSTEM_CONFIG' },
       {
-        $setOnInsert: {
+        $set: {
           key: 'SYSTEM_CONFIG',
           value: {
             appName: 'Tech Knife Enterprise Management System',
@@ -480,9 +814,8 @@ export const seedDatabase = async (): Promise<void> => {
       { upsert: true }
     );
 
-    console.log('[Seed Service] Company Leadership, Interns, Customer, Roles, and initial records seeded successfully.');
+    console.log('[Seed Service] Full RBAC matrix, baseline roles, feature flags, permissions catalog, and authoritative staff accounts seeded successfully.');
 
-    // 7. Trigger Backup Text Files Generation
     await generateDatabaseBackups();
   } catch (error) {
     console.error('[Seed Service Error]', error);

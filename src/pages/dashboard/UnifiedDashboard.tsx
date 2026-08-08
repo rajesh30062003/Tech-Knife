@@ -16,8 +16,8 @@ export const UnifiedDashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(23);
 
   const activities = [
-    { time: '10:42 AM', title: 'Spring Security 6 Upgrade Completed', user: 'Subrata Pal (CTO)', tag: 'DevOps', type: 'success' },
-    { time: '09:15 AM', title: 'New Customer Account Provisioned (Apex Corp)', user: 'Anindita Chakraborty', tag: 'CRM', type: 'info' },
+    { time: '10:42 AM', title: 'MongoDB Atlas System Sync Completed', user: 'Ganesh Pal (Sr. Developer)', tag: 'DevOps', type: 'success' },
+    { time: '09:15 AM', title: 'New Customer Account Provisioned (Apex Corp)', user: 'Ranadhir Pal (CEO)', tag: 'CRM', type: 'info' },
     { time: 'Yesterday', title: 'October Payroll Disbursement Approved ($384.5k)', user: 'Sourav Roy (MD)', tag: 'Finance', type: 'success' },
     { time: '2 days ago', title: 'System Security Audit Completed with 0 Vulnerabilities', user: 'Security Governance', tag: 'Security', type: 'warning' }
   ];

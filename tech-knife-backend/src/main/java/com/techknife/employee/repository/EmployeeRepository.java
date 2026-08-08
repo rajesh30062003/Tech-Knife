@@ -28,6 +28,14 @@ public interface EmployeeRepository extends MongoRepository<Employee, String>, E
     Optional<Employee> findByOfficialEmail(String officialEmail);
 
     /**
+     * Find an employee by personal email address.
+     *
+     * @param personalEmail Personal email address
+     * @return Optional containing the matching employee, or empty if not found
+     */
+    Optional<Employee> findByPersonalEmail(String personalEmail);
+
+    /**
      * Find an employee by unique employee ID (e.g. EMP-1001).
      *
      * @param employeeId Employee unique identifier

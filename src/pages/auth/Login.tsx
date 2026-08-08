@@ -19,17 +19,14 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const CANONICAL_ACCOUNTS = [
-  { label: 'CEO / CTO', id: 'TK-001', name: 'Ranadhir Pal', email: 'rjrajeshpal30@gmail.com', designation: 'Chief Executive Officer', role: 'ROLE_CEO' },
-  { label: 'MD', id: 'TK-002', name: 'Sourav Roy', email: 'souravroy6412@gmail.com', designation: 'Managing Director', role: 'ROLE_MD' },
-  { label: 'System Engineer', id: 'TK-005', name: 'Rahul Garai', email: 'garairahul087@gmail.com', designation: 'System Engineer', role: 'ROLE_EMPLOYEE' },
-  { label: 'Team Member', id: 'TK-006', name: 'Rahul Pal', email: 'rahulpal01102002@gmail.com', designation: 'Engineering Staff', role: 'ROLE_EMPLOYEE' },
-  { label: 'Team Member', id: 'TK-007', name: 'Sangita Koner', email: 'sangitakoner455@gmail.com', designation: 'Marketing Staff', role: 'ROLE_EMPLOYEE' },
-  { label: 'Team Member', id: 'TK-008', name: 'Salman Kaji', email: 'salmankazi1603@gmail.com', designation: 'Technology Staff', role: 'ROLE_EMPLOYEE' },
-  { label: 'CEO (Official)', id: 'EMP-001', name: 'Ranadhir Pal', email: 'ranadhir.pal@techknife.com', designation: 'Chief Executive Officer', role: 'ROLE_CEO' },
-  { label: 'MD (Official)', id: 'EMP-002', name: 'Sourav Roy', email: 'sourav.roy@techknife.com', designation: 'Managing Director', role: 'ROLE_MD' },
-  { label: 'CTO (Official)', id: 'EMP-003', name: 'Subrata Pal', email: 'subrata.pal@techknife.com', designation: 'Chief Technology Officer', role: 'ROLE_CTO' },
-  { label: 'Sr. Eng Manager', id: 'EMP-005', name: 'Rahul Garai', email: 'rahul.garai@techknife.com', designation: 'Senior Engineering Manager', role: 'ROLE_SENIOR_ENGINEERING_MANAGER' },
-  { label: 'Customer', id: 'CUST-001', name: 'Amit Sharma', email: 'amit.sharma@example.com', designation: 'Client Representative', role: 'ROLE_CUSTOMER' },
+  { label: 'CEO', id: 'EMP-001', name: 'Ranadhir Pal', email: 'rjrajeshpal30@gmail.com', designation: 'CEO', role: 'ROLE_CEO' },
+  { label: 'MD', id: 'EMP-002', name: 'Sourav Roy', email: 'souravroy6412@gmail.com', designation: 'Managing Director', role: 'ROLE_MD' },
+  { label: 'Sr. Developer', id: 'EMP-003', name: 'Ganesh Pal', email: 'palganeshpal314@gmail.com', designation: 'Senior Developer', role: 'ROLE_SENIOR_DEVELOPER' },
+  { label: 'System Developer', id: 'EMP-004', name: 'Rahul Garai', email: 'garairahul087@gmail.com', designation: 'System Developer', role: 'ROLE_EMPLOYEE' },
+  { label: 'Intern', id: 'INT-001', name: 'Sangita Koner', email: 'sangitakoner455@gmail.com', designation: 'Intern', role: 'ROLE_INTERN' },
+  { label: 'Intern', id: 'INT-002', name: 'Rahul Pal', email: 'rahulpal01102002@gmail.com', designation: 'Intern', role: 'ROLE_INTERN' },
+  { label: 'Intern', id: 'INT-003', name: 'Salman Kazi', email: 'salmankazi1603@gmail.com', designation: 'Intern', role: 'ROLE_INTERN' },
+  { label: 'Intern', id: 'INT-004', name: 'Nisha Pandit', email: 'nishapanditbwn@gmail.com', designation: 'Intern', role: 'ROLE_INTERN' },
 ];
 
 export const Login: React.FC = () => {
@@ -51,7 +48,7 @@ export const Login: React.FC = () => {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'ranadhir.pal@techknife.com',
+      email: 'rjrajeshpal30@gmail.com',
       password: '',
     },
   });
@@ -141,6 +138,12 @@ export const Login: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
                   Password
                 </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors"
+                >
+                  Forgot Password?
+                </Link>
               </div>
               <div className="relative rounded-xl shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">

@@ -76,6 +76,7 @@ public class ProjectResponseDTO {
     @Builder.Default
     private List<ProjectDocument> documents = new ArrayList<>();
     private String logoUrl;
+    private ProjectPendingStatusRequest pendingStatusRequest;
     private Double overallProgressPercentage;
     private Integer totalTasks;
     private Integer completedTasks;

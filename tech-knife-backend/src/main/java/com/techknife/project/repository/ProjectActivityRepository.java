@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ProjectActivityRepository extends MongoRepository<ProjectActivity, String> {
     List<ProjectActivity> findByProjectIdOrderByTimestampDesc(String projectId);
+    List<ProjectActivity> findByProjectCodeOrderByTimestampDesc(String projectCode);
+    List<ProjectActivity> findByProjectIdOrProjectCodeOrderByTimestampDesc(String projectId, String projectCode);
 }

@@ -21,7 +21,7 @@ public class ProductivityAnalyticsController {
     private final ProductivityAnalyticsService productivityAnalyticsService;
 
     @GetMapping("/project/{projectId}")
-    @PreAuthorize("hasAuthority('PROJECT_ANALYTICS_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get Comprehensive Productivity Analytics for Project")
     public ResponseEntity<ApiResponse<ProductivityAnalyticsDTO>> getProductivityAnalytics(@PathVariable String projectId) {
         ProductivityAnalyticsDTO dto = productivityAnalyticsService.getProductivityAnalytics(projectId);

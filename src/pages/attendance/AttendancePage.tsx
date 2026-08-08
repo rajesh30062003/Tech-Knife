@@ -68,9 +68,9 @@ export const AttendancePage: React.FC = () => {
   });
 
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
-  const [bulkDataText, setBulkDataText] = useState(`EMP-2026-001,Sarah Connor,Engineering,2026-07-23,PRESENT,09:00,18:00
-EMP-2026-002,Marcus Brody,Management,2026-07-23,WFH,08:30,17:30
-EMP-2026-003,Elena Rostova,Engineering,2026-07-23,LATE,09:45,18:15`);
+  const [bulkDataText, setBulkDataText] = useState(`EMP-001,Ranadhir Pal,Management,2026-07-23,PRESENT,09:00,18:00
+EMP-002,Sourav Roy,Management,2026-07-23,PRESENT,08:30,17:30
+EMP-003,Ganesh Pal,Engineering,2026-07-23,PRESENT,09:00,18:00`);
 
   // Fetch initial data
   useEffect(() => {

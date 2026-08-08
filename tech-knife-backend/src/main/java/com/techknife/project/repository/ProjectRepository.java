@@ -13,6 +13,8 @@ public interface ProjectRepository extends MongoRepository<Project, String> {
 
     Optional<Project> findByProjectCode(String projectCode);
 
+    Optional<Project> findByProjectId(String projectId);
+
     boolean existsByProjectCode(String projectCode);
 
     List<Project> findByStatus(ProjectStatus status);

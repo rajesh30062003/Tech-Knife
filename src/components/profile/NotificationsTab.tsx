@@ -24,7 +24,7 @@ const MOCK_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-1',
     category: 'leave',
     title: 'Leave Application Approved',
-    message: 'Your time-off application for Nov 12 - Nov 15 was approved by Marcus Brody.',
+    message: 'Your time-off application for Nov 12 - Nov 15 was approved by Sourav Roy.',
     timestamp: '10 minutes ago',
     read: false,
   },

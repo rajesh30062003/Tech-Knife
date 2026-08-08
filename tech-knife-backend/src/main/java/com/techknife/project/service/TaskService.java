@@ -26,6 +26,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final MilestoneRepository milestoneRepository;
     private final EmployeeRepository employeeRepository;
+    private final ProjectActivityService activityService;
 
     public TaskResponseDTO createTask(TaskRequestDTO request) {
         Project project = projectRepository.findById(request.getProjectId())
@@ -68,11 +69,25 @@ public class TaskService {
                 .build();
 
         Task saved = taskRepository.save(task);
+
+        try {
+            activityService.logActivity(
+                    project.getId(), project.getProjectCode(),
+                    "Task Created", "TASK",
+                    "Created task '" + saved.getTitle() + "' (" + saved.getTaskNumber() + ").",
+                    "Task", null, saved.getTitle()
+            );
+        } catch (Exception e) {
+            log.warn("Could not log task creation activity: {}", e.getMessage());
+        }
+
         return mapToResponseDTO(saved);
     }
 
     public TaskResponseDTO updateTask(String id, TaskRequestDTO request) {
         Task task = getTaskEntity(id);
+        TaskStatus oldStatus = task.getStatus();
+        String oldAssignee = task.getAssignedEmployeeName();
 
         if (request.getTitle() != null && !request.getTitle().isBlank()) {
             task.setTitle(request.getTitle());
@@ -108,6 +123,35 @@ public class TaskService {
         if (request.getChecklist() != null && !request.getChecklist().isEmpty()) task.setChecklist(request.getChecklist());
 
         Task updated = taskRepository.save(task);
+
+        try {
+            if (request.getStatus() != null && request.getStatus() != oldStatus) {
+                String actName = (request.getStatus() == TaskStatus.DONE || request.getStatus() == TaskStatus.COMPLETED) ? "Task Completed" : "Task Status Changed";
+                activityService.logActivity(
+                        updated.getProjectId(), updated.getProjectId(),
+                        actName, "TASK",
+                        "Task '" + updated.getTitle() + "' status changed from " + oldStatus + " → " + request.getStatus() + ".",
+                        "Task Status", String.valueOf(oldStatus), String.valueOf(request.getStatus())
+                );
+            } else if (request.getAssignedEmployeeId() != null && !request.getAssignedEmployeeId().equals(oldAssignee)) {
+                activityService.logActivity(
+                        updated.getProjectId(), updated.getProjectId(),
+                        "Task Assigned", "TASK",
+                        "Task '" + updated.getTitle() + "' assigned to " + updated.getAssignedEmployeeName() + ".",
+                        "Assignee", oldAssignee, updated.getAssignedEmployeeName()
+                );
+            } else {
+                activityService.logActivity(
+                        updated.getProjectId(), updated.getProjectId(),
+                        "Task Updated", "TASK",
+                        "Task '" + updated.getTitle() + "' details updated.",
+                        "Task Details", null, updated.getTitle()
+                );
+            }
+        } catch (Exception e) {
+            log.warn("Could not log task update activity: {}", e.getMessage());
+        }
+
         return mapToResponseDTO(updated);
     }
 
@@ -173,6 +217,16 @@ public class TaskService {
 
     public void deleteTask(String id) {
         Task task = getTaskEntity(id);
+        try {
+            activityService.logActivity(
+                    task.getProjectId(), task.getProjectId(),
+                    "Task Deleted", "TASK",
+                    "Task '" + task.getTitle() + "' was deleted.",
+                    "Task", task.getTitle(), null
+            );
+        } catch (Exception e) {
+            log.warn("Could not log task deletion activity: {}", e.getMessage());
+        }
         taskRepository.delete(task);
     }
 
@@ -246,9 +300,12 @@ public class TaskService {
 
     private String generateTaskNumber(Project project) {
         long count = taskRepository.countByProjectId(project.getId()) + 1;
-        String prefix = project.getShortName() != null && !project.getShortName().isBlank()
-                ? project.getShortName().toUpperCase()
-                : project.getProjectCode().toUpperCase();
+        String prefix = "TASK";
+        if (project.getShortName() != null && !project.getShortName().isBlank()) {
+            prefix = project.getShortName().toUpperCase();
+        } else if (project.getProjectCode() != null && !project.getProjectCode().isBlank()) {
+            prefix = project.getProjectCode().toUpperCase();
+        }
 
         String code = prefix + "-T" + count;
         while (taskRepository.existsByTaskNumber(code)) {

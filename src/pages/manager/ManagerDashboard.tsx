@@ -11,15 +11,15 @@ export const ManagerDashboard: React.FC = () => {
   const { user } = useAuth();
   
   const [leaveRequests, setLeaveRequests] = useState([
-    { id: 'lv-01', name: 'Elena Rostova', type: 'Annual Leave', duration: '3 Days (Oct 12 - Oct 14)', reason: 'Attending React Advanced Summit', status: 'Pending' },
-    { id: 'lv-02', name: 'Lucas Chen', type: 'Casual Leave', duration: '1 Day (Oct 18)', reason: 'Personal family commitment', status: 'Pending' },
-    { id: 'lv-03', name: 'David Miller', type: 'Sick Leave', duration: '2 Days (Oct 20 - Oct 21)', reason: 'Medical appointment', status: 'Pending' },
+    { id: 'lv-01', name: 'Ganesh Pal', type: 'Annual Leave', duration: '3 Days (Oct 12 - Oct 14)', reason: 'Attending Developer Conference', status: 'Pending' },
+    { id: 'lv-02', name: 'Sangita Koner', type: 'Casual Leave', duration: '1 Day (Oct 18)', reason: 'Personal family commitment', status: 'Pending' },
+    { id: 'lv-03', name: 'Rahul Pal', type: 'Sick Leave', duration: '2 Days (Oct 20 - Oct 21)', reason: 'Medical appointment', status: 'Pending' },
   ]);
 
   const [projectAssignments, setProjectAssignments] = useState([
-    { id: 'pa-01', projectName: 'Apex Cloud Modernization', lead: 'Sarah Connor', teamSize: 5, status: 'Active' },
-    { id: 'pa-02', projectName: 'Tech Knife Spring Boot Gateway', lead: 'Alexander Vance', teamSize: 3, status: 'Active' },
-    { id: 'pa-03', projectName: 'MongoDB Atlas Data Pipeline', lead: 'Marcus Brody', teamSize: 4, status: 'In Review' },
+    { id: 'pa-01', projectName: 'Enterprise Cloud Portal', lead: 'Ganesh Pal', teamSize: 4, status: 'Active' },
+    { id: 'pa-02', projectName: 'Tech Knife Spring Boot Gateway', lead: 'Ranadhir Pal', teamSize: 2, status: 'Active' },
+    { id: 'pa-03', projectName: 'MongoDB Atlas Data Pipeline', lead: 'Rahul Garai', teamSize: 4, status: 'In Review' },
   ]);
 
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -169,10 +169,10 @@ export const ManagerDashboard: React.FC = () => {
                   onChange={(e) => setNewProject({ ...newProject, lead: e.target.value })}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 >
-                  <option value="Elena Rostova">Elena Rostova (Senior Dev)</option>
-                  <option value="Lucas Chen">Lucas Chen (Intern)</option>
-                  <option value="Marcus Brody">Marcus Brody (Manager)</option>
-                  <option value="Sarah Connor">Sarah Connor (CTO)</option>
+                  <option value="Ganesh Pal">Ganesh Pal (Sr. Developer)</option>
+                  <option value="Rahul Garai">Rahul Garai (System Developer)</option>
+                  <option value="Sangita Koner">Sangita Koner (Intern)</option>
+                  <option value="Ranadhir Pal">Ranadhir Pal (CEO)</option>
                 </select>
               </div>
 

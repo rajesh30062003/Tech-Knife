@@ -104,13 +104,20 @@ export interface EnterpriseProject {
 }
 
 export interface ProjectActivity {
-  id: string;
-  projectId: string;
-  action: string;
-  user: string;
-  timestamp: string;
-  details: string;
+  id?: string;
+  projectId?: string;
+  projectCode?: string;
+  action?: string;
+  activityType?: string;
+  description?: string;
+  user?: string;
+  performedBy?: string;
+  performedByEmail?: string;
+  userRole?: string;
+  timestamp?: string;
+  details?: string;
   field?: string;
+  fieldModified?: string;
   oldValue?: string;
   newValue?: string;
 }
@@ -152,6 +159,16 @@ export const projectsApi = {
       reason: reason || 'Status update',
       progressPercentage 
     });
+    return res.data;
+  },
+
+  requestStatusChange: async (id: string, requestData: {
+    requestedStatus: string;
+    reason?: string;
+    requestedBy?: string;
+    requestedByRole?: string;
+  }): Promise<ApiResponse<EnterpriseProject>> => {
+    const res = await apiClient.post<ApiResponse<EnterpriseProject>>(`/projects/${id}/status-request`, requestData);
     return res.data;
   },
 

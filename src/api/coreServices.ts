@@ -15,7 +15,7 @@ import {
   DynamicRole,
 } from '../types';
 
-// Mock/Initial Storage State for robust presentation & demo
+// Initial Storage State for presentation & fallback
 const INITIAL_FILES: StorageFile[] = [
   {
     id: 'file-101',
@@ -25,8 +25,8 @@ const INITIAL_FILES: StorageFile[] = [
     publicId: 'techknife/docs/handbook',
     fileSize: 2450000,
     format: 'pdf',
-    uploadedBy: 'Sarah Connor',
-    uploadedByEmail: 'sarah.connor@techknife.io',
+    uploadedBy: 'Ranadhir Pal',
+    uploadedByEmail: 'rjrajeshpal30@gmail.com',
     module: 'HR & Onboarding',
     isPrivate: false,
     createdAt: '2026-01-15T09:30:00Z',
@@ -39,8 +39,8 @@ const INITIAL_FILES: StorageFile[] = [
     publicId: 'techknife/invoices/q2',
     fileSize: 1120000,
     format: 'pdf',
-    uploadedBy: 'Marcus Brody',
-    uploadedByEmail: 'marcus.brody@techknife.io',
+    uploadedBy: 'Sourav Roy',
+    uploadedByEmail: 'souravroy6412@gmail.com',
     module: 'Finance & Payroll',
     isPrivate: true,
     createdAt: '2026-04-01T14:15:00Z',
@@ -53,8 +53,8 @@ const INITIAL_FILES: StorageFile[] = [
     publicId: 'techknife/images/architecture',
     fileSize: 3200000,
     format: 'png',
-    uploadedBy: 'Elena Rostova',
-    uploadedByEmail: 'elena.rostova@techknife.io',
+    uploadedBy: 'Ganesh Pal',
+    uploadedByEmail: 'palganeshpal314@gmail.com',
     module: 'Engineering',
     isPrivate: false,
     createdAt: '2026-06-10T11:45:00Z',
@@ -67,8 +67,8 @@ const INITIAL_FILES: StorageFile[] = [
     publicId: 'techknife/certs/template',
     fileSize: 1800000,
     format: 'pdf',
-    uploadedBy: 'Sarah Connor',
-    uploadedByEmail: 'sarah.connor@techknife.io',
+    uploadedBy: 'Rahul Garai',
+    uploadedByEmail: 'garairahul087@gmail.com',
     module: 'Internship Program',
     isPrivate: false,
     createdAt: '2026-05-20T16:20:00Z',
@@ -81,15 +81,15 @@ const INITIAL_WORKFLOWS: ApprovalWorkflow[] = [
     workflowNumber: 'APPR-2026-0089',
     title: 'Annual Executive Leave Request - 5 Days',
     module: 'LEAVE',
-    requesterName: 'Alex Rivera',
-    requesterEmail: 'alex.rivera@techknife.io',
+    requesterName: 'Ganesh Pal',
+    requesterEmail: 'palganeshpal314@gmail.com',
     currentStepIndex: 1,
     totalSteps: 2,
     status: 'PENDING',
     payload: { leaveType: 'Annual', days: 5, startDate: '2026-08-01', endDate: '2026-08-05' },
     steps: [
-      { stepNumber: 1, stepName: 'Department Manager Review', approverRole: 'ROLE_MANAGER', approverName: 'Marcus Brody', status: 'APPROVED', comment: 'Approved for coverage.', actionAt: '2026-07-21T10:00:00Z' },
-      { stepNumber: 2, stepName: 'VP of HR Final Sanction', approverRole: 'ROLE_ADMIN', approverName: 'Sarah Connor', status: 'PENDING' },
+      { stepNumber: 1, stepName: 'Managing Director Review', approverRole: 'ROLE_MD', approverName: 'Sourav Roy', status: 'APPROVED', comment: 'Approved for coverage.', actionAt: '2026-07-21T10:00:00Z' },
+      { stepNumber: 2, stepName: 'CEO Final Sanction', approverRole: 'ROLE_CEO', approverName: 'Ranadhir Pal', status: 'PENDING' },
     ],
     createdAt: '2026-07-21T08:30:00Z',
     updatedAt: '2026-07-21T10:00:00Z',
@@ -99,15 +99,15 @@ const INITIAL_WORKFLOWS: ApprovalWorkflow[] = [
     workflowNumber: 'APPR-2026-0090',
     title: 'Cloud Infrastructure Upgrade Expense - $4,200',
     module: 'EXPENSE',
-    requesterName: 'Devon Vance',
-    requesterEmail: 'devon.vance@techknife.io',
+    requesterName: 'Rahul Garai',
+    requesterEmail: 'garairahul087@gmail.com',
     currentStepIndex: 0,
     totalSteps: 2,
     status: 'PENDING',
     payload: { amount: '$4,200', vendor: 'AWS Cloud Services', purpose: 'Database scaling' },
     steps: [
-      { stepNumber: 1, stepName: 'Engineering Lead Approval', approverRole: 'ROLE_CTO', approverName: 'CTO Office', status: 'PENDING' },
-      { stepNumber: 2, stepName: 'Finance Disbursement', approverRole: 'ROLE_ADMIN', approverName: 'Finance Admin', status: 'PENDING' },
+      { stepNumber: 1, stepName: 'Senior Developer Review', approverRole: 'ROLE_SENIOR_DEVELOPER', approverName: 'Ganesh Pal', status: 'PENDING' },
+      { stepNumber: 2, stepName: 'Executive Approval', approverRole: 'ROLE_CEO', approverName: 'Ranadhir Pal', status: 'PENDING' },
     ],
     createdAt: '2026-07-22T14:10:00Z',
     updatedAt: '2026-07-22T14:10:00Z',
@@ -324,9 +324,9 @@ export const notificationsApi = {
       const mockNotifs: SystemNotification[] = [
         {
           id: 'n-1',
-          recipientEmail: 'sarah.connor@techknife.io',
+          recipientEmail: 'rjrajeshpal30@gmail.com',
           title: 'Approval Required: Leave Request',
-          message: 'Alex Rivera submitted an Annual Leave request for 5 days.',
+          message: 'Ganesh Pal submitted an Annual Leave request for 5 days.',
           type: 'warning',
           channels: ['EMAIL', 'DATABASE', 'BROWSER'],
           module: 'Approvals',
@@ -336,9 +336,9 @@ export const notificationsApi = {
         },
         {
           id: 'n-2',
-          recipientEmail: 'sarah.connor@techknife.io',
+          recipientEmail: 'rjrajeshpal30@gmail.com',
           title: 'Intern Certificate Issued',
-          message: 'Certificate metadata generated for David Vance (INT-2026-004).',
+          message: 'Certificate metadata generated for Sangita Koner (INT-001).',
           type: 'success',
           channels: ['DATABASE', 'BROWSER'],
           module: 'Internship',
@@ -477,21 +477,21 @@ export const auditApi = {
       const mockLogs: ActivityLog[] = [
         {
           id: 'act-1',
-          userId: 'usr-001',
-          userName: 'Sarah Connor',
-          userRole: 'ROLE_ADMIN',
+          userId: 'EMP-001',
+          userName: 'Ranadhir Pal',
+          userRole: 'ROLE_CEO',
           module: 'Internship Cohort',
           action: 'EVALUATE_INTERN',
-          description: 'Evaluated final performance score for David Vance (92%).',
+          description: 'Evaluated final performance score for Sangita Koner (95%).',
           ipAddress: '192.168.1.104',
           browser: 'Chrome 126.0 (macOS)',
           timestamp: new Date(Date.now() - 1800000).toISOString(),
         },
         {
           id: 'act-2',
-          userId: 'usr-002',
-          userName: 'Marcus Brody',
-          userRole: 'ROLE_MANAGER',
+          userId: 'EMP-002',
+          userName: 'Sourav Roy',
+          userRole: 'ROLE_MD',
           module: 'Approval Workflow',
           action: 'WORKFLOW_APPROVED',
           description: 'Approved Leave Request APPR-2026-0089 step 1.',
@@ -501,9 +501,9 @@ export const auditApi = {
         },
         {
           id: 'act-3',
-          userId: 'usr-003',
-          userName: 'Elena Rostova',
-          userRole: 'ROLE_CTO',
+          userId: 'EMP-003',
+          userName: 'Ganesh Pal',
+          userRole: 'ROLE_SENIOR_DEVELOPER',
           module: 'Universal Storage',
           action: 'FILE_UPLOAD',
           description: 'Uploaded Architecture_System_Topology.png to Images.',
@@ -528,26 +528,26 @@ export const auditApi = {
       const mockEntries: AuditLogEntry[] = [
         {
           id: 'aud-1',
-          userId: 'usr-001',
-          userName: 'Sarah Connor',
+          userId: 'EMP-001',
+          userName: 'Ranadhir Pal',
           entityName: 'Intern',
-          entityId: 'INT-2026-004',
+          entityId: 'INT-001',
           action: 'STATUS_CHANGE',
           oldValue: { status: 'Active', certificateGenerated: false },
-          newValue: { status: 'Graduated', certificateGenerated: true },
+          newValue: { status: 'Active', certificateGenerated: true },
           ipAddress: '192.168.1.104',
           browser: 'Chrome 126.0 (macOS)',
           timestamp: new Date(Date.now() - 1800000).toISOString(),
         },
         {
           id: 'aud-2',
-          userId: 'usr-002',
-          userName: 'Marcus Brody',
+          userId: 'EMP-002',
+          userName: 'Sourav Roy',
           entityName: 'Employee',
-          entityId: 'EMP-2026-012',
+          entityId: 'EMP-004',
           action: 'UPDATE',
-          oldValue: { salary: 92000, designation: 'Senior Frontend Engineer' },
-          newValue: { salary: 105000, designation: 'Lead Frontend Engineer' },
+          oldValue: { salary: 220000, designation: 'System Developer' },
+          newValue: { salary: 250000, designation: 'System Developer' },
           ipAddress: '192.168.1.112',
           browser: 'Firefox 127.0 (Windows)',
           timestamp: new Date(Date.now() - 7200000).toISOString(),
@@ -573,32 +573,27 @@ export const searchApi = {
       // Static index for instant frontend client-side global search across all 8 modules
       const ALL_SEARCH_ITEMS: UniversalSearchResult[] = [
         // Employees
-        { id: 's-1', title: 'Sarah Connor', subtitle: 'Chief Technology Officer (CTO) • Engineering', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
-        { id: 's-2', title: 'Marcus Brody', subtitle: 'Engineering Manager • Software Delivery', module: 'Employees', badge: 'Manager', badgeColor: 'bg-indigo-500', url: '/employees' },
-        { id: 's-3', title: 'Elena Rostova', subtitle: 'Frontend Lead • Web Architecture', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
-
-        // Projects
-        { id: 's-4', title: 'Enterprise Banking Portal (PRJ-801)', subtitle: 'Client: FinTech Global • Status: In Progress', module: 'Projects', badge: '$120,000', badgeColor: 'bg-cyan-500', url: '/projects' },
-        { id: 's-5', title: 'AI Fraud Detection Pipeline (PRJ-802)', subtitle: 'Client: Secure Bank • Status: Critical Sprint', module: 'Projects', badge: '$250,000', badgeColor: 'bg-rose-500', url: '/projects' },
-
-        // Customers
-        { id: 's-6', title: 'FinTech Global Corp', subtitle: 'Contact: James Robertson • Tier: Enterprise VIP', module: 'Customers', badge: 'Active Contract', badgeColor: 'bg-emerald-500', url: '/customers' },
-        { id: 's-7', title: 'Acme Health Systems', subtitle: 'Contact: Dr. Susan Vance • Tier: Strategic Partner', module: 'Customers', badge: 'Onboarding', badgeColor: 'bg-amber-500', url: '/customers' },
+        { id: 's-1', title: 'Ranadhir Pal', subtitle: 'Chief Executive Officer (CEO) • Management', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
+        { id: 's-2', title: 'Sourav Roy', subtitle: 'Managing Director (MD) • Management', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
+        { id: 's-3', title: 'Ganesh Pal', subtitle: 'Senior Developer • Engineering', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
+        { id: 's-4', title: 'Rahul Garai', subtitle: 'System Developer • Engineering', module: 'Employees', badge: 'Active', badgeColor: 'bg-emerald-500', url: '/employees' },
 
         // Interns
-        { id: 's-8', title: 'David Vance (INT-2026-004)', subtitle: 'Stanford University • Dept: Engineering & DevOps', module: 'Interns', badge: 'Score: 92%', badgeColor: 'bg-cyan-500', url: '/interns' },
-        { id: 's-9', title: 'Maya Lin (INT-2026-005)', subtitle: 'UC Berkeley • Dept: AI Systems & Analytics', module: 'Interns', badge: 'Score: 96%', badgeColor: 'bg-cyan-500', url: '/interns' },
+        { id: 's-5', title: 'Sangita Koner (INT-001)', subtitle: 'Intern • Engineering', module: 'Interns', badge: 'Score: 95%', badgeColor: 'bg-cyan-500', url: '/interns' },
+        { id: 's-6', title: 'Rahul Pal (INT-002)', subtitle: 'Intern • Engineering', module: 'Interns', badge: 'Score: 94%', badgeColor: 'bg-cyan-500', url: '/interns' },
+        { id: 's-7', title: 'Salman Kazi (INT-003)', subtitle: 'Intern • Engineering', module: 'Interns', badge: 'Score: 93%', badgeColor: 'bg-cyan-500', url: '/interns' },
+        { id: 's-8', title: 'Nisha Pandit (INT-004)', subtitle: 'Intern • Engineering', module: 'Interns', badge: 'Score: 96%', badgeColor: 'bg-cyan-500', url: '/interns' },
+
+        // Projects
+        { id: 's-9', title: 'Enterprise Cloud Portal (PRJ-001)', subtitle: 'Client: ABC Enterprises • Lead: Ganesh Pal', module: 'Projects', badge: '₹ 25,00,000', badgeColor: 'bg-cyan-500', url: '/projects' },
 
         // Documents
-        { id: 's-10', title: 'TechKnife_Employee_Handbook_2026.pdf', subtitle: 'Uploaded by Sarah Connor • Category: Documents', module: 'Documents', badge: '2.4 MB', badgeColor: 'bg-slate-500', url: '/settings' },
-        { id: 's-11', title: 'Executive_Q2_Financial_Invoice.pdf', subtitle: 'Uploaded by Marcus Brody • Category: Invoices', module: 'Documents', badge: '1.1 MB', badgeColor: 'bg-slate-500', url: '/payroll' },
+        { id: 's-10', title: 'TechKnife_Employee_Handbook_2026.pdf', subtitle: 'Uploaded by Ranadhir Pal • Category: Documents', module: 'Documents', badge: '2.4 MB', badgeColor: 'bg-slate-500', url: '/settings' },
+        { id: 's-11', title: 'Executive_Q2_Financial_Invoice.pdf', subtitle: 'Uploaded by Sourav Roy • Category: Invoices', module: 'Documents', badge: '1.1 MB', badgeColor: 'bg-slate-500', url: '/payroll' },
 
         // Attendance & Payroll
-        { id: 's-12', title: 'July 2026 Monthly Payroll Run', subtitle: 'Total Disbursed: $425,000 • Processed: 142 Staff', module: 'Payroll', badge: 'Disbursed', badgeColor: 'bg-emerald-500', url: '/payroll' },
-        { id: 's-13', title: 'Daily Attendance Ledger', subtitle: 'Present: 94.2% • Late Arrivals: 3', module: 'Attendance', badge: 'Realtime', badgeColor: 'bg-indigo-500', url: '/attendance' },
-
-        // Support Tickets
-        { id: 's-14', title: 'TCK-9901: Production SSO Authentication Timeout', subtitle: 'Priority: Critical • Client: FinTech Global', module: 'Tickets', badge: 'In Progress', badgeColor: 'bg-rose-500', url: '/support' },
+        { id: 's-12', title: 'Monthly Payroll Run', subtitle: 'Total Disbursed: ₹ 12,30,000 • Processed: 8 Staff', module: 'Payroll', badge: 'Disbursed', badgeColor: 'bg-emerald-500', url: '/payroll' },
+        { id: 's-13', title: 'Daily Attendance Ledger', subtitle: 'Present: 100% • Staff: 8', module: 'Attendance', badge: 'Realtime', badgeColor: 'bg-indigo-500', url: '/attendance' },
       ];
 
       return ALL_SEARCH_ITEMS.filter(
@@ -704,24 +699,51 @@ export const settingsApi = {
 export const permissionsApi = {
   getRoles: async (): Promise<DynamicRole[]> => {
     try {
-      const res = await apiClient.get('/roles');
+      const res = await apiClient.get('/organization/roles');
       return res.data.data;
     } catch {
       const stored = JSON.parse(localStorage.getItem('techknife_dynamic_roles') || 'null');
-      return stored || INITIAL_ROLES;
+      return stored || [];
     }
   },
 
   updateRole: async (roleCode: string, updatedRole: Partial<DynamicRole>, updatedBy: string): Promise<DynamicRole[]> => {
     try {
-      const res = await apiClient.put(`/roles/${roleCode}`, updatedRole);
+      const res = await apiClient.put(`/organization/roles/${roleCode}`, updatedRole);
       return res.data.data;
     } catch {
       const roles = await permissionsApi.getRoles();
       const updated = roles.map((r) => (r.role === roleCode ? { ...r, ...updatedRole } : r));
       localStorage.setItem('techknife_dynamic_roles', JSON.stringify(updated));
-      logActivityAction(updatedBy, 'ROLE_SUPER_ADMIN', 'Role Permission Engine', 'UPDATE_ROLE', `Updated permission matrix for ${roleCode}`);
+      logActivityAction(updatedBy, 'ROLE_CEO', 'Role Permission Engine', 'UPDATE_ROLE', `Updated permission matrix for ${roleCode}`);
       return updated;
+    }
+  },
+
+  resetRole: async (roleCode: string): Promise<DynamicRole[]> => {
+    try {
+      const res = await apiClient.post(`/organization/roles/${roleCode}/reset`);
+      if (res.data.data) return res.data.data;
+      return await permissionsApi.getRoles();
+    } catch {
+      return await permissionsApi.getRoles();
+    }
+  },
+
+  getFeatureFlags: async (): Promise<Array<{ key: string; title: string; description: string; enabled: boolean }>> => {
+    try {
+      const res = await apiClient.get('/organization/features');
+      return res.data.data;
+    } catch {
+      return [];
+    }
+  },
+
+  updateFeatureFlag: async (key: string, enabled: boolean): Promise<void> => {
+    try {
+      await apiClient.put(`/organization/features/${key}`, { enabled });
+    } catch (e) {
+      console.warn('Feature flag update failed', e);
     }
   },
 };

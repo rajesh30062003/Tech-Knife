@@ -29,10 +29,10 @@ export const AdminDashboard: React.FC = () => {
   });
 
   const [departments, setDepartments] = useState([
-    { name: 'Executive Leadership', lead: 'Alexander Vance (MD)', members: 5, budget: '$450,000' },
-    { name: 'Engineering & DevOps', lead: 'Sarah Connor (CTO)', members: 28, budget: '$1,200,000' },
-    { name: 'Product Management', lead: 'Marcus Brody (Manager)', members: 12, budget: '$650,000' },
-    { name: 'Client Growth & CRM', lead: 'Elena Rostova (CMO)', members: 14, budget: '$500,000' },
+    { name: 'Executive Leadership', lead: 'Ranadhir Pal (CEO)', members: 2, budget: '₹ 67,00,000' },
+    { name: 'Technology Management', lead: 'Sourav Roy (MD)', members: 2, budget: '₹ 50,00,000' },
+    { name: 'Engineering & DevOps', lead: 'Ganesh Pal (Sr. Developer)', members: 4, budget: '₹ 35,00,000' },
+    { name: 'Systems Infrastructure', lead: 'Rahul Garai (System Developer)', members: 4, budget: '₹ 30,00,000' },
   ]);
 
   const [newDeptName, setNewDeptName] = useState('');
@@ -486,7 +486,7 @@ export const AdminDashboard: React.FC = () => {
                   type="text"
                   value={newDeptLead}
                   onChange={(e) => setNewDeptLead(e.target.value)}
-                  placeholder="e.g. Sarah Connor (CTO)"
+                  placeholder="e.g. Ganesh Pal (Sr. Developer)"
                   className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
                 />
               </div>

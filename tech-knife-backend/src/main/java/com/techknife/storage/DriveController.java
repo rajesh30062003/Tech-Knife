@@ -26,6 +26,7 @@ public class DriveController {
 
     private final GoogleDriveService googleDriveService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.techknife.project.service.ProjectActivityService projectActivityService;
 
     @GetMapping("/oauth-config-status")
     @Operation(summary = "Check Google Drive OAuth Configuration Status (Safe Diagnostics)")
@@ -55,6 +56,17 @@ public class DriveController {
 
         try {
             DriveFileRecord record = googleDriveService.uploadFile(file, projectCode, category, uploadedBy);
+
+            try {
+                projectActivityService.logActivity(
+                        projectCode, projectCode,
+                        "Document Uploaded", "DOCUMENT",
+                        "Uploaded document '" + record.getName() + "' (" + category + ").",
+                        "Document", null, record.getName()
+                );
+            } catch (Exception e) {
+                log.warn("Activity logging failed for document upload: {}", e.getMessage());
+            }
 
             try {
                 messagingTemplate.convertAndSend("/topic/project." + projectCode, Map.of(
@@ -89,6 +101,18 @@ public class DriveController {
         if (record == null) {
             log.warn("Download record NOT FOUND for fileId: {}", fileId);
             return ResponseEntity.notFound().build();
+        }
+
+        try {
+            String pCode = record.getProjectCode() != null ? record.getProjectCode() : "PROJECT-SYS";
+            projectActivityService.logActivity(
+                    pCode, pCode,
+                    "Document Downloaded", "DOCUMENT",
+                    "Downloaded document '" + record.getName() + "'.",
+                    "Document", record.getName(), null
+            );
+        } catch (Exception e) {
+            log.warn("Activity logging failed for document download: {}", e.getMessage());
         }
 
         byte[] bytes = record.getFileData();

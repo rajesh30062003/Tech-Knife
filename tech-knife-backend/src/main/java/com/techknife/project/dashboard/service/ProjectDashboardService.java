@@ -31,6 +31,7 @@ public class ProjectDashboardService {
 
     public ProjectDashboardSummaryDTO getProjectDashboardSummary(String projectId) {
         Project project = projectRepository.findById(projectId)
+                .or(() -> projectRepository.findByProjectCode(projectId))
                 .orElseThrow(() -> new NoSuchElementException("Project not found: " + projectId));
 
         List<Milestone> milestones = milestoneRepository.findByProjectId(projectId);

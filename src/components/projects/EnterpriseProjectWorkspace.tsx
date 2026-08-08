@@ -33,6 +33,7 @@ import { ProjectMeetingsTab } from './tabs/ProjectMeetingsTab';
 import { ProjectRisksTab } from './tabs/ProjectRisksTab';
 import { ProjectAnalyticsTab } from './tabs/ProjectAnalyticsTab';
 import { ProjectNotificationsTab } from './tabs/ProjectNotificationsTab';
+import { ProjectExecutiveReportTab } from './tabs/ProjectExecutiveReportTab';
 import { 
   PROJECT_STATUS_LIST, 
   getStatusProgress, 
@@ -68,7 +69,7 @@ interface EnterpriseProjectWorkspaceProps {
   project: EnterpriseProject | null;
   isOpen: boolean;
   onClose: () => void;
-  onProjectUpdated?: () => void;
+  onProjectUpdated?: (updatedProject?: EnterpriseProject) => void;
   initialTab?: EnterpriseWorkspaceTab;
 }
 
@@ -275,13 +276,30 @@ const AttachmentCard: React.FC<{
 };
 
 export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProps> = ({
-  project,
+  project: initialProject,
   isOpen,
   onClose,
   onProjectUpdated,
   initialTab = 'overview',
 }) => {
   const { user } = useAuth();
+  const [currentProject, setCurrentProject] = useState<EnterpriseProject | null>(initialProject);
+
+  useEffect(() => {
+    setCurrentProject(initialProject);
+  }, [initialProject]);
+
+  const handleChildProjectUpdated = (updatedProject?: EnterpriseProject) => {
+    if (updatedProject) {
+      setCurrentProject(updatedProject);
+    }
+    if (onProjectUpdated) {
+      onProjectUpdated(updatedProject);
+    }
+  };
+
+  const project = currentProject || initialProject;
+
   const [activeTab, setActiveTab] = useState<EnterpriseWorkspaceTab>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -1064,11 +1082,17 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
             {activeTab === 'notifications' && <ProjectNotificationsTab project={project} />}
 
             {/* REPORTS & AUDIT TAB */}
-            {activeTab === 'reports' && <UniversalReportExporter defaultModule="Projects & Deliverables" />}
+            {activeTab === 'reports' && <ProjectExecutiveReportTab project={project} />}
             {activeTab === 'audit' && <AuditTrailViewer entityType="Project" entityId={projectCode} />}
 
             {/* REPOSITORY & DEVOPS TAB */}
-            {activeTab === 'devops' && <EnterpriseDevOpsWorkspace />}
+            {activeTab === 'devops' && (
+              <EnterpriseDevOpsWorkspace 
+                project={project} 
+                onProjectUpdated={handleChildProjectUpdated} 
+                isApprover={isApprover} 
+              />
+            )}
 
             {/* KNOWLEDGE BASE & WIKI TAB */}
             {activeTab === 'wiki' && <EnterpriseWikiWorkspace />}

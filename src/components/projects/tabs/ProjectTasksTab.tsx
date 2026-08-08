@@ -18,7 +18,7 @@ const DEFAULT_MOCK_TASKS: ProjectTask[] = [
     title: 'Design Security & OAuth 2.0 Token Storage Entity Architecture',
     status: 'Completed',
     priority: 'Urgent',
-    assigneeName: 'Subrata Pal',
+    assigneeName: 'Ganesh Pal',
     dueDate: '2026-08-10',
   },
   {

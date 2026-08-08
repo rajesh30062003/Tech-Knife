@@ -9,6 +9,8 @@ import { AuthRequest } from '../middleware/auth';
 const JWT_SECRET = process.env.JWT_SECRET || '9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '8a7b6c5d4e3f2a1b0c9d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b';
 
+import { AUTHORITATIVE_STAFF_EMAILS } from '../services/seedService';
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -30,7 +32,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (!user) {
-      res.status(401).json({ success: false, message: 'Invalid credentials. User not found.' });
+      res.status(401).json({ success: false, message: 'Invalid credentials. Account not found.' });
+      return;
+    }
+
+    // Enforce strict staff email authorization check
+    if (user.role !== 'ROLE_CUSTOMER' && !AUTHORITATIVE_STAFF_EMAILS.includes(queryEmail)) {
+      res.status(401).json({ success: false, message: 'Invalid credentials. Non-authoritative account disabled.' });
       return;
     }
 
@@ -76,6 +84,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         mobile: user.phoneNumber || '',
         profilePhoto: user.avatarUrl || '',
+        githubUrl: user.githubUrl || '',
         role: user.role,
         roles: user.roles,
         designation: user.designation || 'Enterprise Specialist',
@@ -204,6 +213,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response): Promise<v
         designation: user.designation,
         phoneNumber: user.phoneNumber,
         avatarUrl: user.avatarUrl,
+        githubUrl: user.githubUrl,
         enabled: user.enabled,
         accountNonLocked: user.accountNonLocked,
         emailVerified: user.emailVerified,

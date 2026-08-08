@@ -362,7 +362,7 @@ export const ProfileOverviewTab: React.FC<ProfileOverviewTabProps> = ({ user }) 
                     </div>
                     <div>
                       <span className="font-bold text-slate-900 dark:text-white block text-xs">
-                        {user.managerName || 'Marcus Brody'}
+                        {user.managerName || 'Ganesh Pal'}
                       </span>
                       <span className="text-[10px] text-slate-500 block">
                         {user.managerDesignation || 'Engineering Manager'}

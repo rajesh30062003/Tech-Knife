@@ -28,7 +28,7 @@ public class MeetingController {
     private final MeetingService meetingService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('LEAD_VIEW') or hasAuthority('CUSTOMER_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get all meetings")
     public ResponseEntity<ApiResponse<List<MeetingDTO>>> getAllMeetings(@RequestParam(required = false) String status) {
         List<MeetingDTO> result = meetingService.getAllMeetings(status);
@@ -36,7 +36,7 @@ public class MeetingController {
     }
 
     @GetMapping("/entity")
-    @PreAuthorize("hasAuthority('LEAD_VIEW') or hasAuthority('CUSTOMER_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get meetings for a specific entity")
     public ResponseEntity<ApiResponse<List<MeetingDTO>>> getMeetingsByEntity(
             @RequestParam String entityType,
@@ -46,7 +46,7 @@ public class MeetingController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('LEAD_VIEW') or hasAuthority('CUSTOMER_VIEW') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Get meeting by ID")
     public ResponseEntity<ApiResponse<MeetingDTO>> getMeetingById(@PathVariable String id) {
         MeetingDTO result = meetingService.getMeetingById(id);
@@ -54,7 +54,7 @@ public class MeetingController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('LEAD_UPDATE') or hasAuthority('CUSTOMER_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = AuditAction.CREATE, module = AuditModule.CRM, entityType = "Meeting", description = "Scheduled CRM Meeting")
     @Operation(summary = "Schedule a meeting")
     public ResponseEntity<ApiResponse<MeetingDTO>> createMeeting(@Valid @RequestBody MeetingDTO dto) {
@@ -64,7 +64,7 @@ public class MeetingController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('LEAD_UPDATE') or hasAuthority('CUSTOMER_UPDATE') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     @Auditable(action = AuditAction.UPDATE, module = AuditModule.CRM, entityType = "Meeting", description = "Updated CRM Meeting")
     @Operation(summary = "Update meeting details or outcome")
     public ResponseEntity<ApiResponse<MeetingDTO>> updateMeeting(

@@ -24,6 +24,7 @@ export interface EmployeeData {
   bio?: string;
   skills?: string[];
   managerId?: string;
+  githubUrl?: string;
 }
 
 export interface EmployeeTimelineEvent {
@@ -106,6 +107,7 @@ export const employeesApi = {
       avatarUrl: e.profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(e.fullName || `${e.firstName || ''} ${e.lastName || ''}`.trim() || 'Employee')}`,
       address: e.presentAddress || e.address || '',
       skills: Array.isArray(e.skills) ? e.skills : [],
+      githubUrl: e.githubUrl || '',
     }));
 
     return {

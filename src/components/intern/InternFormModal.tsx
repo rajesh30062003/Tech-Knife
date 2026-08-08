@@ -36,11 +36,11 @@ export const InternFormModal: React.FC<InternFormModalProps> = ({
     offerLetterUrl: '',
     joiningDate: '2026-06-01',
     endDate: '2026-12-01',
-    mentor: 'Sarah Connor (CTO)',
+    mentor: 'Ganesh Pal',
     department: 'Engineering & DevOps',
     skills: ['Java', 'Spring Boot 3', 'React'],
     githubUsername: '',
-    stipend: '$3,800/mo',
+    stipend: '₹ 25,000/mo',
   });
 
   const [skillsInput, setSkillsInput] = useState('');
@@ -68,7 +68,7 @@ export const InternFormModal: React.FC<InternFormModalProps> = ({
         offerLetterUrl: '',
         joiningDate: new Date().toISOString().split('T')[0],
         endDate: '2026-12-31',
-        mentor: mentors[0] || 'Sarah Connor (CTO)',
+        mentor: mentors[0] || 'Ganesh Pal',
         department: departments[0] || 'Engineering & DevOps',
         skills: ['Spring Boot 3', 'React 19', 'TypeScript'],
         githubUsername: '',

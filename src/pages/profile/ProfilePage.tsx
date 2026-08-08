@@ -140,7 +140,7 @@ export const ProfilePage: React.FC = () => {
             <div>
               <span className="text-[10px] text-slate-400 block uppercase font-bold">Reporting Manager</span>
               <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                <UserCheck className="w-3 h-3 text-indigo-500" /> {user.managerName || 'Marcus Brody'}
+                <UserCheck className="w-3 h-3 text-indigo-500" /> {user.managerName || 'Ganesh Pal'}
               </span>
             </div>
           </div>

@@ -14,6 +14,7 @@ export interface IUser extends Document {
   designation?: string;
   phoneNumber?: string;
   avatarUrl?: string;
+  githubUrl?: string;
   enabled: boolean;
   accountNonLocked: boolean;
   emailVerified: boolean;
@@ -42,6 +43,7 @@ const UserSchema = new Schema<IUser>(
     designation: { type: String, default: 'Team Member' },
     phoneNumber: { type: String, default: '' },
     avatarUrl: { type: String, default: '' },
+    githubUrl: { type: String, default: '' },
     enabled: { type: Boolean, default: true },
     accountNonLocked: { type: Boolean, default: true },
     emailVerified: { type: Boolean, default: true },

@@ -203,14 +203,31 @@ export interface SystemSettings {
   }>;
 }
 
-// 9. Universal Role Permission Types
+export interface RoleAssignedUser {
+  id: string;
+  fullName: string;
+  email: string;
+  designation: string;
+  department: string;
+  status: string;
+  employmentType: string;
+  avatarUrl?: string;
+}
+
 export interface DynamicRole {
+  id?: string;
   role: Role;
   displayName: string;
   description: string;
-  isSystem: boolean;
+  isSystem?: boolean;
   permissions: string[];
   menuPermissions: string[];
-  apiPermissions: string[];
+  apiPermissions?: string[];
   featureFlags: Record<string, boolean>;
+  userCount?: number;
+  assignedUsers?: RoleAssignedUser[];
+  hierarchyLevel?: number;
+  status?: 'Active' | 'Inactive';
+  updatedBy?: string;
+  updatedAt?: string;
 }

@@ -262,7 +262,7 @@ export const InternsPage: React.FC = () => {
         mentorFilter={mentorFilter}
         setMentorFilter={setMentorFilter}
         departments={departments.length ? departments : ['Engineering & DevOps', 'Frontend Engineering', 'AI Systems & Analytics']}
-        mentors={mentors.length ? mentors : ['Sarah Connor (CTO)', 'Marcus Brody (Engineering Manager)', 'Elena Rostova (Frontend Lead)']}
+        mentors={mentors.length ? mentors : ['Ganesh Pal (Sr. Developer)', 'Rahul Garai (System Developer)', 'Ranadhir Pal (CEO)']}
         onReset={() => {
           setSearchQuery('');
           setDepartmentFilter('ALL');
@@ -463,7 +463,7 @@ export const InternsPage: React.FC = () => {
         onSubmit={handleCreateOrUpdate}
         initialData={editingIntern}
         departments={departments.length ? departments : ['Engineering & DevOps', 'Frontend Engineering', 'AI Systems & Analytics']}
-        mentors={mentors.length ? mentors : ['Sarah Connor (CTO)', 'Marcus Brody (Engineering Manager)', 'Elena Rostova (Frontend Lead)']}
+        mentors={mentors.length ? mentors : ['Ganesh Pal (Sr. Developer)', 'Rahul Garai (System Developer)', 'Ranadhir Pal (CEO)']}
       />
 
       {/* Detail Profile Modal */}

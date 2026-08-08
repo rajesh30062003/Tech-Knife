@@ -89,7 +89,7 @@ export const InternPortal: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white">Assigned Learning Milestones</h3>
             <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300">
-              Mentor: {intern?.mentor || 'Marcus Brody'}
+              Mentor: {intern?.mentor || 'Ganesh Pal'}
             </span>
           </div>
 

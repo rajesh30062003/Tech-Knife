@@ -1,60 +1,91 @@
-import React, { useState } from 'react';
-import { Bell, CheckCheck, Trash2, FileText, CheckSquare, ShieldCheck, GitBranch, MessageSquare, Clock } from 'lucide-react';
-import { EnterpriseProject } from '../../../api/projects';
+import React, { useState, useEffect } from 'react';
+import { 
+  Bell, CheckCheck, Trash2, FileText, CheckSquare, ShieldCheck, 
+  Clock, Loader2, UserCheck, ShieldAlert, ArrowRight 
+} from 'lucide-react';
+import { EnterpriseProject, projectsApi, ProjectActivity } from '../../../api/projects';
 
 interface ProjectNotificationsTabProps {
   project: EnterpriseProject;
 }
 
-interface NotificationItem {
+export interface NotificationItem {
   id: string;
   title: string;
   description: string;
   timestamp: string;
   isRead: boolean;
-  type: 'DOCUMENT' | 'TASK' | 'SECURITY' | 'CHAT' | 'SYSTEM';
+  type: 'DOCUMENT' | 'TASK' | 'STATUS' | 'TEAM' | 'RISK' | 'MILESTONE' | 'SYSTEM';
 }
 
-const DEFAULT_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'NOT-1',
-    title: 'Google OAuth 2.0 Upload Stream Verified',
-    description: 'System verified PDF streaming preview and Google Drive file storage endpoint for project TK-PRJ-9841.',
-    timestamp: '10 mins ago',
-    isRead: false,
-    type: 'DOCUMENT',
-  },
-  {
-    id: 'NOT-2',
-    title: 'Task Status Updated: Core Architecture Spec',
-    description: 'Task TK-PRJ-9841-TSK-01 status updated to COMPLETED by Rajesh Pal (Tech Lead).',
-    timestamp: '1 hour ago',
-    isRead: false,
-    type: 'TASK',
-  },
-  {
-    id: 'NOT-3',
-    title: 'New Chat Message in #TK-PRJ-9841',
-    description: 'Ananya Sharma attached design-specs.pdf to the project channel.',
-    timestamp: '3 hours ago',
-    isRead: true,
-    type: 'CHAT',
-  },
-  {
-    id: 'NOT-4',
-    title: 'Security Audit Signoff Completed',
-    description: 'Enterprise Security Suite completed SAIF compliance audit with 0 open vulnerabilities.',
-    timestamp: 'Yesterday',
-    isRead: true,
-    type: 'SECURITY',
-  },
-];
-
 export const ProjectNotificationsTab: React.FC<ProjectNotificationsTabProps> = ({ project }) => {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEFAULT_NOTIFICATIONS);
-  const [filter, setFilter] = useState<'ALL' | 'UNREAD'>('ALL');
+  const projectId = project.id || project.projectId || project.projectCode || '';
 
-  const filtered = notifications.filter(n => filter === 'ALL' || !n.isRead);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [filter, setFilter] = useState<string>('ALL');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadProjectNotifications = async () => {
+    if (!projectId) return;
+    setIsLoading(true);
+    try {
+      const items: NotificationItem[] = [];
+
+      // 1. Pending Status Request Notification
+      if (project.pendingStatusRequest) {
+        items.push({
+          id: `NOT-STATUS-REQ-${project.pendingStatusRequest.requestedAt}`,
+          title: `Project Status Change Requested: ${project.pendingStatusRequest.requestedStatus}`,
+          description: `Requested by ${project.pendingStatusRequest.requestedBy} (${project.pendingStatusRequest.requestedByRole || 'Member'}) — "${project.pendingStatusRequest.reason || 'Status update'}"`,
+          timestamp: project.pendingStatusRequest.requestedAt,
+          isRead: false,
+          type: 'STATUS',
+        });
+      }
+
+      // 2. Fetch Project Activity Ledger Events
+      const actRes = await projectsApi.getActivities(projectId);
+      if (actRes?.data && Array.isArray(actRes.data)) {
+        actRes.data.forEach((act: ProjectActivity) => {
+          let nType: NotificationItem['type'] = 'SYSTEM';
+          const actName = (act.action || '').toUpperCase();
+
+          if (actName.includes('TASK')) nType = 'TASK';
+          else if (actName.includes('STATUS')) nType = 'STATUS';
+          else if (actName.includes('DOCUMENT') || actName.includes('FILE') || actName.includes('DRIVE')) nType = 'DOCUMENT';
+          else if (actName.includes('MEMBER') || actName.includes('TEAM') || actName.includes('ASSIGN')) nType = 'TEAM';
+          else if (actName.includes('RISK')) nType = 'RISK';
+          else if (actName.includes('MILESTONE')) nType = 'MILESTONE';
+
+          items.push({
+            id: `NOT-ACT-${act.id}`,
+            title: `${act.action}: ${act.fieldModified || 'Project Activity'}`,
+            description: `${act.performedBy} (${act.userRole}) executed ${act.action}${act.oldValue ? ` [${act.oldValue} → ${act.newValue}]` : ''}`,
+            timestamp: act.timestamp ? new Date(act.timestamp).toLocaleString() : 'Recently',
+            isRead: false,
+            type: nType,
+          });
+        });
+      }
+
+      setNotifications(items);
+    } catch (err) {
+      console.warn('Failed to load project notifications:', err);
+      setNotifications([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProjectNotifications();
+  }, [projectId]);
+
+  const filtered = notifications.filter(n => {
+    if (filter === 'UNREAD') return !n.isRead;
+    if (filter === 'ALL') return true;
+    return n.type === filter;
+  });
 
   const handleMarkAllRead = () => {
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
@@ -72,11 +103,22 @@ export const ProjectNotificationsTab: React.FC<ProjectNotificationsTabProps> = (
     switch (type) {
       case 'DOCUMENT': return <FileText className="w-4 h-4 text-cyan-500" />;
       case 'TASK': return <CheckSquare className="w-4 h-4 text-emerald-500" />;
-      case 'SECURITY': return <ShieldCheck className="w-4 h-4 text-indigo-500" />;
-      case 'CHAT': return <MessageSquare className="w-4 h-4 text-amber-500" />;
+      case 'STATUS': return <ShieldCheck className="w-4 h-4 text-amber-500" />;
+      case 'TEAM': return <UserCheck className="w-4 h-4 text-indigo-500" />;
+      case 'RISK': return <ShieldAlert className="w-4 h-4 text-rose-500" />;
       default: return <Bell className="w-4 h-4 text-slate-400" />;
     }
   };
+
+  const CATEGORY_TABS = [
+    { id: 'ALL', label: 'All' },
+    { id: 'UNREAD', label: `Unread (${notifications.filter(n => !n.isRead).length})` },
+    { id: 'TASKS', label: 'Tasks' },
+    { id: 'STATUS', label: 'Status' },
+    { id: 'DOCUMENTS', label: 'Documents' },
+    { id: 'TEAM', label: 'Team' },
+    { id: 'RISK', label: 'Risks' },
+  ];
 
   return (
     <div className="space-y-6 text-slate-800 dark:text-slate-200">
@@ -86,24 +128,26 @@ export const ProjectNotificationsTab: React.FC<ProjectNotificationsTabProps> = (
         <div>
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 mb-1">
             <Bell className="w-4 h-4" />
-            <span>Workspace Activity Stream</span>
+            <span>Project Notification Center</span>
           </div>
           <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
-            Notifications ({notifications.filter(n => !n.isRead).length} Unread)
+            Notifications Inbox ({notifications.filter(n => !n.isRead).length} Unread)
           </h3>
-          <p className="text-xs text-slate-500">Real-time alerts for tasks, documents, chat messages, and system events</p>
+          <p className="text-xs text-slate-500">Real-time alerts for project tasks, status requests, team assignments, and documents</p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <button
+            type="button"
             onClick={handleMarkAllRead}
-            className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <CheckCheck className="w-3.5 h-3.5 text-emerald-500" /> Mark All Read
           </button>
           <button
+            type="button"
             onClick={handleClearAll}
-            className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-500 text-slate-600 dark:text-slate-400 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-rose-500/10 hover:text-rose-500 text-slate-600 dark:text-slate-400 font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" /> Clear
           </button>
@@ -111,35 +155,37 @@ export const ProjectNotificationsTab: React.FC<ProjectNotificationsTabProps> = (
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
-        <button
-          onClick={() => setFilter('ALL')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            filter === 'ALL'
-              ? 'bg-cyan-500 text-slate-950 font-black'
-              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
-          }`}
-        >
-          All Notifications ({notifications.length})
-        </button>
-        <button
-          onClick={() => setFilter('UNREAD')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-            filter === 'UNREAD'
-              ? 'bg-cyan-500 text-slate-950 font-black'
-              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800'
-          }`}
-        >
-          Unread Only ({notifications.filter(n => !n.isRead).length})
-        </button>
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+        {CATEGORY_TABS.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setFilter(tab.id)}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              filter === tab.id
+                ? 'bg-cyan-500 text-slate-950 font-black'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Notifications List */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-2">
+          <Loader2 className="w-6 h-6 animate-spin text-cyan-500 mx-auto" />
+          <p className="text-xs text-slate-400 font-medium">Fetching project notifications stream...</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-2">
           <Bell className="w-8 h-8 text-slate-400 mx-auto" />
-          <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">No Notifications</h4>
-          <p className="text-xs text-slate-500">You are all caught up with current project alerts.</p>
+          <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+            No project notifications yet.
+          </h4>
+          <p className="text-xs text-slate-500">
+            There are currently no active notifications logged for this project.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

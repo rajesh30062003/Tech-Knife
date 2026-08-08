@@ -32,7 +32,10 @@ interface AuthContextType {
   updateUserProfile: (data: Partial<UserProfile>) => Promise<UserProfile>;
   switchRole: (role: Role) => void;
   hasRole: (allowedRoles: Role[]) => boolean;
-  hasPermission: (permission: Permission) => boolean;
+  hasPermission: (permission: string) => boolean;
+  canAccessRoute: (routePath: string) => boolean;
+  isFeatureEnabled: (featureKey: string) => boolean;
+  refetchPermissions: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -279,6 +282,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return updatedProfile;
   };
 
+  const [userRoleConfig, setUserRoleConfig] = useState<DynamicRole | null>(null);
+
+  const refetchPermissions = useCallback(async () => {
+    if (!user) return;
+    try {
+      const roles = await permissionsApi.getRoles();
+      const myRole = roles.find((r) => r.role === user.role);
+      if (myRole) {
+        setUserRoleConfig(myRole);
+      }
+    } catch {
+      // fallback
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      refetchPermissions();
+    } else {
+      setUserRoleConfig(null);
+    }
+  }, [user, refetchPermissions]);
+
   const switchRole = (_role: Role) => {
     // Role switching is strictly governed by MongoDB Atlas user roles.
     fetchCurrentUser();
@@ -292,13 +318,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return allowedRoles.includes(user.role);
   };
 
-  const hasPermission = (permission: Permission) => {
+  const hasPermission = (permission: string): boolean => {
     if (!user) return false;
-    if (user.permissions && user.permissions.length > 0) {
-      return user.permissions.includes(permission);
+    if (user.role === 'ROLE_CEO' || user.role === 'ROLE_SUPER_ADMIN') return true;
+    if (userRoleConfig && userRoleConfig.permissions) {
+      return userRoleConfig.permissions.includes(permission);
     }
-    const executiveRoles: Role[] = ['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_CEO', 'ROLE_CTO', 'ROLE_CMO', 'ROLE_MD', 'ROLE_DIRECTOR', 'ROLE_GROWTH_HEAD', 'ROLE_SENIOR_ENGINEERING_MANAGER'];
-    return user.roles.some((r) => executiveRoles.includes(r));
+    if (user.permissions && user.permissions.length > 0) {
+      return user.permissions.includes(permission as any);
+    }
+    return false;
+  };
+
+  const canAccessRoute = (routePath: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'ROLE_CEO' || user.role === 'ROLE_SUPER_ADMIN') return true;
+    if (userRoleConfig && Array.isArray(userRoleConfig.menuPermissions)) {
+      return userRoleConfig.menuPermissions.includes(routePath);
+    }
+    return true;
+  };
+
+  const isFeatureEnabled = (featureKey: string): boolean => {
+    if (!user) return false;
+    if (user.role === 'ROLE_CEO' || user.role === 'ROLE_SUPER_ADMIN') return true;
+    if (userRoleConfig && userRoleConfig.featureFlags && userRoleConfig.featureFlags[featureKey] !== undefined) {
+      return !!userRoleConfig.featureFlags[featureKey];
+    }
+    return true;
   };
 
   const clearError = () => setError(null);
@@ -323,6 +370,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         switchRole,
         hasRole,
         hasPermission,
+        canAccessRoute,
+        isFeatureEnabled,
+        refetchPermissions,
         clearError,
       }}
     >

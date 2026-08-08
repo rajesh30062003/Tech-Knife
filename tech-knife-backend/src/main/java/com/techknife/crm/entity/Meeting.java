@@ -50,6 +50,8 @@ public class Meeting {
 
     private String organizerId;
 
+    private String meetingLink;
+
     @CreatedDate
     private Instant createdAt;
 

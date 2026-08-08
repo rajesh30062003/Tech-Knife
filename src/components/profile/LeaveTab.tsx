@@ -33,7 +33,7 @@ const INITIAL_LEAVE_HISTORY: LeaveApplication[] = [
     reason: 'Family annual vacation trip',
     status: 'Approved',
     appliedDate: '2026-10-01',
-    approver: 'Marcus Brody',
+    approver: 'Sourav Roy',
   },
   {
     id: 'LV-102',
@@ -54,7 +54,7 @@ const INITIAL_LEAVE_HISTORY: LeaveApplication[] = [
     reason: 'Medical appointment',
     status: 'Approved',
     appliedDate: '2026-08-03',
-    approver: 'Marcus Brody',
+    approver: 'Sourav Roy',
   },
 ];
 

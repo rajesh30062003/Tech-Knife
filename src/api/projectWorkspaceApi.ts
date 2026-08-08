@@ -123,12 +123,28 @@ export const projectWorkspaceApi = {
 
   // Project Risks
   getRisks: async (projectId: string): Promise<ApiResponse<ProjectRisk[]>> => {
-    const res = await apiClient.get<ApiResponse<ProjectRisk[]>>(`/projects/${projectId}/risks`);
-    return res.data;
+    try {
+      const res = await apiClient.get<ApiResponse<ProjectRisk[]>>(`/projects/${projectId}/risks`);
+      return res.data;
+    } catch {
+      const res = await apiClient.get<ApiResponse<ProjectRisk[]>>(`/project/risks/project/${projectId}`);
+      return res.data;
+    }
   },
 
   createRisk: async (projectId: string, risk: Partial<ProjectRisk>): Promise<ApiResponse<ProjectRisk>> => {
-    const res = await apiClient.post<ApiResponse<ProjectRisk>>(`/projects/${projectId}/risks`, risk);
+    const res = await apiClient.post<ApiResponse<ProjectRisk>>(`/projects/${projectId}/risks`, { ...risk, projectId });
+    return res.data;
+  },
+
+  updateRisk: async (projectId: string, riskId: string, risk: Partial<ProjectRisk>): Promise<ApiResponse<ProjectRisk>> => {
+    const res = await apiClient.put<ApiResponse<ProjectRisk>>(`/project/risks/${riskId}`, { ...risk, projectId });
+    return res.data;
+  },
+
+  // Project Milestones
+  getMilestones: async (projectId: string): Promise<ApiResponse<any[]>> => {
+    const res = await apiClient.get<ApiResponse<any[]>>(`/projects/milestones/project/${projectId}`);
     return res.data;
   },
 };

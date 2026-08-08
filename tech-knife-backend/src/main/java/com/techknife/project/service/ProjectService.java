@@ -33,9 +33,11 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final ProjectStatusHistoryRepository statusHistoryRepository;
     private final ProjectActivityRepository activityRepository;
+    private final ProjectActivityService projectActivityService;
     private final MilestoneRepository milestoneRepository;
     private final TaskRepository taskRepository;
     private final EmployeeRepository employeeRepository;
+    private final com.techknife.iam.repository.UserRepository iamUserRepository;
     private final FileStorageService fileStorageService;
     private final MongoTemplate mongoTemplate;
     private final SequenceGeneratorService sequenceGeneratorService;
@@ -351,29 +353,67 @@ public class ProjectService {
         return updateProject(id, request, "SYSTEM", "ROLE_SYSTEM");
     }
 
+    public ProjectResponseDTO requestStatusChange(String projectId, ProjectStatusRequestDTO requestDTO, String currentUser, String currentRole) {
+        Project project = getProjectEntity(projectId);
+
+        ProjectPendingStatusRequest pending = ProjectPendingStatusRequest.builder()
+                .requestedStatus(requestDTO.getRequestedStatus())
+                .reason(requestDTO.getReason())
+                .requestedBy(requestDTO.getRequestedBy() != null && !requestDTO.getRequestedBy().isBlank() ? requestDTO.getRequestedBy() : currentUser)
+                .requestedByRole(requestDTO.getRequestedByRole() != null && !requestDTO.getRequestedByRole().isBlank() ? requestDTO.getRequestedByRole() : currentRole)
+                .requestedAt(LocalDate.now().toString())
+                .build();
+
+        org.springframework.data.mongodb.core.query.Criteria criteria;
+        if (org.bson.types.ObjectId.isValid(project.getId())) {
+            criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(new org.bson.types.ObjectId(project.getId()));
+        } else {
+            criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(project.getId());
+        }
+
+        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query(criteria);
+        org.springframework.data.mongodb.core.query.Update update = new org.springframework.data.mongodb.core.query.Update()
+                .set("pendingStatusRequest", pending);
+
+        mongoTemplate.updateFirst(query, update, Project.class);
+        project.setPendingStatusRequest(pending);
+
+        logActivity(project.getId(), "REQUEST_STATUS_CHANGE", currentUser, currentRole, "PendingStatusRequest",
+                String.valueOf(project.getStatus()), requestDTO.getRequestedStatus());
+
+        return mapToResponseDTO(project);
+    }
+
     public ProjectResponseDTO updateProject(String id, ProjectRequestDTO request, String currentUser, String currentRole) {
         Project project = getProjectEntity(id);
 
-        if (!project.getProjectCode().equalsIgnoreCase(request.getProjectCode())
-                && projectRepository.existsByProjectCode(request.getProjectCode())) {
-            throw new BadRequestException("Project code '" + request.getProjectCode() + "' is already taken");
+        if (request.getProjectCode() != null && !request.getProjectCode().isBlank()) {
+            String newCode = request.getProjectCode().trim().toUpperCase();
+            if (!newCode.equalsIgnoreCase(project.getProjectCode())
+                    && projectRepository.existsByProjectCode(newCode)) {
+                throw new BadRequestException("Project code '" + newCode + "' is already taken");
+            }
+            project.setProjectCode(newCode);
         }
 
-        project.setProjectCode(request.getProjectCode());
-        project.setProjectName(request.getProjectName());
-        project.setShortName(request.getShortName());
-        project.setDescription(request.getDescription());
+        if (request.getProjectName() != null && !request.getProjectName().isBlank()) {
+            project.setProjectName(request.getProjectName().trim());
+        }
+
+        if (request.getShortName() != null) project.setShortName(request.getShortName());
+        if (request.getDescription() != null) project.setDescription(request.getDescription());
         if (request.getObjectives() != null) project.setObjectives(request.getObjectives());
-        project.setClient(request.getClient());
+        if (request.getClient() != null) project.setClient(request.getClient());
         if (request.getClientId() != null) project.setClientId(request.getClientId());
         if (request.getClientOrganization() != null) project.setClientOrganization(request.getClientOrganization());
         if (request.getDepartment() != null) project.setDepartment(request.getDepartment());
         if (request.getCategory() != null) project.setCategory(request.getCategory());
         if (request.getBusinessUnit() != null) project.setBusinessUnit(request.getBusinessUnit());
         if (request.getProjectType() != null) project.setProjectType(request.getProjectType());
+        if (request.getStatus() != null) project.setStatus(request.getStatus());
         if (request.getPriority() != null) project.setPriority(request.getPriority());
-        project.setStartDate(request.getStartDate());
-        project.setEndDate(request.getEndDate());
+        if (request.getStartDate() != null) project.setStartDate(request.getStartDate());
+        if (request.getEndDate() != null) project.setEndDate(request.getEndDate());
         if (request.getTargetEndDate() != null) project.setTargetEndDate(request.getTargetEndDate());
         if (request.getEstimatedCompletion() != null) project.setEstimatedCompletion(request.getEstimatedCompletion());
         if (request.getEstimatedHours() != null) project.setEstimatedHours(request.getEstimatedHours());
@@ -386,7 +426,7 @@ public class ProjectService {
         if (request.getFrameworks() != null) project.setFrameworks(request.getFrameworks());
         if (request.getDatabaseTech() != null) project.setDatabaseTech(request.getDatabaseTech());
         if (request.getCloudProvider() != null) project.setCloudProvider(request.getCloudProvider());
-        project.setRepositoryUrl(request.getRepositoryUrl());
+        if (request.getRepositoryUrl() != null) project.setRepositoryUrl(request.getRepositoryUrl());
         if (request.getRepositoryType() != null) project.setRepositoryType(request.getRepositoryType());
         if (request.getRepositoryVisibility() != null) project.setRepositoryVisibility(request.getRepositoryVisibility());
         if (request.getProjectVisibility() != null) project.setProjectVisibility(request.getProjectVisibility());
@@ -395,7 +435,10 @@ public class ProjectService {
         if (request.getCustomerRepresentative() != null) project.setCustomerRepresentative(request.getCustomerRepresentative());
         if (request.getRemarks() != null) project.setRemarks(request.getRemarks());
         if (request.getTags() != null) project.setTags(request.getTags());
-        project.setLogoUrl(request.getLogoUrl());
+        if (request.getLogoUrl() != null) project.setLogoUrl(request.getLogoUrl());
+
+        if (request.getAssignedEmployees() != null) project.setAssignedEmployees(request.getAssignedEmployees());
+        if (request.getAssignedInterns() != null) project.setAssignedInterns(request.getAssignedInterns());
 
         if (request.getProjectManagerId() != null && !request.getProjectManagerId().equals(project.getProjectManagerId())) {
             String newPmName = resolveEmployeeName(request.getProjectManagerId());
@@ -413,11 +456,31 @@ public class ProjectService {
             project.setLinks(request.getLinks());
         }
 
-        Project updated = projectRepository.save(project);
-        syncProjectAssignments(updated);
-        logActivity(updated.getId(), "UPDATE_PROJECT", currentUser, currentRole, "Metadata", null, "Updated Metadata");
+        try {
+            project.setPendingStatusRequest(request.getPendingStatusRequest());
+            Project updated = projectRepository.save(project);
+            syncProjectAssignments(updated);
+            logActivity(updated.getId(), "UPDATE_PROJECT", currentUser, currentRole, "Metadata", null, "Updated Metadata");
+            return mapToResponseDTO(updated);
+        } catch (org.springframework.dao.DuplicateKeyException dke) {
+            org.springframework.data.mongodb.core.query.Criteria criteria;
+            if (org.bson.types.ObjectId.isValid(project.getId())) {
+                criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(new org.bson.types.ObjectId(project.getId()));
+            } else {
+                criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(project.getId());
+            }
 
-        return mapToResponseDTO(updated);
+            org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query(criteria);
+            org.springframework.data.mongodb.core.query.Update update = new org.springframework.data.mongodb.core.query.Update();
+            if (request.getPendingStatusRequest() == null) {
+                update.unset("pendingStatusRequest");
+            } else {
+                update.set("pendingStatusRequest", request.getPendingStatusRequest());
+            }
+            mongoTemplate.updateFirst(query, update, Project.class);
+            logActivity(project.getId(), "UPDATE_PROJECT", currentUser, currentRole, "Metadata", null, "Updated Metadata");
+            return mapToResponseDTO(project);
+        }
     }
 
     public ProjectResponseDTO updateStatus(String projectId, ProjectStatusUpdateDTO updateDTO, String currentUser) {
@@ -441,8 +504,23 @@ public class ProjectService {
             logActivity(projectId, "UPDATE_STATUS", currentUser, currentRole, "Status", String.valueOf(oldStatus), String.valueOf(newStatus));
         }
 
-        Project saved = projectRepository.save(project);
-        return mapToResponseDTO(saved);
+        org.springframework.data.mongodb.core.query.Criteria criteria;
+        if (org.bson.types.ObjectId.isValid(project.getId())) {
+            criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(new org.bson.types.ObjectId(project.getId()));
+        } else {
+            criteria = org.springframework.data.mongodb.core.query.Criteria.where("_id").is(project.getId());
+        }
+
+        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query(criteria);
+        org.springframework.data.mongodb.core.query.Update update = new org.springframework.data.mongodb.core.query.Update()
+                .set("status", project.getStatus())
+                .set("progressPercentage", project.getProgressPercentage())
+                .unset("pendingStatusRequest");
+
+        mongoTemplate.updateFirst(query, update, Project.class);
+        project.setPendingStatusRequest(null);
+
+        return mapToResponseDTO(project);
     }
 
     public ProjectResponseDTO assignMembers(String projectId, ProjectAssignDTO dto, String currentUser, String currentRole) {
@@ -583,25 +661,184 @@ public class ProjectService {
         return mapToResponseDTO(project);
     }
 
+    private String resolveCanonicalEmployeeId(UserPrincipal principal) {
+        if (principal == null) return null;
+        String id = principal.getId();
+        String email = principal.getEmail();
+
+        if (id != null && (id.toUpperCase().startsWith("EMP-") || id.toUpperCase().startsWith("INT-"))) {
+            return id;
+        }
+
+        if (employeeRepository != null) {
+            if (email != null && !email.isBlank()) {
+                Optional<com.techknife.employee.entity.Employee> emp = employeeRepository.findByOfficialEmail(email);
+                if (emp.isPresent() && emp.get().getEmployeeId() != null) {
+                    return emp.get().getEmployeeId();
+                }
+                Optional<com.techknife.employee.entity.Employee> empPersonal = employeeRepository.findByPersonalEmail(email);
+                if (empPersonal.isPresent() && empPersonal.get().getEmployeeId() != null) {
+                    return empPersonal.get().getEmployeeId();
+                }
+            }
+
+            if (id != null && !id.isBlank()) {
+                Optional<com.techknife.employee.entity.Employee> emp = employeeRepository.findByEmployeeId(id);
+                if (emp.isPresent() && emp.get().getEmployeeId() != null) {
+                    return emp.get().getEmployeeId();
+                }
+                Optional<com.techknife.employee.entity.Employee> empById = employeeRepository.findById(id);
+                if (empById.isPresent() && empById.get().getEmployeeId() != null) {
+                    return empById.get().getEmployeeId();
+                }
+                Optional<com.techknife.employee.entity.Employee> empByOfficial = employeeRepository.findByOfficialEmail(id);
+                if (empByOfficial.isPresent() && empByOfficial.get().getEmployeeId() != null) {
+                    return empByOfficial.get().getEmployeeId();
+                }
+                Optional<com.techknife.employee.entity.Employee> empByPersonal = employeeRepository.findByPersonalEmail(id);
+                if (empByPersonal.isPresent() && empByPersonal.get().getEmployeeId() != null) {
+                    return empByPersonal.get().getEmployeeId();
+                }
+            }
+        }
+
+        if (iamUserRepository != null) {
+            String firstName = null;
+            String lastName = null;
+            String foundUserId = null;
+
+            if (id != null && !id.isBlank()) {
+                Optional<com.techknife.iam.entity.User> iamUser = iamUserRepository.findById(id);
+                if (iamUser.isPresent()) {
+                    foundUserId = iamUser.get().getUserId();
+                    firstName = iamUser.get().getFirstName();
+                    lastName = iamUser.get().getLastName();
+                }
+            }
+            if (firstName == null && email != null && !email.isBlank()) {
+                Optional<com.techknife.iam.entity.User> iamUser = iamUserRepository.findByOfficialEmail(email)
+                        .or(() -> iamUserRepository.findByPersonalEmail(email));
+                if (iamUser.isPresent()) {
+                    foundUserId = iamUser.get().getUserId();
+                    firstName = iamUser.get().getFirstName();
+                    lastName = iamUser.get().getLastName();
+                }
+            }
+
+            if (foundUserId != null && (foundUserId.toUpperCase().startsWith("EMP-") || foundUserId.toUpperCase().startsWith("INT-"))) {
+                return foundUserId;
+            }
+
+            if (employeeRepository != null && firstName != null && lastName != null) {
+                final String fName = firstName.trim();
+                final String lName = lastName.trim();
+                Optional<com.techknife.employee.entity.Employee> empByName = employeeRepository.findAll().stream()
+                        .filter(e -> e.getFirstName() != null && e.getFirstName().equalsIgnoreCase(fName)
+                                  && e.getLastName() != null && e.getLastName().equalsIgnoreCase(lName))
+                        .findFirst();
+                if (empByName.isPresent() && empByName.get().getEmployeeId() != null) {
+                    return empByName.get().getEmployeeId();
+                }
+
+                Optional<com.techknife.iam.entity.User> userByName = iamUserRepository.findAll().stream()
+                        .filter(u -> u.getUserId() != null
+                                && (u.getUserId().toUpperCase().startsWith("EMP-") || u.getUserId().toUpperCase().startsWith("INT-"))
+                                && u.getFirstName() != null && u.getFirstName().equalsIgnoreCase(fName)
+                                && u.getLastName() != null && u.getLastName().equalsIgnoreCase(lName))
+                        .findFirst();
+                if (userByName.isPresent()) {
+                    return userByName.get().getUserId();
+                }
+            }
+        }
+
+        return id;
+    }
+
     public List<ProjectResponseDTO> getAllProjects(UserPrincipal principal, ProjectStatus status, String category) {
         List<Project> projects = projectRepository.findAll();
 
         if (principal != null) {
             List<String> roles = principal.getRoles() != null ? principal.getRoles() : new ArrayList<>();
-            boolean isCustomer = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CUSTOMER") || r.equalsIgnoreCase("CUSTOMER"));
 
-            if (isCustomer) {
-                String userId = principal.getId();
-                String username = principal.getUsername(); // email
-                projects = projects.stream().filter(p -> {
-                    if (userId != null && (userId.equalsIgnoreCase(p.getClientId()) || userId.equalsIgnoreCase(p.getClient()))) {
-                        return true;
-                    }
-                    if (username != null && (username.equalsIgnoreCase(p.getClient()) || username.equalsIgnoreCase(p.getCustomerRepresentative()))) {
-                        return true;
-                    }
-                    return true;
-                }).collect(Collectors.toList());
+            boolean isGlobalViewer = roles.stream().anyMatch(r ->
+                    r.equalsIgnoreCase("ROLE_SUPER_ADMIN") || r.equalsIgnoreCase("SUPER_ADMIN") ||
+                    r.equalsIgnoreCase("ROLE_CEO") || r.equalsIgnoreCase("CEO") ||
+                    r.equalsIgnoreCase("ROLE_MD") || r.equalsIgnoreCase("MD") ||
+                    r.equalsIgnoreCase("ROLE_CTO") || r.equalsIgnoreCase("CTO") ||
+                    r.equalsIgnoreCase("ROLE_GROWTH_HEAD") || r.equalsIgnoreCase("GROWTH_HEAD")
+            );
+
+            if (!isGlobalViewer) {
+                boolean isCustomer = roles.stream().anyMatch(r -> r.equalsIgnoreCase("ROLE_CUSTOMER") || r.equalsIgnoreCase("CUSTOMER"));
+
+                if (isCustomer) {
+                    String userId = principal.getId();
+                    String username = principal.getUsername(); // email
+                    projects = projects.stream().filter(p -> {
+                        if (userId != null && (userId.equalsIgnoreCase(p.getClientId()) || userId.equalsIgnoreCase(p.getClient()))) {
+                            return true;
+                        }
+                        if (username != null && (username.equalsIgnoreCase(p.getClient()) || username.equalsIgnoreCase(p.getCustomerRepresentative()))) {
+                            return true;
+                        }
+                        return false;
+                    }).collect(Collectors.toList());
+                } else {
+                    String canonicalEmpId = resolveCanonicalEmployeeId(principal);
+                    String userId = principal.getId();
+                    String email = principal.getEmail();
+
+                    projects = projects.stream().filter(p -> {
+                        if (canonicalEmpId != null && !canonicalEmpId.isBlank()) {
+                            if (canonicalEmpId.equalsIgnoreCase(p.getProjectManagerId()) ||
+                                canonicalEmpId.equalsIgnoreCase(p.getProjectLeadId())) {
+                                return true;
+                            }
+                            if (p.getAssignedEmployees() != null && p.getAssignedEmployees().stream().anyMatch(e -> e.equalsIgnoreCase(canonicalEmpId))) {
+                                return true;
+                            }
+                            if (p.getAssignedInterns() != null && p.getAssignedInterns().stream().anyMatch(i -> i.equalsIgnoreCase(canonicalEmpId))) {
+                                return true;
+                            }
+                            if (p.getMembers() != null && p.getMembers().stream().anyMatch(m -> m.getEmployeeId() != null && m.getEmployeeId().equalsIgnoreCase(canonicalEmpId))) {
+                                return true;
+                            }
+                        }
+
+                        if (userId != null && !userId.isBlank()) {
+                            if (userId.equalsIgnoreCase(p.getProjectManagerId()) || userId.equalsIgnoreCase(p.getProjectLeadId())) {
+                                return true;
+                            }
+                            if (p.getAssignedEmployees() != null && p.getAssignedEmployees().stream().anyMatch(e -> e.equalsIgnoreCase(userId))) {
+                                return true;
+                            }
+                            if (p.getAssignedInterns() != null && p.getAssignedInterns().stream().anyMatch(i -> i.equalsIgnoreCase(userId))) {
+                                return true;
+                            }
+                            if (p.getMembers() != null && p.getMembers().stream().anyMatch(m -> m.getEmployeeId() != null && m.getEmployeeId().equalsIgnoreCase(userId))) {
+                                return true;
+                            }
+                        }
+
+                        if (email != null && !email.isBlank()) {
+                            if (email.equalsIgnoreCase(p.getProjectManagerId()) || email.equalsIgnoreCase(p.getProjectLeadId())) {
+                                return true;
+                            }
+                            if (p.getAssignedEmployees() != null && p.getAssignedEmployees().stream().anyMatch(e -> e.equalsIgnoreCase(email))) {
+                                return true;
+                            }
+                            if (p.getAssignedInterns() != null && p.getAssignedInterns().stream().anyMatch(i -> i.equalsIgnoreCase(email))) {
+                                return true;
+                            }
+                            if (p.getMembers() != null && p.getMembers().stream().anyMatch(m -> m.getEmployeeId() != null && m.getEmployeeId().equalsIgnoreCase(email))) {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }).collect(Collectors.toList());
+                }
             }
         }
 
@@ -729,8 +966,12 @@ public class ProjectService {
     }
 
     private Project getProjectEntity(String id) {
-        return projectRepository.findById(id)
-                .or(() -> projectRepository.findByProjectCode(id))
+        if (id == null) throw new BadRequestException("Project id is required");
+        Project found = mongoTemplate.findById(id, Project.class);
+        if (found != null) return found;
+
+        return projectRepository.findByProjectCode(id)
+                .or(() -> projectRepository.findByProjectId(id))
                 .orElseThrow(() -> new BadRequestException("Project not found with id or code: " + id));
     }
 
@@ -763,17 +1004,34 @@ public class ProjectService {
     }
 
     private void logActivity(String projectId, String action, String performedBy, String userRole, String fieldModified, String oldValue, String newValue) {
-        ProjectActivity activity = ProjectActivity.builder()
-                .projectId(projectId)
-                .action(action)
-                .performedBy(performedBy != null ? performedBy : "SYSTEM")
-                .userRole(userRole != null ? userRole : "ROLE_EMPLOYEE")
-                .fieldModified(fieldModified)
-                .oldValue(oldValue)
-                .newValue(newValue)
-                .timestamp(Instant.now())
-                .build();
-        activityRepository.save(activity);
+        Project project = null;
+        try {
+            project = getProjectEntity(projectId);
+        } catch (Exception e) {}
+        String code = project != null ? project.getProjectCode() : projectId;
+        String pId = project != null ? project.getId() : projectId;
+
+        String type = "PROJECT";
+        String upperAction = (action != null ? action : "").toUpperCase();
+        if (upperAction.contains("STATUS")) type = "STATUS";
+        else if (upperAction.contains("REPO") || upperAction.contains("LINK")) type = "REPOSITORY";
+        else if (upperAction.contains("TEAM") || upperAction.contains("MEMBER")) type = "TEAM";
+        else if (upperAction.contains("TASK")) type = "TASK";
+        else if (upperAction.contains("DOC") || upperAction.contains("FILE")) type = "DOCUMENT";
+        else if (upperAction.contains("MEETING") || upperAction.contains("SYNC")) type = "MEETING";
+        else if (upperAction.contains("PLAN") || upperAction.contains("MILESTONE")) type = "PLANNING";
+
+        String desc = (action != null ? action.replace("_", " ") : "Action");
+        if (fieldModified != null && !fieldModified.isBlank()) {
+            desc += " (" + fieldModified + ")";
+        }
+        if (oldValue != null && newValue != null) {
+            desc += ": " + oldValue + " → " + newValue;
+        } else if (newValue != null) {
+            desc += ": " + newValue;
+        }
+
+        projectActivityService.logActivity(pId, code, action, type, desc, fieldModified, oldValue, newValue);
     }
 
     private ProjectResponseDTO mapToResponseDTO(Project project) {
@@ -803,11 +1061,16 @@ public class ProjectService {
             }
         }
 
+        String pName = project.getProjectName();
+        if (pName == null || pName.isBlank()) {
+            pName = project.getProjectCode() != null ? project.getProjectCode() : "Untitled Project";
+        }
+
         return ProjectResponseDTO.builder()
                 .id(project.getId())
                 .projectId(project.getProjectId())
                 .projectCode(project.getProjectCode())
-                .projectName(project.getProjectName())
+                .projectName(pName)
                 .shortName(project.getShortName())
                 .description(project.getDescription())
                 .objectives(project.getObjectives())
@@ -854,6 +1117,7 @@ public class ProjectService {
                 .teams(project.getTeams())
                 .documents(project.getDocuments())
                 .logoUrl(project.getLogoUrl())
+                .pendingStatusRequest(project.getPendingStatusRequest())
                 .overallProgressPercentage(progress)
                 .totalTasks(totalTasks)
                 .completedTasks(completedTasks)

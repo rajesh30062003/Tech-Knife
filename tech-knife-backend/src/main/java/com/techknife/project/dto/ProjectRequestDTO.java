@@ -1,10 +1,10 @@
 package com.techknife.project.dto;
 
 import com.techknife.project.entity.ProjectLinks;
+import com.techknife.project.entity.ProjectPendingStatusRequest;
 import com.techknife.project.entity.ProjectPriority;
 import com.techknife.project.entity.ProjectStatus;
 import com.techknife.project.entity.ProjectType;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,10 +20,8 @@ import java.util.List;
 @AllArgsConstructor
 public class ProjectRequestDTO {
 
-    @NotBlank(message = "Project code is required")
     private String projectCode;
 
-    @NotBlank(message = "Project name is required")
     private String projectName;
 
     private String shortName;
@@ -116,4 +114,6 @@ public class ProjectRequestDTO {
     private List<String> tags = new ArrayList<>();
 
     private String logoUrl;
+
+    private ProjectPendingStatusRequest pendingStatusRequest;
 }

@@ -29,7 +29,7 @@ export const CalendarPage: React.FC = () => {
 
         <div className="space-y-3">
           {[
-            { title: 'Weekly Engineering Sprint Retrospective', time: 'Today, 2:00 PM - 3:00 PM', room: 'Conference Room 4B (San Jose)', organizer: 'Marcus Brody' },
+            { title: 'Weekly Engineering Retrospective', time: 'Today, 2:00 PM - 3:00 PM', room: 'Conference Room 4B', organizer: 'Ganesh Pal' },
             { title: 'Quarterly Financial & Payroll Review', time: 'Tomorrow, 10:00 AM - 11:30 AM', room: 'Executive Boardroom A', organizer: 'Alexander Vance' },
             { title: 'Apex Enterprises Client Sync', time: 'Oct 18, 4:00 PM - 4:45 PM', room: 'Virtual Meet #12', organizer: 'David Miller' },
           ].map((e, idx) => (

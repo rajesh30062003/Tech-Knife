@@ -1,176 +1,392 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  GitBranch, Server, Cpu, Layers, Terminal, Activity, CheckCircle2, 
-  AlertTriangle, RefreshCw, ExternalLink, ShieldCheck, Box, Cloud
+  FolderKanban, GitBranch, Server, Globe, Terminal, Code2, 
+  ExternalLink, Edit3, X, Github, Link2
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '../../context/AuthContext';
+import { projectsApi, EnterpriseProject, ProjectLinksData } from '../../api/projects';
+import { canApproveProjectStatus } from '../../constants/projectStatus';
 
-interface PipelineJob {
-  id: string;
-  repoName: string;
-  branch: string;
-  provider: 'GitHub Actions' | 'GitLab CI' | 'Jenkins' | 'Docker Hub';
-  status: 'SUCCESS' | 'RUNNING' | 'FAILED';
-  commitMsg: string;
-  duration: string;
-  timestamp: string;
+interface EnterpriseDevOpsWorkspaceProps {
+  project?: EnterpriseProject;
+  onProjectUpdated?: () => void;
+  isApprover?: boolean;
 }
 
-const MOCK_PIPELINES: PipelineJob[] = [
-  {
-    id: 'pipe-101',
-    repoName: 'techknife-enterprise-backend',
-    branch: 'main',
-    provider: 'GitHub Actions',
-    status: 'SUCCESS',
-    commitMsg: 'feat(oauth2): Migrate Google Drive authentication to OAuth 2.0 offline flow',
-    duration: '2m 14s',
-    timestamp: '12 mins ago',
-  },
-  {
-    id: 'pipe-102',
-    repoName: 'techknife-enterprise-frontend',
-    branch: 'main',
-    provider: 'GitLab CI',
-    status: 'SUCCESS',
-    commitMsg: 'feat(workspace): Expand Enterprise Project Workspace with AI Copilot & Command Palette',
-    duration: '1m 45s',
-    timestamp: '28 mins ago',
-  },
-  {
-    id: 'pipe-103',
-    repoName: 'techknife-k8s-cluster',
-    branch: 'production',
-    provider: 'Jenkins',
-    status: 'RUNNING',
-    commitMsg: 'deploy(helm): Upgrade Spring Boot 3.5 replica set to 4 pods',
-    duration: '45s',
-    timestamp: 'Just now',
-  },
-];
+export const EnterpriseDevOpsWorkspace: React.FC<EnterpriseDevOpsWorkspaceProps> = ({
+  project,
+  onProjectUpdated,
+  isApprover,
+}) => {
+  const { user } = useAuth();
+  
+  // Permission calculation: Only authorized roles can edit project repository links
+  const canEdit = isApprover ?? canApproveProjectStatus(user, project);
 
-export const EnterpriseDevOpsWorkspace: React.FC = () => {
-  const [pipelines, setPipelines] = useState<PipelineJob[]>(MOCK_PIPELINES);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSyncTelemetry = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-    }, 1000);
+  const [formLinks, setFormLinks] = useState<ProjectLinksData>({
+    githubUrl: '',
+    frontendRepoUrl: '',
+    backendRepoUrl: '',
+    deploymentUrl: '',
+    serverUrl: '',
+    cicdPipelineUrl: '',
+  });
+
+  // Sync formLinks with project.links prop
+  useEffect(() => {
+    if (project?.links) {
+      setFormLinks({
+        githubUrl: project.links.githubUrl || '',
+        frontendRepoUrl: project.links.frontendRepoUrl || '',
+        backendRepoUrl: project.links.backendRepoUrl || '',
+        deploymentUrl: project.links.deploymentUrl || project.links.productionUrl || '',
+        serverUrl: project.links.serverUrl || '',
+        cicdPipelineUrl: project.links.cicdPipelineUrl || '',
+      });
+    }
+  }, [project]);
+
+  const handleOpenEditModal = () => {
+    setFormLinks({
+      githubUrl: project?.links?.githubUrl || '',
+      frontendRepoUrl: project?.links?.frontendRepoUrl || '',
+      backendRepoUrl: project?.links?.backendRepoUrl || '',
+      deploymentUrl: project?.links?.deploymentUrl || project?.links?.productionUrl || '',
+      serverUrl: project?.links?.serverUrl || '',
+      cicdPipelineUrl: project?.links?.cicdPipelineUrl || '',
+    });
+    setIsEditing(true);
   };
+
+  const isValidUrl = (url: string): boolean => {
+    if (!url.trim()) return true;
+    try {
+      const testUrl = url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
+      new URL(testUrl);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const handleSaveLinks = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isSaving) return;
+    if (!project?.id) {
+      toast.error('Project ID missing.');
+      return;
+    }
+
+    // Validate URLs
+    const entries = [
+      { name: 'GitHub Project Link', value: formLinks.githubUrl },
+      { name: 'Frontend Repository', value: formLinks.frontendRepoUrl },
+      { name: 'Backend Repository', value: formLinks.backendRepoUrl },
+      { name: 'Frontend Deployment URL', value: formLinks.deploymentUrl },
+      { name: 'Backend Deployment URL', value: formLinks.serverUrl },
+      { name: 'CI/CD Pipeline URL', value: formLinks.cicdPipelineUrl },
+    ];
+
+    for (const item of entries) {
+      if (item.value && !isValidUrl(item.value)) {
+        toast.error(`Invalid URL format for ${item.name}`);
+        return;
+      }
+    }
+
+    setIsSaving(true);
+    try {
+      const updatedLinks: ProjectLinksData = {
+        ...(project.links || {}),
+        githubUrl: formLinks.githubUrl?.trim() || null,
+        frontendRepoUrl: formLinks.frontendRepoUrl?.trim() || null,
+        backendRepoUrl: formLinks.backendRepoUrl?.trim() || null,
+        deploymentUrl: formLinks.deploymentUrl?.trim() || null,
+        productionUrl: formLinks.deploymentUrl?.trim() || null,
+        serverUrl: formLinks.serverUrl?.trim() || null,
+        cicdPipelineUrl: formLinks.cicdPipelineUrl?.trim() || null,
+      };
+
+      const res = await projectsApi.update(project.id, { links: updatedLinks });
+      const updatedProject = res?.data || { ...project, links: updatedLinks };
+
+      toast.success('Project repository and deployment details updated successfully.');
+      setIsEditing(false);
+      if (onProjectUpdated) {
+        await onProjectUpdated(updatedProject);
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to update project links.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const LINK_CARDS = [
+    {
+      title: 'GitHub Project',
+      value: project?.links?.githubUrl,
+      icon: Github,
+      iconColor: 'text-purple-500 dark:text-purple-400',
+      buttonLabel: 'Open Link',
+    },
+    {
+      title: 'Frontend Repository',
+      value: project?.links?.frontendRepoUrl,
+      icon: Code2,
+      iconColor: 'text-cyan-500 dark:text-cyan-400',
+      buttonLabel: 'Open Repository',
+    },
+    {
+      title: 'Backend Repository',
+      value: project?.links?.backendRepoUrl,
+      icon: Terminal,
+      iconColor: 'text-indigo-500 dark:text-indigo-400',
+      buttonLabel: 'Open Repository',
+    },
+    {
+      title: 'Frontend Deployment',
+      value: project?.links?.deploymentUrl || project?.links?.productionUrl,
+      icon: Globe,
+      iconColor: 'text-emerald-500 dark:text-emerald-400',
+      buttonLabel: 'Open Frontend',
+    },
+    {
+      title: 'Backend Deployment',
+      value: project?.links?.serverUrl,
+      icon: Server,
+      iconColor: 'text-blue-500 dark:text-blue-400',
+      buttonLabel: 'Open Backend',
+    },
+    {
+      title: 'CI/CD Workflow',
+      value: project?.links?.cicdPipelineUrl,
+      icon: GitBranch,
+      iconColor: 'text-amber-500 dark:text-amber-400',
+      buttonLabel: 'Open Workflow',
+    },
+  ];
 
   return (
     <div className="space-y-6 text-slate-800 dark:text-slate-200">
       
       {/* Header Banner */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 font-mono text-xs font-bold rounded-full border border-cyan-500/30 flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5" /> DevOps & Telemetry Dashboard
+              <FolderKanban className="w-3.5 h-3.5" /> Project Infrastructure
             </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black tracking-tight">GitHub, GitLab, Jenkins & Kubernetes Runner Telemetry</h2>
-          <p className="text-xs text-slate-400 font-medium">Real-time CI/CD Build Monitoring • Docker Image Registry • Kubernetes Pod Cluster Health</p>
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+            Project Repositories & Deployment
+          </h2>
+          <p className="text-xs text-slate-400 font-medium">
+            Repository and deployment links for this project.
+          </p>
         </div>
 
-        <button
-          onClick={handleSyncTelemetry}
-          disabled={isSyncing}
-          className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 disabled:opacity-50 shrink-0"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-          <span>Sync Runner Webhooks</span>
-        </button>
+        {canEdit && (
+          <button
+            type="button"
+            onClick={handleOpenEditModal}
+            className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            <Edit3 className="w-4 h-4" />
+            <span>Edit Links</span>
+          </button>
+        )}
       </div>
 
-      {/* Cluster Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
-            <Server className="w-3.5 h-3.5 text-cyan-500" /> K8s Pod Cluster Health
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">100% HEALTH</span>
-            <span className="text-xs text-slate-400 font-mono">4/4 Pods</span>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">Spring Boot 3.5 Replica Set</p>
-        </div>
+      {/* Grid of Repository & Deployment Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {LINK_CARDS.map((item, idx) => {
+          const Icon = item.icon;
+          const rawVal = item.value?.trim();
+          const isConfigured = Boolean(rawVal);
+          const safeUrl = isConfigured 
+            ? (rawVal!.startsWith('http://') || rawVal!.startsWith('https://') ? rawVal! : `https://${rawVal}`) 
+            : '';
 
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
-            <Cpu className="w-3.5 h-3.5 text-indigo-500" /> CPU & Memory Usage
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl font-extrabold text-slate-900 dark:text-white font-mono">1.2 GB / 4.0 GB</span>
-            <span className="text-xs text-slate-400 font-mono">30% CPU</span>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">Nominal Operating Load</p>
-        </div>
+          return (
+            <div 
+              key={idx} 
+              className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-4"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 shrink-0">
+                    <Icon className={`w-4 h-4 ${item.iconColor}`} />
+                  </div>
+                  <h4 className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">
+                    {item.title}
+                  </h4>
+                </div>
 
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
-            <Box className="w-3.5 h-3.5 text-amber-500" /> Docker Registry Image
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl font-extrabold text-slate-900 dark:text-white font-mono">v1.0.0-SNAPSHOT</span>
-            <span className="text-xs text-emerald-500 font-bold font-mono">Verified</span>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">SHA-256 Digest Validated</p>
-        </div>
-
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-          <span className="text-[10px] uppercase font-bold text-slate-400 block flex items-center gap-1">
-            <Cloud className="w-3.5 h-3.5 text-cyan-500" /> GCP Cloud Availability
-          </span>
-          <div className="flex items-baseline justify-between">
-            <span className="text-xl font-extrabold text-cyan-600 dark:text-cyan-400 font-mono">99.99% Uptime</span>
-            <span className="text-xs text-slate-400 font-mono">asia-south1</span>
-          </div>
-          <p className="text-xs text-slate-500 font-medium">Multi-AZ Failover Ready</p>
-        </div>
-      </div>
-
-      {/* CI/CD Pipeline Stream Table */}
-      <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4">
-        <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-          <GitBranch className="w-4 h-4 text-cyan-500" /> CI/CD Build Pipeline Activity Stream
-        </h3>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th className="py-3 px-4">Repository</th>
-                <th className="py-3 px-4">Provider</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Commit Message</th>
-                <th className="py-3 px-4">Duration</th>
-                <th className="py-3 px-4">Triggered</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
-              {pipelines.map((pipe) => (
-                <tr key={pipe.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                  <td className="py-3 px-4 font-mono font-bold text-cyan-600 dark:text-cyan-400">{pipe.repoName} ({pipe.branch})</td>
-                  <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-300">{pipe.provider}</td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2.5 py-0.5 rounded-md font-mono text-[10px] font-bold ${
-                      pipe.status === 'SUCCESS' ? 'bg-emerald-500/10 text-emerald-600' : 'bg-cyan-500/10 text-cyan-600'
-                    }`}>
-                      {pipe.status}
+                <div className="pt-1 min-h-[38px] flex items-center">
+                  {isConfigured ? (
+                    <p className="text-xs font-mono font-medium text-slate-700 dark:text-slate-300 break-all line-clamp-2">
+                      {rawVal}
+                    </p>
+                  ) : (
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500 italic">
+                      Not configured
                     </span>
-                  </td>
-                  <td className="py-3 px-4 font-medium text-slate-600 dark:text-slate-300 truncate max-w-md">{pipe.commitMsg}</td>
-                  <td className="py-3 px-4 font-mono text-slate-400">{pipe.duration}</td>
-                  <td className="py-3 px-4 text-slate-400 font-mono">{pipe.timestamp}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                {isConfigured ? (
+                  <a
+                    href={safeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold rounded-xl transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <span>{item.buttonLabel}</span>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-950 text-slate-300 dark:text-slate-700 text-xs font-bold rounded-xl cursor-not-allowed border border-slate-100 dark:border-slate-800"
+                  >
+                    Not Configured
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
+      {/* Edit Form Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSaveLinks}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-xl text-slate-800 dark:text-slate-200"
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Link2 className="w-5 h-5 text-cyan-500" />
+                <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                  Edit Project Repositories & Deployment
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  GitHub Project Link
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.githubUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, githubUrl: e.target.value }))}
+                  placeholder="https://github.com/org/project"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  Frontend Repository
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.frontendRepoUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, frontendRepoUrl: e.target.value }))}
+                  placeholder="https://github.com/org/frontend-repo"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  Backend Repository
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.backendRepoUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, backendRepoUrl: e.target.value }))}
+                  placeholder="https://github.com/org/backend-repo"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  Frontend Deployment URL
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.deploymentUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, deploymentUrl: e.target.value }))}
+                  placeholder="https://app.example.com"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  Backend Deployment URL
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.serverUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, serverUrl: e.target.value }))}
+                  placeholder="https://api.example.com"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold block mb-1 text-slate-700 dark:text-slate-300">
+                  CI/CD Pipeline URL (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={formLinks.cicdPipelineUrl || ''}
+                  onChange={(e) => setFormLinks(prev => ({ ...prev, cicdPipelineUrl: e.target.value }))}
+                  placeholder="https://github.com/org/repo/actions"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

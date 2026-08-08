@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { 
   FolderKanban, Plus, GitBranch, Calendar, Search, Filter, 
@@ -158,6 +159,12 @@ export const ProjectsPage: React.FC = () => {
       const res = await projectsApi.getAll();
       if (res?.success && res?.data && Array.isArray(res.data)) {
         setProjects(res.data);
+        if (workspaceProject?.id) {
+          const freshCurrent = res.data.find(p => p.id === workspaceProject.id || p.projectCode === workspaceProject.projectCode);
+          if (freshCurrent) {
+            setWorkspaceProject(freshCurrent);
+          }
+        }
       } else {
         setProjects([]);
       }
@@ -1206,7 +1213,13 @@ export const ProjectsPage: React.FC = () => {
         project={workspaceProject}
         isOpen={isWorkspaceOpen}
         onClose={() => setIsWorkspaceOpen(false)}
-        onProjectUpdated={() => loadProjects()}
+        onProjectUpdated={(updatedProject) => {
+          if (updatedProject) {
+            setWorkspaceProject(updatedProject);
+            setProjects(prev => prev.map(p => (p.id === updatedProject.id || p.projectCode === updatedProject.projectCode) ? updatedProject : p));
+          }
+          loadProjects();
+        }}
       />
 
       {/* Request Status Change Modal for Unauthorized Users */}
@@ -1215,17 +1228,20 @@ export const ProjectsPage: React.FC = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              const pendingReq = {
-                requestedStatus,
-                reason: requestReason.trim(),
-                requestedBy: user ? `${user.firstName} ${user.lastName}` : 'Team Member',
-                requestedByRole: user?.role || 'EMPLOYEE',
-                requestedAt: new Date().toISOString().split('T')[0],
-              };
-              await projectsApi.update(requestStatusProject.id, { pendingStatusRequest: pendingReq });
-              setRequestStatusProject(null);
-              setRequestReason('');
-              await loadProjects();
+              try {
+                await projectsApi.requestStatusChange(requestStatusProject.id, {
+                  requestedStatus,
+                  reason: requestReason.trim(),
+                  requestedBy: user ? `${user.firstName} ${user.lastName}` : 'Team Member',
+                  requestedByRole: user?.role || 'EMPLOYEE',
+                });
+                toast.success('Status change request submitted successfully.');
+                setRequestStatusProject(null);
+                setRequestReason('');
+                await loadProjects();
+              } catch (err: any) {
+                toast.error(err.response?.data?.message || err.message || 'Unable to submit status request.');
+              }
             }}
             className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-xl text-slate-800 dark:text-slate-200"
           >

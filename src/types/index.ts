@@ -10,6 +10,7 @@ export type Role =
   | 'ROLE_GROWTH_HEAD'
   | 'ROLE_RELATIONS_HEAD'
   | 'ROLE_SENIOR_ENGINEERING_MANAGER'
+  | 'ROLE_SENIOR_DEVELOPER'
   | 'ROLE_DIRECTOR'
   | 'ROLE_MANAGER'
   | 'ROLE_EMPLOYEE'
@@ -40,6 +41,8 @@ export interface UserProfile {
   department: string;
   phoneNumber?: string;
   avatarUrl?: string;
+  githubUrl?: string;
+  githubProfile?: string;
   enabled: boolean;
   accountNonLocked: boolean;
   emailVerified: boolean;
@@ -323,6 +326,7 @@ export interface Intern {
   department: string;
   skills: string[];
   githubUsername?: string;
+  githubUrl?: string;
   performanceScore: number;
   attendance: number;
   status: InternStatus;

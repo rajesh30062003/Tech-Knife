@@ -153,6 +153,9 @@ export const CustomerPortal: React.FC = () => {
           project={selectedWorkspaceProject}
           isOpen={isWorkspaceOpen}
           onClose={() => setIsWorkspaceOpen(false)}
+          onProjectUpdated={(updated) => {
+            if (updated) setSelectedWorkspaceProject(updated);
+          }}
         />
       )}
 

@@ -148,6 +148,8 @@ public class Project {
 
     private String logoUrl;
 
+    private ProjectPendingStatusRequest pendingStatusRequest;
+
     @CreatedDate
     private Instant createdAt;
 

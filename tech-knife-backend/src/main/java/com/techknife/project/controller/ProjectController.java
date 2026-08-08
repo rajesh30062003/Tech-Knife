@@ -6,6 +6,7 @@ import com.techknife.project.dto.*;
 import com.techknife.project.entity.ProjectActivity;
 import com.techknife.project.entity.ProjectStatus;
 import com.techknife.project.entity.ProjectStatusHistory;
+import com.techknife.project.service.ProjectActivityService;
 import com.techknife.project.service.ProjectService;
 import com.techknife.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,7 @@ import java.util.List;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ProjectActivityService projectActivityService;
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ROLE_SUPER_ADMIN','SUPER_ADMIN','ROLE_CEO','CEO','ROLE_MD','MD','ROLE_CTO','CTO','ROLE_CMO','CMO','PROJECT_CREATE')")
@@ -77,6 +79,21 @@ public class ProjectController {
         String currentRole = getPrimaryRole(authentication);
         ProjectResponseDTO response = projectService.updateStatus(id, updateDTO, currentUser, currentRole);
         return ResponseEntity.ok(ApiResponse.success(response, "Project status updated successfully"));
+    }
+
+    @PostMapping("/{id}/status-request")
+    @PreAuthorize("isAuthenticated()")
+    @Auditable(action = "REQUEST_PROJECT_STATUS_CHANGE", module = "PROJECT")
+    @Operation(summary = "Submit a status change request for project approval")
+    public ResponseEntity<ApiResponse<ProjectResponseDTO>> requestStatusChange(
+            @PathVariable String id,
+            @Valid @RequestBody ProjectStatusRequestDTO requestDTO,
+            Authentication authentication) {
+        logAuthorizationDebug("POST /api/v1/projects/" + id + "/status-request", authentication);
+        String currentUser = authentication != null ? authentication.getName() : "SYSTEM";
+        String currentRole = getPrimaryRole(authentication);
+        ProjectResponseDTO response = projectService.requestStatusChange(id, requestDTO, currentUser, currentRole);
+        return ResponseEntity.ok(ApiResponse.success(response, "Status change request submitted successfully"));
     }
 
     @RequestMapping(value = "/{id}/progress", method = {org.springframework.web.bind.annotation.RequestMethod.PUT, org.springframework.web.bind.annotation.RequestMethod.PATCH})
@@ -239,8 +256,28 @@ public class ProjectController {
 
     @GetMapping("/{id}/activities")
     @Operation(summary = "Get Project Audit Trail Activities")
-    public ResponseEntity<ApiResponse<List<ProjectActivity>>> getActivities(@PathVariable String id) {
-        List<ProjectActivity> activities = projectService.getActivities(id);
+    public ResponseEntity<ApiResponse<List<ProjectActivity>>> getActivities(
+            @PathVariable String id,
+            @RequestParam(required = false) String activityType,
+            @RequestParam(required = false) String search) {
+
+        List<ProjectActivity> activities = projectActivityService.getActivitiesByProject(id);
+
+        if (activityType != null && !activityType.isBlank() && !"ALL".equalsIgnoreCase(activityType)) {
+            activities = activities.stream()
+                    .filter(a -> activityType.equalsIgnoreCase(a.getActivityType()))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        if (search != null && !search.isBlank()) {
+            String q = search.toLowerCase().trim();
+            activities = activities.stream()
+                    .filter(a -> (a.getAction() != null && a.getAction().toLowerCase().contains(q))
+                            || (a.getDescription() != null && a.getDescription().toLowerCase().contains(q))
+                            || (a.getPerformedBy() != null && a.getPerformedBy().toLowerCase().contains(q))
+                            || (a.getFieldModified() != null && a.getFieldModified().toLowerCase().contains(q)))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
         return ResponseEntity.ok(ApiResponse.success(activities, "Project activities retrieved successfully"));
     }
 

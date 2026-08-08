@@ -40,6 +40,10 @@ public class ApiResponse<T> {
         return success(data, "Operation completed successfully");
     }
 
+    public static <T> ApiResponse<T> error(String message) {
+        return error(message, null);
+    }
+
     public static <T> ApiResponse<T> error(String message, ErrorDetails errorDetails) {
         return ApiResponse.<T>builder()
                 .success(false)

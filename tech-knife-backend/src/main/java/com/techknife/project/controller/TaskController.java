@@ -44,9 +44,21 @@ public class TaskController {
     @Operation(summary = "Update Task")
     public ResponseEntity<ApiResponse<TaskResponseDTO>> updateTask(
             @PathVariable String id,
-            @Valid @RequestBody TaskRequestDTO request) {
+            @RequestBody TaskRequestDTO request) {
         TaskResponseDTO response = taskService.updateTask(id, request);
         return ResponseEntity.ok(ApiResponse.success(response, "Task updated successfully"));
+    }
+
+    @RequestMapping(value = "/{id}/status", method = {RequestMethod.PUT, RequestMethod.PATCH})
+    @PreAuthorize("isAuthenticated()")
+    @Auditable(action = "UPDATE_TASK_STATUS", module = "PROJECT")
+    @Operation(summary = "Update Task Status")
+    public ResponseEntity<ApiResponse<TaskResponseDTO>> updateTaskStatus(
+            @PathVariable String id,
+            @RequestBody java.util.Map<String, Object> body) {
+        String statusStr = body.get("status") != null ? body.get("status").toString() : "Completed";
+        TaskResponseDTO response = taskService.updateTaskStatus(id, statusStr);
+        return ResponseEntity.ok(ApiResponse.success(response, "Task status updated successfully"));
     }
 
     @PatchMapping("/{id}/assign")

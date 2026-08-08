@@ -13,6 +13,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
@@ -31,22 +32,22 @@ public class GoogleDriveService {
     private final CloudinaryService cloudinaryService;
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${GOOGLE_DRIVE_PARENT_FOLDER_ID:}")
+    @Value("${app.google.drive.parent-folder-id:${GOOGLE_DRIVE_PARENT_FOLDER_ID:}}")
     private String parentFolderId;
 
-    @Value("${GOOGLE_DRIVE_AUTH_MODE:OAUTH2}")
+    @Value("${app.google.drive.auth-mode:${GOOGLE_DRIVE_AUTH_MODE:OAUTH2}}")
     private String authMode;
 
-    @Value("${GOOGLE_OAUTH_CLIENT_ID:}")
+    @Value("${app.google.oauth.client-id:${GOOGLE_OAUTH_CLIENT_ID:}}")
     private String clientId;
 
-    @Value("${GOOGLE_OAUTH_CLIENT_SECRET:}")
+    @Value("${app.google.oauth.client-secret:${GOOGLE_OAUTH_CLIENT_SECRET:}}")
     private String clientSecret;
 
-    @Value("${GOOGLE_OAUTH_REFRESH_TOKEN:}")
+    @Value("${app.google.oauth.refresh-token:${GOOGLE_OAUTH_REFRESH_TOKEN:}}")
     private String refreshToken;
 
-    @Value("${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:8080/api/v1/drive/oauth2callback}")
+    @Value("${app.google.oauth.redirect-uri:${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:8080/api/v1/drive/oauth2callback}}")
     private String redirectUri;
 
     @Value("${GOOGLE_DRIVE_CREDENTIALS:credentials/google-drive-service.json}")
@@ -60,6 +61,72 @@ public class GoogleDriveService {
 
     private String cachedAccessToken;
 
+    @PostConstruct
+    public void init() {
+        loadEnvFallbackIfNeeded();
+        log.info("[GoogleDriveService] Startup Google OAuth Configuration Diagnostics:");
+        log.info("  GOOGLE_OAUTH_CLIENT_ID configured: {}", (clientId != null && !clientId.isBlank()));
+        log.info("  GOOGLE_OAUTH_CLIENT_SECRET configured: {}", (clientSecret != null && !clientSecret.isBlank()));
+        log.info("  GOOGLE_OAUTH_REFRESH_TOKEN configured: {}", (refreshToken != null && !refreshToken.isBlank()));
+        log.info("  GOOGLE_DRIVE_PARENT_FOLDER_ID configured: {}", (parentFolderId != null && !parentFolderId.isBlank()));
+
+        if ("OAUTH2".equalsIgnoreCase(authMode)) {
+            List<String> missing = new ArrayList<>();
+            if (clientId == null || clientId.isBlank()) missing.add("GOOGLE_OAUTH_CLIENT_ID");
+            if (clientSecret == null || clientSecret.isBlank()) missing.add("GOOGLE_OAUTH_CLIENT_SECRET");
+            if (refreshToken == null || refreshToken.isBlank()) missing.add("GOOGLE_OAUTH_REFRESH_TOKEN");
+            if (!missing.isEmpty()) {
+                log.error("[GoogleDriveService] WARNING: Google OAuth 2.0 configuration incomplete. Missing key(s): {}", String.join(", ", missing));
+            }
+        }
+    }
+
+    private void loadEnvFallbackIfNeeded() {
+        if ((clientId != null && !clientId.isBlank()) && (clientSecret != null && !clientSecret.isBlank()) && (refreshToken != null && !refreshToken.isBlank())) {
+            return;
+        }
+
+        List<String> envPaths = List.of(".env", "tech-knife-backend/.env", "../.env");
+        for (String p : envPaths) {
+            java.io.File envFile = new java.io.File(p);
+            if (envFile.exists()) {
+                try {
+                    List<String> lines = java.nio.file.Files.readAllLines(envFile.toPath(), StandardCharsets.UTF_8);
+                    for (String line : lines) {
+                        line = line.trim();
+                        if (line.startsWith("#") || !line.contains("=")) continue;
+                        String[] parts = line.split("=", 2);
+                        String key = parts[0].trim();
+                        String val = parts[1].trim();
+                        if ("GOOGLE_OAUTH_CLIENT_ID".equals(key) && (clientId == null || clientId.isBlank())) {
+                            this.clientId = val;
+                        } else if ("GOOGLE_OAUTH_CLIENT_SECRET".equals(key) && (clientSecret == null || clientSecret.isBlank())) {
+                            this.clientSecret = val;
+                        } else if ("GOOGLE_OAUTH_REFRESH_TOKEN".equals(key) && (refreshToken == null || refreshToken.isBlank())) {
+                            this.refreshToken = val;
+                        } else if ("GOOGLE_DRIVE_PARENT_FOLDER_ID".equals(key) && (parentFolderId == null || parentFolderId.isBlank())) {
+                            this.parentFolderId = val;
+                        }
+                    }
+                    log.info("[GoogleDriveService] Loaded OAuth credentials fallback from '{}'", envFile.getAbsolutePath());
+                } catch (Exception e) {
+                    log.warn("[GoogleDriveService] Failed to read fallback env file '{}': {}", p, e.getMessage());
+                }
+            }
+        }
+    }
+
+    public Map<String, Object> getOauthConfigStatus() {
+        loadEnvFallbackIfNeeded();
+        Map<String, Object> status = new LinkedHashMap<>();
+        status.put("clientIdConfigured", clientId != null && !clientId.isBlank());
+        status.put("clientSecretConfigured", clientSecret != null && !clientSecret.isBlank());
+        status.put("refreshTokenConfigured", refreshToken != null && !refreshToken.isBlank());
+        status.put("parentFolderConfigured", parentFolderId != null && !parentFolderId.isBlank());
+        status.put("authMode", authMode != null ? authMode : "OAUTH2");
+        return status;
+    }
+
     public synchronized String fetchAccessToken() {
         if ("OAUTH2".equalsIgnoreCase(authMode) || (refreshToken != null && !refreshToken.isBlank())) {
             return refreshUserAccessToken();
@@ -70,6 +137,7 @@ public class GoogleDriveService {
 
     public synchronized String refreshUserAccessToken() {
         try {
+            loadEnvFallbackIfNeeded();
             log.info("[GoogleDriveService] Refreshing OAuth 2.0 User Access Token using Refresh Token");
             if (clientId == null || clientId.isBlank() || clientSecret == null || clientSecret.isBlank() || refreshToken == null || refreshToken.isBlank()) {
                 throw new RuntimeException("Missing Google OAuth 2.0 credentials: GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, or GOOGLE_OAUTH_REFRESH_TOKEN is empty");

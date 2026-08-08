@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, Briefcase, Info, Users, UserCheck, Calendar, Zap, GitBranch, 
   Settings, ExternalLink, Github, Globe, Shield, Clock, DollarSign, 
   Cpu, Database, Cloud, Terminal, CheckCircle2, AlertCircle, Edit3, 
   Trash2, Link2, Download, Save, Loader2, Sparkles, ShieldCheck, UserPlus, FileText,
   BarChart3, CheckSquare, Layers, AlertTriangle, ChevronRight, Plus, RefreshCw, Filter, User, Lock, Award,
-  MessageSquare, Send, Paperclip, Smile, Pin, Search, PhoneCall, Video, Bot, BookOpen, Activity, Bell, Eye, CornerDownRight, Tag, CheckCheck
+  MessageSquare, Send, Paperclip, Smile, Pin, Search, PhoneCall, Video, Bot, BookOpen, Activity, Bell, Eye, CornerDownRight, Tag, CheckCheck,
+  PanelLeftClose, PanelLeftOpen, Menu, ChevronLeft
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { projectsApi, EnterpriseProject, ProjectActivity, ProjectLinksData } from '../../api/projects';
@@ -23,6 +25,8 @@ import { EnterpriseWikiWorkspace } from '../wiki/EnterpriseWikiWorkspace';
 import { EnterpriseSecuritySuite } from '../security/EnterpriseSecuritySuite';
 import { EnterpriseProjectPlanningWorkspace } from './planning/EnterpriseProjectPlanningWorkspace';
 import { EnterpriseTaskManagementWorkspace } from './tasks/EnterpriseTaskManagementWorkspace';
+import { ProjectDocumentsTab } from './tabs/ProjectDocumentsTab';
+import { ProjectOverviewTab } from './tabs/ProjectOverviewTab';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -30,7 +34,6 @@ export type EnterpriseWorkspaceTab =
   | 'overview' 
   | 'planning' 
   | 'srs_documents' 
-  | 'files_media' 
   | 'conversations' 
   | 'tasks' 
   | 'kanban' 
@@ -274,6 +277,10 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
+  // Responsive Sidebar States
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+
   // RBAC Permission Helpers
   const userRoles = user?.roles || [];
   const isAdmin = userRoles.some(r => ['ROLE_ADMIN', 'ADMIN', 'ROLE_SUPER_ADMIN'].includes(r));
@@ -296,6 +303,25 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  // Keyboard shortcut listener (Esc key)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isMobileDrawerOpen) {
+          setIsMobileDrawerOpen(false);
+        } else if (pdfPreviewUrl) {
+          setPdfPreviewUrl(null);
+        } else if (imageLightboxUrl) {
+          setImageLightboxUrl(null);
+        } else if (isOpen) {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isMobileDrawerOpen, pdfPreviewUrl, imageLightboxUrl, isOpen, onClose]);
 
   // Load Historical Persisted Messages from Backend
   useEffect(() => {
@@ -405,9 +431,10 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
           uploadedAt: new Date().toISOString(),
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Drive upload failed for chat attachment:', err);
-      alert('File upload failed. Attachment was not sent.');
+      const msg = err?.response?.data?.message || 'Attachment upload failed. Storage configuration or network error.';
+      alert(msg);
       setPendingAttachment(null);
     } finally {
       setIsUploadingAttachment(false);
@@ -519,147 +546,294 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
     }
   };
 
-  // Nav Items Definition
-  const navItems = [
-    { id: 'overview', label: 'Overview', icon: Briefcase },
-    { id: 'planning', label: 'Planning', icon: Zap },
-    { id: 'srs_documents', label: 'SRS & Documents', icon: FileText },
-    { id: 'files_media', label: 'Files & Media', icon: Paperclip },
-    { id: 'conversations', label: 'Conversations & Chat', icon: MessageSquare, badge: 'LIVE' },
-    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { id: 'kanban', label: 'Kanban Board', icon: Layers },
-    { id: 'sprint', label: 'Sprint Management', icon: Clock },
-    { id: 'timeline', label: 'Timeline & Milestones', icon: Calendar },
-    { id: 'meetings', label: 'Meetings', icon: Video },
-    { id: 'team', label: 'Team & Capacity', icon: Users },
-    { id: 'customer', label: 'Customer Approvals', icon: Award },
-    { id: 'devops', label: 'Repository & DevOps', icon: GitBranch },
-    { id: 'risks', label: 'Risks & Governance', icon: AlertTriangle },
-    { id: 'analytics', label: 'Productivity Analytics', icon: BarChart3 },
-    { id: 'reports', label: 'Executive Reports', icon: Download },
-    { id: 'audit', label: 'Audit Trail Stream', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'wiki', label: 'Knowledge Base & Wiki', icon: BookOpen },
-    { id: 'ai_workspace', label: 'AI Copilot Assistant', icon: Bot },
-    { id: 'automation', label: 'Automation Rules', icon: Cpu },
-    { id: 'security', label: 'Security & SSO', icon: ShieldCheck },
-    { id: 'settings', label: 'Project Settings', icon: Settings },
+  // Categorized Navigation Groups for Sleek Enterprise Hierarchy
+  const navGroups = [
+    {
+      title: 'CORE WORKSPACE',
+      items: [
+        { id: 'overview', label: 'Overview Dashboard', icon: Briefcase },
+        { id: 'planning', label: 'Planning & Strategy', icon: Zap },
+        { id: 'srs_documents', label: 'SRS & Documents', icon: FileText },
+        { id: 'conversations', label: 'Conversations & Chat', icon: MessageSquare, badge: 'LIVE' },
+      ]
+    },
+    {
+      title: 'EXECUTION & TRACKING',
+      items: [
+        { id: 'tasks', label: 'Task Backlog', icon: CheckSquare },
+        { id: 'kanban', label: 'Kanban Board', icon: Layers },
+        { id: 'sprint', label: 'Sprint Management', icon: Clock },
+        { id: 'timeline', label: 'Timeline & Milestones', icon: Calendar },
+        { id: 'meetings', label: 'Meetings & Syncs', icon: Video },
+        { id: 'team', label: 'Team & Capacity', icon: Users },
+      ]
+    },
+    {
+      title: 'GOVERNANCE & ANALYTICS',
+      items: [
+        { id: 'customer', label: 'Customer Approvals', icon: Award },
+        { id: 'devops', label: 'Repository & DevOps', icon: GitBranch },
+        { id: 'risks', label: 'Risks & Governance', icon: AlertTriangle },
+        { id: 'analytics', label: 'Productivity Analytics', icon: BarChart3 },
+        { id: 'reports', label: 'Executive Reports', icon: Download },
+        { id: 'audit', label: 'Audit Trail Stream', icon: Shield },
+        { id: 'notifications', label: 'Notifications', icon: Bell },
+      ]
+    },
+    {
+      title: 'KNOWLEDGE & SETTINGS',
+      items: [
+        { id: 'wiki', label: 'Knowledge Base & Wiki', icon: BookOpen },
+        { id: 'ai_workspace', label: 'AI Copilot Assistant', icon: Bot },
+        { id: 'automation', label: 'Automation Rules', icon: Cpu },
+        { id: 'security', label: 'Security & SSO', icon: ShieldCheck },
+        { id: 'settings', label: 'Project Settings', icon: Settings },
+      ]
+    }
   ];
 
   const currentUserId = user?.id || 'u-curr';
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-hidden select-none animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 lg:p-6 overflow-hidden select-none animate-in fade-in duration-200">
       
-      {/* Full-Screen Central Workspace Container */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-7xl w-full h-[96vh] flex flex-col shadow-2xl overflow-hidden">
+      {/* Central Enterprise SaaS Workspace Container */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.98, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.98, y: 8 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/90 rounded-2xl lg:rounded-3xl max-w-[1600px] w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden"
+      >
         
-        {/* Workspace Top Header Bar */}
-        <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white border-b border-slate-800 shrink-0 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="px-3 py-1 bg-cyan-500/20 text-cyan-400 font-mono text-xs font-bold rounded-full border border-cyan-500/30">
+        {/* Workspace Top Sticky Header Bar */}
+        <div className="px-4 py-3 sm:px-6 sm:py-4 bg-slate-950 text-white border-b border-slate-800/80 shrink-0 flex items-center justify-between gap-3 sm:gap-4 font-sans">
+          
+          {/* Left Side: Mobile Drawer Button, Code, Status & Title */}
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            
+            {/* Mobile Sidebar Hamburger Toggle Button */}
+            <button
+              onClick={() => setIsMobileDrawerOpen(true)}
+              className="md:hidden p-2 text-slate-300 hover:text-white rounded-xl bg-slate-800/60 border border-slate-700/60"
+              aria-label="Open navigation menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <span className="px-2.5 py-1 bg-cyan-500/10 text-cyan-400 font-mono text-xs font-bold rounded-lg border border-cyan-500/20 shrink-0">
               {projectCode}
             </span>
-            <StatusBadge status={project.status || 'PLANNED'} />
-            <h1 className="text-lg sm:text-xl font-extrabold text-white tracking-tight truncate">
+
+            <div className="shrink-0">
+              <StatusBadge status={project.status || 'PLANNED'} />
+            </div>
+
+            <h1 className="text-base sm:text-lg lg:text-xl font-extrabold text-white tracking-tight truncate max-w-xs sm:max-w-md lg:max-w-xl">
               {projectName}
             </h1>
-            <span className="text-xs text-slate-400 font-medium hidden sm:inline truncate">
-              • {project.department || 'Engineering'} ({project.client || project.clientOrganization || 'Apex Logistics'})
+
+            <span className="text-xs text-slate-400 font-medium hidden lg:inline-flex items-center gap-1.5 shrink-0 truncate border-l border-slate-800 pl-3">
+              <span>{project.department || 'Engineering'}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-300 font-semibold">{project.client || project.clientOrganization || 'Enterprise Client'}</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-slate-800/80 rounded-xl border border-slate-700/60 text-xs font-mono">
-              <span className="text-slate-400">Budget:</span>
-              <span className="text-emerald-400 font-bold">${(project.budget || 85000).toLocaleString()}</span>
-              <span className="text-slate-400 ml-2">Progress:</span>
-              <span className="text-cyan-400 font-bold">{progress}%</span>
+          {/* Right Side: Quick Metric Pills & Actions */}
+          <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            
+            {/* Budget Summary Pill */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+              <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-slate-400 font-medium">Budget:</span>
+              <span className="text-emerald-400 font-bold font-mono">${(project.budget || 85000).toLocaleString()}</span>
             </div>
 
+            {/* Progress Pill */}
+            <div className="hidden md:flex items-center gap-2.5 px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800 text-xs">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-slate-400 font-medium">Progress:</span>
+              <span className="text-cyan-400 font-bold font-mono">{progress}%</span>
+              <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="h-full bg-cyan-400 rounded-full" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+
+            {/* Desktop Sidebar Collapse Toggle */}
+            <button
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="hidden md:flex p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 transition-colors"
+              title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {isSidebarCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+            </button>
+
+            {/* Close Modal Button */}
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-2xl transition-colors"
-              title="Close Workspace"
+              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-xl transition-colors"
+              title="Close Workspace (Esc)"
+              aria-label="Close Workspace"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
           </div>
         </div>
 
         {/* Global Save Alert Banner */}
         {saveMessage && (
-          <div className="px-6 py-2 bg-emerald-500/10 border-b border-emerald-500/20 text-xs text-emerald-400 font-bold flex items-center gap-2 shrink-0">
+          <div className="px-6 py-2.5 bg-emerald-500/10 border-b border-emerald-500/20 text-xs text-emerald-400 font-bold flex items-center gap-2 shrink-0">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> {saveMessage}
           </div>
         )}
 
-        {/* Main Workspace Layout */}
-        <div className="flex-1 flex overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
+        {/* Main Workspace Inner Shell */}
+        <div className="flex-1 flex overflow-hidden bg-slate-50/50 dark:bg-slate-950/60">
           
-          {/* Left Navigation Sidebar */}
-          <div className="w-64 bg-slate-900 border-r border-slate-800 overflow-y-auto p-3 space-y-1 shrink-0 no-scrollbar hidden md:block">
-            <span className="text-[10px] uppercase font-bold text-slate-500 px-3 tracking-wider block mb-2">Workspace Modules</span>
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id as EnterpriseWorkspaceTab)}
-                className={`w-full px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-between gap-2.5 ${
-                  activeTab === item.id
-                    ? 'bg-cyan-500 text-slate-950 shadow-md font-black'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <item.icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
+          {/* Desktop Left Collapsible Navigation Sidebar */}
+          <motion.div 
+            animate={{ width: isSidebarCollapsed ? 76 : 280 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="bg-slate-950 border-r border-slate-800/80 overflow-y-auto p-3 space-y-5 shrink-0 no-scrollbar hidden md:flex flex-col justify-between"
+          >
+            <div className="space-y-4">
+              {navGroups.map((group, groupIdx) => (
+                <div key={groupIdx} className="space-y-1">
+                  {!isSidebarCollapsed ? (
+                    <span className="text-[10px] uppercase font-extrabold text-slate-500 px-3 tracking-wider block mb-1.5">
+                      {group.title}
+                    </span>
+                  ) : (
+                    <div className="h-px bg-slate-800/60 my-2 mx-1" />
+                  )}
+
+                  {group.items.map((item) => {
+                    const isActive = activeTab === item.id;
+                    const IconComp = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActiveTab(item.id as EnterpriseWorkspaceTab)}
+                        title={isSidebarCollapsed ? item.label : undefined}
+                        className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-3 ${
+                          isActive
+                            ? 'bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 text-cyan-400 border-l-4 border-cyan-400 font-extrabold shadow-xs backdrop-blur-xs'
+                            : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <IconComp className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-400' : 'text-slate-400'}`} />
+                          {!isSidebarCollapsed && (
+                            <span className="truncate">{item.label}</span>
+                          )}
+                        </div>
+
+                        {!isSidebarCollapsed && item.badge && (
+                          <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-300 font-mono text-[9px] font-extrabold rounded-md border border-cyan-500/30">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                {item.badge && (
-                  <span className="px-1.5 py-0.5 bg-cyan-400/20 text-cyan-300 font-mono text-[9px] font-black rounded-md">
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Center Body Workspace Content Panel */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-            
-            {/* OVERVIEW TAB */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1"><Sparkles className="w-3.5 h-3.5 text-cyan-500" /> Overall Progress</span>
-                    <div className="flex items-baseline justify-between"><span className="text-2xl font-extrabold text-cyan-600 font-mono">{progress}%</span></div>
-                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden"><div className="h-full bg-cyan-500 rounded-full" style={{ width: `${progress}%` }} /></div>
-                  </div>
-
-                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1"><DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Budget Valuation</span>
-                    <div className="flex items-baseline justify-between"><span className="text-xl font-extrabold text-emerald-600 font-mono">${(project.budget || 85000).toLocaleString()}</span><span className="text-xs text-slate-400">USD</span></div>
-                    <p className="text-xs text-slate-500 font-medium">Cap Limit</p>
-                  </div>
-
-                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-indigo-500" /> Estimated Duration</span>
-                    <div className="flex items-baseline justify-between"><span className="text-xl font-extrabold text-indigo-600 font-mono">{project.estimatedHours || 480} Hrs</span></div>
-                    <p className="text-xs text-slate-500 font-medium">12 Weeks Target</p>
-                  </div>
-
-                  <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1"><Users className="w-3.5 h-3.5 text-amber-500" /> Team Members</span>
-                    <div className="flex items-baseline justify-between"><span className="text-xl font-extrabold text-slate-900 dark:text-white font-mono">{(project.assignedEmployees?.length || 0) + (project.assignedInterns?.length || 0)} Roster</span></div>
-                    <p className="text-xs text-slate-500 font-medium">Engineers & Interns</p>
-                  </div>
+            {/* Sidebar Footer Info */}
+            {!isSidebarCollapsed && (
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-500 font-medium space-y-1">
+                <div className="flex items-center gap-2 text-slate-300 font-bold">
+                  <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>SaaS Engine v3.5</span>
                 </div>
-
-                <div className="p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-cyan-500" /> Project Description</h3>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{project.description || 'Enterprise deliverable persistent in MongoDB Atlas with Spring Boot 3.5 microservices.'}</p>
-                </div>
+                <p className="text-[10px] text-slate-500">Real-time synced workspace</p>
               </div>
+            )}
+          </motion.div>
+
+          {/* Mobile Drawer Navigation Sidebar */}
+          <AnimatePresence>
+            {isMobileDrawerOpen && (
+              <>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                  className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs md:hidden"
+                />
+                <motion.div 
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="fixed inset-y-0 left-0 z-50 w-72 bg-slate-950 border-r border-slate-800 p-4 flex flex-col justify-between overflow-y-auto md:hidden"
+                >
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="w-5 h-5 text-cyan-400" />
+                        <span className="font-extrabold text-sm text-white font-mono">{projectCode}</span>
+                      </div>
+                      <button 
+                        onClick={() => setIsMobileDrawerOpen(false)}
+                        className="p-1.5 text-slate-400 hover:text-white rounded-lg bg-slate-900"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-5">
+                      {navGroups.map((group, groupIdx) => (
+                        <div key={groupIdx} className="space-y-1">
+                          <span className="text-[10px] uppercase font-extrabold text-slate-500 px-3 tracking-wider block mb-1.5">
+                            {group.title}
+                          </span>
+                          {group.items.map((item) => {
+                            const isActive = activeTab === item.id;
+                            const IconComp = item.icon;
+                            return (
+                              <button
+                                key={item.id}
+                                onClick={() => {
+                                  setActiveTab(item.id as EnterpriseWorkspaceTab);
+                                  setIsMobileDrawerOpen(false);
+                                }}
+                                className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-between gap-3 ${
+                                  isActive
+                                    ? 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                                    : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <IconComp className="w-4 h-4 shrink-0" />
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.badge && (
+                                  <span className="px-1.5 py-0.5 bg-cyan-400/20 text-cyan-300 font-mono text-[9px] font-black rounded-md">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* Center Main Viewport Workspace Content Panel */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 scroll-smooth">
+            
+            {/* OVERVIEW DASHBOARD TAB */}
+            {activeTab === 'overview' && (
+              <ProjectOverviewTab project={project} />
             )}
 
             {/* ENTERPRISE SLACK / TEAMS STYLE 1-COLUMN PROJECT WORKSPACE CHAT */}
@@ -787,9 +961,7 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
 
             {/* SRS & DOCUMENTS TAB */}
             {activeTab === 'srs_documents' && (
-              <div className="space-y-6">
-                <UniversalFileUploader defaultCategory="DOCUMENT" />
-              </div>
+              <ProjectDocumentsTab project={project} />
             )}
 
             {/* TEAM & CAPACITY TAB */}
@@ -856,19 +1028,22 @@ export const EnterpriseProjectWorkspace: React.FC<EnterpriseProjectWorkspaceProp
           </div>
         </div>
 
-        {/* Workspace Footer Bar */}
-        <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0 text-xs font-medium text-slate-500">
+        {/* Workspace Sticky Footer Bar */}
+        <div className="px-4 py-3 sm:px-6 bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between gap-4 shrink-0 text-xs font-medium text-slate-500">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Enterprise Workspace Operating System Active</span>
+            <span className="font-mono text-slate-600 dark:text-slate-400 font-semibold">Enterprise Workspace OS Active</span>
           </div>
 
-          <button onClick={onClose} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold rounded-xl transition-all">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl transition-all"
+          >
             Close Workspace
           </button>
         </div>
 
-      </div>
+      </motion.div>
 
       {/* PDF PREVIEW MODAL */}
       {pdfPreviewUrl && (

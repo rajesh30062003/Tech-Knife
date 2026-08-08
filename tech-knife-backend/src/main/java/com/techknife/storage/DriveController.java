@@ -27,6 +27,13 @@ public class DriveController {
     private final GoogleDriveService googleDriveService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    @GetMapping("/oauth-config-status")
+    @Operation(summary = "Check Google Drive OAuth Configuration Status (Safe Diagnostics)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getOauthConfigStatus() {
+        Map<String, Object> status = googleDriveService.getOauthConfigStatus();
+        return ResponseEntity.ok(ApiResponse.success(status, "Google Drive OAuth configuration status fetched"));
+    }
+
     @GetMapping("/project/{projectCode}")
     @Operation(summary = "Get Project Documents from Google Drive Repository")
     public ResponseEntity<ApiResponse<List<DriveFileRecord>>> getProjectDocuments(@PathVariable String projectCode) {
@@ -46,21 +53,30 @@ public class DriveController {
         log.info("POST Upload Drive Document: file={}, projectCode={}, category={}",
                 file.getOriginalFilename(), projectCode, category);
 
-        DriveFileRecord record = googleDriveService.uploadFile(file, projectCode, category, uploadedBy);
-
         try {
-            messagingTemplate.convertAndSend("/topic/project." + projectCode, Map.of(
-                    "eventType", "DOCUMENT_UPLOADED",
-                    "fileId", record.getFileId(),
-                    "fileName", record.getName(),
-                    "url", record.getWebViewLink(),
-                    "category", record.getCategory()
-            ));
-        } catch (Exception e) {
-            log.warn("STOMP broadcast for document upload warning: {}", e.getMessage());
-        }
+            DriveFileRecord record = googleDriveService.uploadFile(file, projectCode, category, uploadedBy);
 
-        return ResponseEntity.ok(ApiResponse.success(record, "Document uploaded to Google Drive successfully"));
+            try {
+                messagingTemplate.convertAndSend("/topic/project." + projectCode, Map.of(
+                        "eventType", "DOCUMENT_UPLOADED",
+                        "fileId", record.getFileId(),
+                        "fileName", record.getName(),
+                        "url", record.getWebViewLink(),
+                        "category", record.getCategory()
+                ));
+            } catch (Exception e) {
+                log.warn("STOMP broadcast for document upload warning: {}", e.getMessage());
+            }
+
+            return ResponseEntity.ok(ApiResponse.success(record, "Document uploaded to Google Drive successfully"));
+        } catch (Exception e) {
+            log.error("[DriveController] Upload document failed: {}", e.getMessage(), e);
+            String safeMsg = "Document upload is temporarily unavailable due to storage configuration or service error.";
+            if (e.getMessage() != null && e.getMessage().contains("Missing Google OAuth")) {
+                safeMsg = "Document upload is temporarily unavailable because Google Drive storage credentials are missing.";
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.error(safeMsg));
+        }
     }
 
     @GetMapping("/download/{fileId}")

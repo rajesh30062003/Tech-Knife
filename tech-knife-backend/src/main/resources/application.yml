@@ -85,6 +85,16 @@ app:
     client-secret: ${GITHUB_CLIENT_SECRET:github_client_secret_here}
     organization: ${GITHUB_ORG:tech-knife-org}
 
+  google:
+    drive:
+      parent-folder-id: ${GOOGLE_DRIVE_PARENT_FOLDER_ID:}
+      auth-mode: ${GOOGLE_DRIVE_AUTH_MODE:OAUTH2}
+    oauth:
+      client-id: ${GOOGLE_OAUTH_CLIENT_ID:}
+      client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+      redirect-uri: ${GOOGLE_OAUTH_REDIRECT_URI:http://localhost:8080/api/v1/drive/oauth2callback}
+      refresh-token: ${GOOGLE_OAUTH_REFRESH_TOKEN:}
+
   cors:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173,https://techknife.app}
     allowed-methods: GET,POST,PUT,DELETE,PATCH,OPTIONS

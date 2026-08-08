@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,13 +74,16 @@ public class TaskService {
     public TaskResponseDTO updateTask(String id, TaskRequestDTO request) {
         Task task = getTaskEntity(id);
 
-        task.setTitle(request.getTitle());
-        task.setDescription(request.getDescription());
+        if (request.getTitle() != null && !request.getTitle().isBlank()) {
+            task.setTitle(request.getTitle());
+        }
+        if (request.getDescription() != null) task.setDescription(request.getDescription());
         if (request.getPriority() != null) task.setPriority(request.getPriority());
         if (request.getStatus() != null) {
             task.setStatus(request.getStatus());
-            if (request.getStatus() == TaskStatus.DONE) {
+            if (request.getStatus() == TaskStatus.DONE || request.getStatus() == TaskStatus.COMPLETED) {
                 task.setCompletionPercentage(100.0);
+                task.setCompletedDate(LocalDate.now());
             }
         }
         if (request.getStoryPoints() != null) task.setStoryPoints(request.getStoryPoints());
@@ -95,16 +99,34 @@ public class TaskService {
             task.setReviewerName(resolveEmployeeName(request.getReviewerId()));
         }
 
-        task.setMilestoneId(request.getMilestoneId());
-        task.setParentTaskId(request.getParentTaskId());
-        task.setDueDate(request.getDueDate());
+        if (request.getMilestoneId() != null) task.setMilestoneId(request.getMilestoneId());
+        if (request.getParentTaskId() != null) task.setParentTaskId(request.getParentTaskId());
+        if (request.getDueDate() != null) task.setDueDate(request.getDueDate());
         if (request.getCompletionPercentage() != null) task.setCompletionPercentage(request.getCompletionPercentage());
 
-        if (request.getLabels() != null) task.setLabels(request.getLabels());
-        if (request.getChecklist() != null) task.setChecklist(request.getChecklist());
+        if (request.getLabels() != null && !request.getLabels().isEmpty()) task.setLabels(request.getLabels());
+        if (request.getChecklist() != null && !request.getChecklist().isEmpty()) task.setChecklist(request.getChecklist());
 
         Task updated = taskRepository.save(task);
         return mapToResponseDTO(updated);
+    }
+
+    public TaskResponseDTO updateTaskStatus(String id, String statusStr) {
+        Task task = getTaskEntity(id);
+        TaskStatus newStatus = TaskStatus.fromString(statusStr);
+        task.setStatus(newStatus);
+        if (newStatus == TaskStatus.DONE || newStatus == TaskStatus.COMPLETED) {
+            task.setCompletionPercentage(100.0);
+            task.setCompletedDate(LocalDate.now());
+            Map<String, String> compInfo = new HashMap<>();
+            compInfo.put("name", "System Member");
+            compInfo.put("role", "Engineer");
+            compInfo.put("avatar", "S");
+            compInfo.put("timestamp", LocalDate.now().toString());
+            task.setCompletedByInfo(compInfo);
+        }
+        Task saved = taskRepository.save(task);
+        return mapToResponseDTO(saved);
     }
 
     public TaskResponseDTO assignTask(String id, String employeeId, String reviewerId) {
@@ -243,6 +265,53 @@ public class TaskService {
                 .orElse(employeeId);
     }
 
+    private Object resolveCreatorInfo(String createdBy, Object existingCreatedByInfo) {
+        if (existingCreatedByInfo != null) {
+            if (existingCreatedByInfo instanceof Map) {
+                Map<?, ?> map = (Map<?, ?>) existingCreatedByInfo;
+                Object nameObj = map.get("name");
+                if (nameObj != null && !isRawObjectId(nameObj.toString())) {
+                    return existingCreatedByInfo;
+                }
+            } else {
+                return existingCreatedByInfo;
+            }
+        }
+
+        String resolvedName = "Former User";
+        String resolvedRole = "Engineer";
+
+        if (createdBy != null && !createdBy.isBlank()) {
+            if (!isRawObjectId(createdBy)) {
+                resolvedName = createdBy;
+            }
+            var empOpt = employeeRepository.findByEmployeeId(createdBy);
+            if (empOpt.isEmpty()) {
+                empOpt = employeeRepository.findById(createdBy);
+            }
+            if (empOpt.isPresent()) {
+                var emp = empOpt.get();
+                resolvedName = emp.getFirstName() + " " + emp.getLastName();
+                if (emp.getEmploymentType() != null) {
+                    resolvedRole = emp.getEmploymentType().name();
+                }
+            }
+        }
+
+        String avatar = resolvedName.substring(0, 1).toUpperCase();
+        Map<String, String> info = new HashMap<>();
+        info.put("name", resolvedName);
+        info.put("role", resolvedRole);
+        info.put("avatar", avatar);
+        info.put("timestamp", LocalDate.now().toString());
+        return info;
+    }
+
+    private boolean isRawObjectId(String str) {
+        if (str == null) return false;
+        return str.matches("^[0-9a-fA-F]{24}$");
+    }
+
     private TaskResponseDTO mapToResponseDTO(Task task) {
         String projectName = projectRepository.findById(task.getProjectId())
                 .map(Project::getProjectName).orElse(null);
@@ -257,6 +326,15 @@ public class TaskService {
         int completedSub = task.getSubtasks() != null
                 ? (int) task.getSubtasks().stream().filter(SubTask::isCompleted).count()
                 : 0;
+
+        Object creatorInfo = resolveCreatorInfo(task.getCreatedBy(), task.getCreatedByInfo());
+        String displayCreatedBy = task.getCreatedBy();
+        if (creatorInfo instanceof Map) {
+            Object nameObj = ((Map<?, ?>) creatorInfo).get("name");
+            if (nameObj != null) {
+                displayCreatedBy = nameObj.toString();
+            }
+        }
 
         return TaskResponseDTO.builder()
                 .id(task.getId())
@@ -287,7 +365,7 @@ public class TaskService {
                 .epic(task.getEpic())
                 .loggedHours(task.getLoggedHours())
                 .dependencies(task.getDependencies() != null ? task.getDependencies() : new ArrayList<>())
-                .createdByInfo(task.getCreatedByInfo())
+                .createdByInfo(creatorInfo)
                 .completedByInfo(task.getCompletedByInfo())
                 .completedDate(task.getCompletedDate())
                 .votesCount(task.getVotesCount())
@@ -295,7 +373,7 @@ public class TaskService {
                 .isWatching(task.getIsWatching())
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
-                .createdBy(task.getCreatedBy())
+                .createdBy(displayCreatedBy)
                 .updatedBy(task.getUpdatedBy())
                 .build();
     }

@@ -112,7 +112,7 @@ export const projectWorkspaceApi = {
   },
 
   updateTaskStatus: async (projectId: string, taskId: string, status: string): Promise<ApiResponse<ProjectTask>> => {
-    const res = await apiClient.put<ApiResponse<ProjectTask>>(`/projects/tasks/${taskId}`, { status });
+    const res = await apiClient.put<ApiResponse<ProjectTask>>(`/projects/tasks/${taskId}/status`, { status, projectId });
     return res.data;
   },
 
